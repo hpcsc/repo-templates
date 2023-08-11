@@ -1,0 +1,13 @@
+version: '3'
+
+tasks:
+  unit:
+    cmds:
+      - go test -tags=unit -v ./...
+
+  shellcheck:
+    preconditions:
+      - sh: command -v shellcheck
+        msg: Please follow instruction at https://github.com/koalaman/shellcheck#installing to install shellcheck
+    cmds:
+      - shellcheck -S error ./hooks/*

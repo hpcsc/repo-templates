@@ -1,0 +1,34 @@
+project_name: {{cookiecutter.name}}
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    main: ./cmd/{{cookiecutter.name}}
+    ldflags:
+      - -extldflags -static -X 'main.Version={{ '{{' }}.Version{{ '}}' }}'
+{% raw %}
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}-
+      {{- tolower .Os }}-
+      {{- if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+{% endraw %}

@@ -1,0 +1,7 @@
+{
+    "name": "project-name-without-space",
+    "go_version": "1.21",
+   "_copy_without_render": [
+       ".github/workflows/*.yml"
+   ]
+}
