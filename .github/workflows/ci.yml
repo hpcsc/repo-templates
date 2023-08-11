@@ -39,3 +39,31 @@ jobs:
     - name: Run generated binary
       working-directory: ./tmp/my-project/dist
       run: ./my-project_linux_amd64_v1/my-project
+
+  render-asdf-plugin:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Task
+      uses: arduino/setup-task@v1
+      with:
+        version: 3.x
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Render a plugin for aws-profile
+      run: task render-asdf-plugin
+
+    - name: List all versions of aws-profile
+      working-directory: ./tmp/asdf-plugin-aws-profile
+      run: ./bin/list-all
+
+    - name: Install and run a specific version of aws-profile
+      working-directory: ./tmp/asdf-plugin-aws-profile
+      run: |
+        ./bin/install
+        ./tmp/bin/aws-profile version
+      env:
+        ASDF_INSTALL_VERSION: '0.6.0'
+        ASDF_INSTALL_PATH: ./tmp
+

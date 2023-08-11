@@ -1,0 +1,19 @@
+name: Test
+on:
+  push: {}
+
+jobs:
+  test:
+    runs-on: ${{ '{{' }} matrix.os {{ '}}' }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+    - name: asdf_plugin_test
+      uses: asdf-vm/actions/plugin-test@v1
+      with:
+        command: "{{cookiecutter.target_github_repo}} version"
+      env:
+        GITHUB_API_TOKEN: ${{ '{{' }} secrets.GITHUB_TOKEN {{ '}}' }}
