@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+function query_releases() {
+    local releases_path=https://api.github.com/repos/{{cookiecutter.target_github_owner}}/{{cookiecutter.target_github_repo}}/releases
+    if [ -n "${GITHUB_API_TOKEN}" ]; then
+        curl -s \
+             -H "Authorization: token ${GITHUB_API_TOKEN}" \
+             $releases_path
+    else
+        curl -s \
+             $releases_path
+    fi
+}
+
+function grep_tag_names() {
+    # grep tag and remove `v` in front of version. `asdf latest` doesn't work well with versions not starting with a number
+    grep tag_name | sed 's/[[:space:]]*\"tag_name\":[[:space:]]*\"v\(.*\)\",/\1/'
+}
+
+# stolen from https://github.com/rbenv/ruby-build/pull/631/files#diff-fdcfb8a18714b33b07529b7d02b54f1dR942
+function sort_versions() {
+  sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$//; G; s/\n/ /' | \
+    LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}'
+}
+
+function to_space_delimited() {
+    tr '\n' ' '
+}
+
+query_releases | \
+    grep_tag_names | \
+    sort_versions | \
+    to_space_delimited

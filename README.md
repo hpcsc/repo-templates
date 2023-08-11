@@ -15,3 +15,4 @@ cookiecutter gh:hpcsc/repo-templates --directory go-cli # or directly from githu
 ## Templates
 
 - `go-cli`: Template for Go CLI that uses [Taskfile](https://taskfile.dev/), [GoReleaser](https://goreleaser.com/), Github Actions
+- `asdf-plugin`: Template for ASDF plugins (with assumption that the target of the plugin has Github release available)
