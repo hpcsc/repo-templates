@@ -20,6 +20,19 @@ tasks:
       GO_VERSION:
         sh: echo ${GO_VERSION:-1.21}
 
+  render-go-worker:
+    desc: render go-worker template to a temporary folder for verification
+    deps:
+      - install-cookiecutter
+    cmds:
+      - rm -rfv ./tmp && mkdir -v ./tmp
+      - cookiecutter -v -f go-worker name=${NAME} go_version=${GO_VERSION} --no-input -o ./tmp
+    env:
+      NAME:
+        sh: echo ${NAME:-my-project}
+      GO_VERSION:
+        sh: echo ${GO_VERSION:-1.21}
+
   render-asdf-plugin:
     desc: render asdf-plugin template to a temporary folder for verification
     deps:
