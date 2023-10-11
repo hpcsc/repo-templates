@@ -2,8 +2,9 @@
 
 set -eo pipefail
 
-function get_os() {
-    local os=$(uname -s)
+get_os() {
+    local os
+    os=$(uname -s)
     case "${os}" in
         Linux*)     echo linux;;
         Darwin*)    echo macos;;
@@ -11,17 +12,30 @@ function get_os() {
     esac
 }
 
-function get_download_url() {
+get_arch() {
+    local arch
+    arch=$(uname -m)
+    case "${arch}" in
+        aarch64*)   echo arm64;;
+        x86_64*)    echo amd64;;
+        *)          (>&2 echo "unsupported CPU architecture: ${arch}" && exit 1)
+    esac
+}
+
+get_download_url() {
     local version="$1"
-    read -r os
+    local os
+    os=$(get_os)
+    local arch
+    arch=$(get_arch)
 
     curl -s "https://api.github.com/repos/{{cookiecutter.target_github_owner}}/{{cookiecutter.target_github_repo}}/releases/tags/${version}" | \
         jq -r '.assets[] |
-                    select(.name | contains("{{cookiecutter.target_github_repo}}") and contains("'${os}'")) |
+                    select(.name | contains("{{cookiecutter.target_github_repo}}") and contains("'${os}'") and contains("'${arch}'")) |
                     .browser_download_url'
 }
 
-function download() {
+download() {
     local install_path="$1"
 
     read -r url
@@ -31,10 +45,28 @@ function download() {
     echo "Download from ${url} to ${install_path}"
     curl -L "${url}" -o "${install_path}/bin/{{cookiecutter.target_github_repo}}"
     chmod +x "${install_path}/bin/{{cookiecutter.target_github_repo}}"
+
+    # # Use below code if target artifact is in archive format (tar/gz)
+    # if [[ "${url}" =~ \.zip ]]; then
+    #     curl -L "${url}" -o /tmp/{{cookiecutter.target_github_repo}}.zip
+    #     unzip /tmp/{{cookiecutter.target_github_repo}}.zip -d /tmp/{{cookiecutter.target_github_repo}}
+    #     mv -v /tmp/{{cookiecutter.target_github_repo}}/*/* ${install_path}/bin
+    #     rm -rfv /tmp/{{cookiecutter.target_github_repo}} /tmp/{{cookiecutter.target_github_repo}}.zip
+    #     ${install_path}/bin/{{cookiecutter.target_github_repo}} version
+    #     return
+    # fi
+
+    # if [[ "${url}" =~ \.tar.gz ]]; then
+    #     curl -L "${url}" | tar --strip-components=1 -xzvf - -C ${install_path}/bin
+    #     ${install_path}/bin/{{cookiecutter.target_github_repo}} version
+    #     return
+    # fi
+
+    # echo "unsupported archive format"
+    # exit 1
 }
 
 # append `v` to version number. `v` was stripped off when doing `asdf list-all` for compatibility with `asdf latest`
 VERSION="v${ASDF_INSTALL_VERSION}"
-get_os | \
-    get_download_url "${VERSION}" | \
+get_download_url "${VERSION}" | \
     download "${ASDF_INSTALL_PATH}"
