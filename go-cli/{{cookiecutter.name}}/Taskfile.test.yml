@@ -11,3 +11,16 @@ tasks:
         msg: Please follow instruction at https://github.com/koalaman/shellcheck#installing to install shellcheck
     cmds:
       - shellcheck -S error ./hooks/*
+
+  install-govulncheck:
+    internal: true
+    status:
+      - command -v govulncheck
+    cmds:
+      - go install golang.org/x/vuln/cmd/govulncheck@latest
+
+  vulnerabilities:
+    deps:
+      - install-govulncheck
+    cmds:
+      - govulncheck ./...
