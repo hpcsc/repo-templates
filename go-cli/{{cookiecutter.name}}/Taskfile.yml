@@ -19,6 +19,10 @@ tasks:
       CGO_ENABLED: '0'
       VERSION: ${VERSION:-main}
 
-  setup-git-hooks:
+  hook:setup:
     cmds:
       - git config core.hooksPath ./hooks
+
+  hook:validate-go-changes:
+    cmds:
+      - task: test:unit
