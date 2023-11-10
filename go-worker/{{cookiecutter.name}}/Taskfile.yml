@@ -28,6 +28,10 @@ tasks:
     cmds:
       - docker run -it --rm {{cookiecutter.name}}:{{ '{{' }}default "latest" .TAG{{ '}}' }}
 
-  setup-git-hooks:
+  hook:setup:
     cmds:
       - git config core.hooksPath ./hooks
+
+  hook:validate-go-changes:
+    cmds:
+      - task: test:unit

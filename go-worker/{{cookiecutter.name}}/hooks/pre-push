@@ -2,77 +2,18 @@
 
 set -euo pipefail
 
+source ./scripts/libs/git-hook-prepush.sh
+
 remote=${1}
+fail_if_pushing_to_main "${remote}"
+
 SKIP_PREPUSH_HOOK=${SKIP_PREPUSH_HOOK:-false}
-
-echo_red() {
-    printf "\033[0;31m%s\033[0m\n" "$*"
-}
-
-echo_green() {
-    printf "\033[0;32m%s\033[0m\n" "$*"
-}
-
-ensure_head_ref_exists() {
-    if [ ! -f ".git/refs/remotes/${remote}/HEAD" ]; then
-        # ${remote}/HEAD is created when the repo is cloned
-        # if it doesn't exist for some reason, manually create and point it to either `main` or `master` so that we can deterministically check main branch
-        if [ -f ".git/refs/remotes/${remote}/main" ]; then
-            git symbolic-ref "refs/remotes/${remote}/HEAD" "refs/remotes/${remote}/main"
-            echo_green "pointed ${remote}/HEAD to ${remote}/main"
-        elif [ -f ".git/refs/remotes/${remote}/master" ]; then
-            git symbolic-ref "refs/remotes/${remote}/HEAD" "refs/remotes/${remote}/master"
-            echo_green "pointed ${remote}/HEAD to ${remote}/master"
-        else
-            echo_red "unable to determine default branch"
-            exit 1
-        fi
-    fi
-}
-
-get_main_branch() {
-  git branch -rl "*/HEAD" | sed "s/^.*\///g"
-}
-
-run_validation_if_have_changes() {
-    local local_commit=$1
-    local remote_commit=$2
-    changes=$(git diff "${local_commit}" "${remote_commit}" --name-only)
-    if echo "${changes}" | grep -qi 'hooks/\|\.sh$'; then
-        task test:shellcheck
-    fi
-
-    if echo "${changes}" | grep -q '\.go$'; then
-        task test:unit
-        task test:e2e
-    fi
-}
-
 if [ "${SKIP_PREPUSH_HOOK}" = "true" ]; then
     echo_green "skipped prepush hook"
     exit 0
 fi
 
-# so that get_main_branch works reliably
-ensure_head_ref_exists
-
-not_existing_sha=0000000000000000000000000000000000000000
 while read local_ref local_sha remote_ref remote_sha
 do
-    if [ "${local_sha}" = "${not_existing_sha}" ]; then
-        echo_green "deleting remote branch ${remote_ref} at sha ${remote_sha}, nothing to do"
-        exit 0
-    fi
-
-    if [ "${remote_sha}" = "${not_existing_sha}" ]; then
-        # pushing new local branch, run all validations
-        echo_green "pushing new local branch ${local_ref} at sha ${local_sha}"
-        git fetch "${remote}" "$(get_main_branch)"
-        run_validation_if_have_changes "${local_sha}" "$(get_main_branch)"
-        exit 0
-    fi
-
-    echo_green "${local_ref}@${local_sha} -> ${remote_ref}@${remote_sha}"
-    git fetch "${remote}" "${remote_ref}" # remote ref might have commits that we don't have in local
-    run_validation_if_have_changes "${local_sha}" "${remote_sha}"
+  validate "${local_ref}" "${local_sha}" "${remote_ref}" "${remote_sha}"
 done
