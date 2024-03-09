@@ -1,5 +1,0 @@
-{
-    "target_github_owner": "github-owner",
-    "target_github_repo": "github-repository",
-    "name": "asdf-plugin-{{cookiecutter.target_github_repo}}"
-}
