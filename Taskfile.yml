@@ -35,8 +35,13 @@ tasks:
 
   render-asdf-plugin:
     desc: render asdf-plugin template to a temporary folder for verification
-    deps:
-      - install-cookiecutter
+    preconditions:
+      - command -v boilerplate
     cmds:
-      - rm -rfv ./tmp && mkdir -v ./tmp
-      - cookiecutter -v -f asdf-plugin target_github_owner=hpcsc target_github_repo=aws-profile --no-input -o ./tmp
+      - |
+        boilerplate \
+          --template-url ./asdf-plugin \
+          --output-folder ./tmp \
+          --non-interactive \
+          --var target_github_owner=hpcsc \
+          --var target_github_repo=aws-profile

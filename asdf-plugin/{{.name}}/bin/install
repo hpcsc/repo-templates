@@ -17,6 +17,7 @@ get_arch() {
     arch=$(uname -m)
     case "${arch}" in
         aarch64*)   echo arm64;;
+        arm64*)     echo arm64;;
         x86_64*)    echo amd64;;
         *)          (>&2 echo "unsupported CPU architecture: ${arch}" && exit 1)
     esac
@@ -29,9 +30,9 @@ get_download_url() {
     local arch
     arch=$(get_arch)
 
-    curl -s "https://api.github.com/repos/{{cookiecutter.target_github_owner}}/{{cookiecutter.target_github_repo}}/releases/tags/${version}" | \
+    curl -s "https://api.github.com/repos/{{.target_github_owner}}/{{.target_github_repo}}/releases/tags/${version}" | \
         jq -r '.assets[] |
-                    select(.name | contains("{{cookiecutter.target_github_repo}}") and contains("'${os}'") and contains("'${arch}'")) |
+                    select(.name | contains("{{.target_github_repo}}") and contains("'${os}'") and contains("'${arch}'")) |
                     .browser_download_url'
 }
 
@@ -43,22 +44,22 @@ download() {
     mkdir -p ${install_path}/bin
 
     echo "Download from ${url} to ${install_path}"
-    curl -L "${url}" -o "${install_path}/bin/{{cookiecutter.target_github_repo}}"
-    chmod +x "${install_path}/bin/{{cookiecutter.target_github_repo}}"
+    curl -L "${url}" -o "${install_path}/bin/{{.target_github_repo}}"
+    chmod +x "${install_path}/bin/{{.target_github_repo}}"
 
     # # Use below code if target artifact is in archive format (tar/gz)
     # if [[ "${url}" =~ \.zip ]]; then
-    #     curl -L "${url}" -o /tmp/{{cookiecutter.target_github_repo}}.zip
-    #     unzip /tmp/{{cookiecutter.target_github_repo}}.zip -d /tmp/{{cookiecutter.target_github_repo}}
-    #     mv -v /tmp/{{cookiecutter.target_github_repo}}/*/* ${install_path}/bin
-    #     rm -rfv /tmp/{{cookiecutter.target_github_repo}} /tmp/{{cookiecutter.target_github_repo}}.zip
-    #     ${install_path}/bin/{{cookiecutter.target_github_repo}} version
+    #     curl -L "${url}" -o /tmp/{{.target_github_repo}}.zip
+    #     unzip /tmp/{{.target_github_repo}}.zip -d /tmp/{{.target_github_repo}}
+    #     mv -v /tmp/{{.target_github_repo}}/*/* ${install_path}/bin
+    #     rm -rfv /tmp/{{.target_github_repo}} /tmp/{{.target_github_repo}}.zip
+    #     ${install_path}/bin/{{.target_github_repo}} version
     #     return
     # fi
 
     # if [[ "${url}" =~ \.tar.gz ]]; then
     #     curl -L "${url}" | tar --strip-components=1 -xzvf - -C ${install_path}/bin
-    #     ${install_path}/bin/{{cookiecutter.target_github_repo}} version
+    #     ${install_path}/bin/{{.target_github_repo}} version
     #     return
     # fi
 
