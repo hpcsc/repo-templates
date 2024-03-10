@@ -24,6 +24,17 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
 
+    - uses: robinraju/release-downloader@v1.9
+      with:
+        repository: "gruntwork-io/boilerplate"
+        latest: true
+        fileName: "*_linux_amd64"
+
+    - name: Rename boilerplate
+      run: |
+        mv boilerplate_linux_amd64 boilerplate
+        chmod +x ./boilerplate && mv ./boilerplate /usr/local/bin/
+
     - name: Install GoReleaser
       uses: goreleaser/goreleaser-action@v4
       with:
@@ -33,12 +44,46 @@ jobs:
       run: task render-go-cli
 
     - name: Run goreleaser local for generated project
-      working-directory: ./tmp/my-project
+      working-directory: ./tmp/go-cli-project
       run: task release:local
 
     - name: Run generated binary
-      working-directory: ./tmp/my-project/dist
-      run: ./my-project_linux_amd64_v1/my-project
+      working-directory: ./tmp/go-cli-project/dist
+      run: ./go-cli-project_linux_amd64_v1/go-cli-project
+
+  render-go-worker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Task
+      uses: arduino/setup-task@v1
+      with:
+        version: 3.x
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - uses: robinraju/release-downloader@v1.9
+      with:
+        repository: "gruntwork-io/boilerplate"
+        latest: true
+        fileName: "*_linux_amd64"
+
+    - name: Rename boilerplate
+      run: |
+        mv boilerplate_linux_amd64 boilerplate
+        chmod +x ./boilerplate && mv ./boilerplate /usr/local/bin/
+
+    - name: Render
+      run: task render-go-worker
+
+    - name: Builder docker image
+      working-directory: ./tmp/go-worker-project
+      run: task docker:build
 
   render-asdf-plugin:
     runs-on: ubuntu-latest
@@ -51,19 +96,30 @@ jobs:
         version: 3.x
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Render a plugin for aws-profile
+    - uses: robinraju/release-downloader@v1.9
+      with:
+        repository: "gruntwork-io/boilerplate"
+        latest: true
+        fileName: "*_linux_amd64"
+
+    - name: Rename boilerplate
+      run: |
+        mv boilerplate_linux_amd64 boilerplate
+        chmod +x ./boilerplate && mv ./boilerplate /usr/local/bin/
+
+    - name: Render a plugin (boilerplate)
       run: task render-asdf-plugin
 
-    - name: List all versions of aws-profile
-      working-directory: ./tmp/asdf-plugin-aws-profile
+    - name: List all versions of the plugin
+      working-directory: ./tmp/asdf-plugin-boilerplate
       run: ./bin/list-all
 
-    - name: Install and run a specific version of aws-profile
-      working-directory: ./tmp/asdf-plugin-aws-profile
+    - name: Install and run a specific version of the plugin
+      working-directory: ./tmp/asdf-plugin-boilerplate
       run: |
         ./bin/install
-        ./tmp/bin/aws-profile version
+        ./tmp/bin/boilerplate -v
       env:
-        ASDF_INSTALL_VERSION: '0.6.0'
+        ASDF_INSTALL_VERSION: '0.5.12'
         ASDF_INSTALL_PATH: ./tmp
 
