@@ -1,0 +1,11 @@
+variables:
+  - name: name
+    description: project-name-without-space
+  - name: go_version
+    type: float
+    default: 1.22
+
+dependencies:
+  - name: global-libs
+    template-url: ../global/libs
+    output-folder: "{{.name}}/scripts/libs"

@@ -1,4 +1,4 @@
-project_name: {{cookiecutter.name}}
+project_name: {{.name}}
 before:
   hooks:
     - go mod tidy
@@ -8,10 +8,10 @@ builds:
     goos:
       - linux
       - darwin
-    main: ./cmd/{{cookiecutter.name}}
+    main: ./cmd/{{.name}}
     ldflags:
-      - -extldflags -static -X 'main.Version={{ '{{' }}.Version{{ '}}' }}'
-{% raw %}
+      - -extldflags -static -X 'main.Version={{ `{{.Version}}` }}'
+{{`
 archives:
   - format: tar.gz
     # this name template makes the OS and Arch compatible with the results of uname.
@@ -31,4 +31,4 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
-{% endraw %}
+`}}
