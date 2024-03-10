@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/hpcsc/{{cookiecutter.name}}/internal/background"
+	"github.com/hpcsc/{{.name}}/internal/background"
 	"github.com/rs/zerolog"
 )
 

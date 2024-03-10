@@ -1,12 +1,6 @@
 version: '3'
 
 tasks:
-  install-cookiecutter:
-    cmds:
-      - python3 -m pip install --user cookiecutter
-    status:
-      - command -v cookiecutter
-
   render-go-cli:
     desc: render go-cli template to a temporary folder for verification
     preconditions:
@@ -28,14 +22,20 @@ tasks:
 
   render-go-worker:
     desc: render go-worker template to a temporary folder for verification
-    deps:
-      - install-cookiecutter
+    preconditions:
+      - command -v boilerplate
     cmds:
-      - rm -rfv ./tmp && mkdir -v ./tmp
-      - cookiecutter -v -f go-worker name=${NAME} go_version=${GO_VERSION} --no-input -o ./tmp
+      - |
+        boilerplate \
+          --template-url ./go-worker \
+          --output-folder ./tmp \
+          --missing-config-action ignore \
+          --non-interactive \
+          --var name=${NAME} \
+          --var go_version=${GO_VERSION}
     env:
       NAME:
-        sh: echo ${NAME:-my-project}
+        sh: echo ${NAME:-go-worker-project}
       GO_VERSION:
         sh: echo ${GO_VERSION:-1.21}
 
