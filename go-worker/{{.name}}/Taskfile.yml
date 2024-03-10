@@ -8,25 +8,25 @@ includes:
 tasks:
   run:
     cmds:
-      - go run ./cmd/{{cookiecutter.name}}
+      - go run ./cmd/{{.name}}
 
   build:
     cmds:
       - mkdir -p ./bin
-      - go build --ldflags "-extldflags -static -X 'main.Version=${VERSION}'" -o ./bin/{{cookiecutter.name}} ./cmd/{{cookiecutter.name}}
+      - go build --ldflags "-extldflags -static -X 'main.Version=${VERSION}'" -o ./bin/{{.name}} ./cmd/{{.name}}
     env:
       CGO_ENABLED: '0'
       VERSION: ${VERSION:-main}
 
   docker:build:
     cmds:
-      - docker build -t {{cookiecutter.name}}:{{ '{{' }}default "latest" .TAG{{ '}}' }} --build-arg=VERSION=$(git rev-parse HEAD) .
+      - docker build -t {{.name}}:{{ `{{ default "latest" .TAG }}` }} --build-arg=VERSION=$(git rev-parse HEAD) .
 
   docker:run:
     deps:
       - docker:build
     cmds:
-      - docker run -it --rm {{cookiecutter.name}}:{{ '{{' }}default "latest" .TAG{{ '}}' }}
+      - docker run -it --rm {{.name}}:{{ `{{ default "latest" .TAG }}` }}
 
   hook:setup:
     cmds:
