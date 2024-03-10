@@ -8,7 +8,7 @@ tasks:
     cmds:
       - |
         boilerplate \
-          --template-url ./go-cli \
+          --template-url ./templates/go-cli \
           --output-folder ./tmp \
           --missing-config-action ignore \
           --non-interactive \
@@ -27,7 +27,7 @@ tasks:
     cmds:
       - |
         boilerplate \
-          --template-url ./go-worker \
+          --template-url ./templates/go-worker \
           --output-folder ./tmp \
           --missing-config-action ignore \
           --non-interactive \
@@ -46,7 +46,7 @@ tasks:
     cmds:
       - |
         boilerplate \
-          --template-url ./asdf-plugin \
+          --template-url ./templates/asdf-plugin \
           --output-folder ./tmp \
           --non-interactive \
           --var target_github_owner=gruntwork-io \
