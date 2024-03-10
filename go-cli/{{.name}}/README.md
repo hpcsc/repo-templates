@@ -1,4 +1,4 @@
-# {{cookiecutter.name}}
+# {{.name}}
 
 ## Goreleaser
 

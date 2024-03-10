@@ -9,12 +9,12 @@ includes:
 tasks:
   run:
     cmds:
-      - go run ./cmd/{{cookiecutter.name}}
+      - go run ./cmd/{{.name}}
 
   build:
     cmds:
       - mkdir -p ./bin
-      - go build --ldflags "-extldflags -static -X 'main.Version=${VERSION}'" -o ./bin/{{cookiecutter.name}} ./cmd/{{cookiecutter.name}}
+      - go build --ldflags "-extldflags -static -X 'main.Version=${VERSION}'" -o ./bin/{{.name}} ./cmd/{{.name}}
     env:
       CGO_ENABLED: '0'
       VERSION: ${VERSION:-main}
