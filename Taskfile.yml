@@ -49,5 +49,5 @@ tasks:
           --template-url ./asdf-plugin \
           --output-folder ./tmp \
           --non-interactive \
-          --var target_github_owner=hpcsc \
-          --var target_github_repo=aws-profile
+          --var target_github_owner=gruntwork-io \
+          --var target_github_repo=boilerplate
