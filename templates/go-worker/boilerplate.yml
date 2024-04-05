@@ -4,11 +4,18 @@ variables:
   - name: go_version
     type: float
     default: 1.22
+  - name: with_kustomize
+    type: bool
+    default: false
 
 dependencies:
   - name: global-libs
     template-url: ../global/libs
     output-folder: "{{.name}}/scripts/libs"
+  - name: kustomize
+    template-url: ../global/kustomize
+    output-folder: "{{.name}}"
+    skip: "{{ not .with_kustomize }}"
 
 hooks:
   after:
