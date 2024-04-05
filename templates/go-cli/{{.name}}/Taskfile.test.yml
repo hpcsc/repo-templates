@@ -3,7 +3,7 @@ version: '3'
 tasks:
   unit:
     cmds:
-      - go test -tags=unit -v ./...
+      - gotestsum --format pkgname-and-test-fails -- -tags=unit -race -cover -covermode=atomic -coverprofile=coverage-unit.out ./...
 
   shellcheck:
     preconditions:

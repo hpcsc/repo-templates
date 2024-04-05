@@ -1,7 +1,5 @@
 version: '3'
 
-output: prefixed
-
 includes:
   test: Taskfile.test.yml
 
