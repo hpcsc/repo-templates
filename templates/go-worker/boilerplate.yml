@@ -22,3 +22,18 @@ hooks:
         - mod
         - tidy
       dir: "{{ outputFolder }}/{{.name}}"
+    - command: aqua
+      args:
+        - init
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: aqua
+      args:
+        - generate
+        - -i
+        - standard,gotestyourself/gotestsum
+        - standard,go-task/task
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: aqua
+      args:
+        - install
+      dir: "{{ outputFolder }}/{{.name}}"
