@@ -32,7 +32,8 @@ tasks:
           --missing-config-action ignore \
           --non-interactive \
           --var name=${NAME} \
-          --var go_version=${GO_VERSION}
+          --var go_version=${GO_VERSION} \
+          --var with_kustomize=true
     env:
       NAME:
         sh: echo ${NAME:-go-worker-project}

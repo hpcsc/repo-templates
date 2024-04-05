@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: {{.name}}
+resources:
+- namespace.yml
+- deployment.yml
+- service.yml
+
+configMapGenerator:
+- name: html
+  files:
+  - ./configmap-files/index.html
