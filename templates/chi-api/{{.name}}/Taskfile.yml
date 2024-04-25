@@ -1,0 +1,35 @@
+version: '3'
+
+includes:
+  test: Taskfile.test.yml
+
+tasks:
+  run:
+    cmds:
+      - go run ./cmd/{{.name}}
+
+  build:
+    cmds:
+      - mkdir -p ./bin
+      - go build --ldflags "-extldflags -static -X 'main.Version=${VERSION}'" -o ./bin/{{.name}} ./cmd/{{.name}}
+    env:
+      CGO_ENABLED: '0'
+      VERSION: ${VERSION:-main}
+
+  docker:build:
+    cmds:
+      - docker build -t {{.name}}:{{ `{{ default "latest" .TAG }}` }} --build-arg=VERSION=$(git rev-parse HEAD) .
+
+  docker:run:
+    deps:
+      - docker:build
+    cmds:
+      - docker run -it -p 3333:3333 --rm {{.name}}:{{ `{{ default "latest" .TAG }}` }}
+
+  hook:setup:
+    cmds:
+      - git config core.hooksPath ./hooks
+
+  hook:validate-go-changes:
+    cmds:
+      - task: test:unit
