@@ -1,0 +1,64 @@
+variables:
+  - name: name
+    description: project-name-without-space
+  - name: go_version
+    type: float
+    default: 1.22
+
+dependencies:
+  - name: global-libs
+    template-url: ../global/libs
+    output-folder: "{{.name}}/scripts/libs"
+
+hooks:
+  after:
+    - command: go
+      args:
+        - get
+        - github.com/caarlos0/env/v6
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: go
+      args:
+        - get
+        - github.com/go-chi/chi/v5
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: go
+      args:
+        - get
+        - github.com/go-chi/httplog/v2
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: go
+      args:
+        - get
+        - github.com/gookit/validate
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: go
+      args:
+        - get
+        - github.com/stretchr/testify
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: go
+      args:
+        - get
+        - github.com/unrolled/render
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: go
+      args:
+        - mod
+        - tidy
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: aqua
+      args:
+        - init
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: aqua
+      args:
+        - generate
+        - -i
+        - standard,gotestyourself/gotestsum
+        - standard,go-task/task
+      dir: "{{ outputFolder }}/{{.name}}"
+    - command: aqua
+      args:
+        - install
+      dir: "{{ outputFolder }}/{{.name}}"
