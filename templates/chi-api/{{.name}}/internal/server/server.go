@@ -15,18 +15,23 @@ import (
 	"github.com/hpcsc/{{.name}}/internal/usecase"
 )
 
-func New(name string, cfg *config.Config, logger *slog.Logger) *Server {
+func New(name string, cfg *config.Config, logger *slog.Logger) (*Server, error) {
+	handler, err := newHandler(name, cfg, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Server{
 		cfg: cfg,
 		httpServer: &http.Server{
 			Addr:    fmt.Sprintf(":%s", cfg.Port),
-			Handler: newHandler(name),
+			Handler: handler,
 		},
 		logger: logger,
-	}
+	}, nil
 }
 
-func newHandler(name string) http.Handler {
+func newHandler(name string, cfg *config.Config, logger *slog.Logger) (http.Handler, error) {
 	r := chi.NewRouter()
 
 	r.Use(httplog.RequestLogger(httplog.NewLogger(name, httplog.Options{
@@ -38,9 +43,11 @@ func newHandler(name string) http.Handler {
 
 	r.Use(middleware.Recoverer)
 
-	usecase.Register(r)
+	if err := usecase.Register(r, cfg, logger); err != nil {
+		return nil, err
+	}
 
-	return r
+	return r, nil
 }
 
 type Server struct {

@@ -10,19 +10,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/hpcsc/{{.name}}/internal/response"
 	"github.com/hpcsc/{{.name}}/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUserHandler(t *testing.T) {
-	newRouter := func() *chi.Mux {
-		router := chi.NewRouter()
-		Register(router)
-		return router
-	}
-
 	validPostRequest := func() *postRequest {
 		return &postRequest{
 			Name:  "test-user",
@@ -33,7 +26,7 @@ func TestUserHandler(t *testing.T) {
 
 	t.Run("return Bad Request when request body is not valid json", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		router := newRouter()
+		router := test.NewRouterWithRoutable(NewHandler())
 
 		req, err := http.NewRequest("POST", "/users", strings.NewReader("invalid-json"))
 		require.NoError(t, err)
@@ -103,7 +96,7 @@ func TestUserHandler(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("return Bad Request when %s", tc.scenario), func(t *testing.T) {
 			w := httptest.NewRecorder()
-			router := newRouter()
+			router := test.NewRouterWithRoutable(NewHandler())
 
 			req, err := http.NewRequest(
 				"POST",
@@ -124,7 +117,7 @@ func TestUserHandler(t *testing.T) {
 
 	t.Run("return Ok when successful", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		router := newRouter()
+		router := test.NewRouterWithRoutable(NewHandler())
 
 		req, err := http.NewRequest("POST", "/users", bytes.NewReader(test.MarshalJson(t, validPostRequest())))
 		require.NoError(t, err)
