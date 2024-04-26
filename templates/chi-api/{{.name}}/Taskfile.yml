@@ -7,11 +7,13 @@ tasks:
   run:
     cmds:
       - go run ./cmd/{{.name}}
+    env:
+      TOKEN_PATH: local/token
 
   build:
     cmds:
       - mkdir -p ./bin
-      - go build --ldflags "-extldflags -static -X 'main.Version=${VERSION}'" -o ./bin/{{.name}} ./cmd/{{.name}}
+      - go build --ldflags "-extldflags -static -X 'github.com/hpcsc/{{.name}}/internal/usecase/root.Version=${VERSION}'" -o ./bin/{{.name}} ./cmd/{{.name}}
     env:
       CGO_ENABLED: '0'
       VERSION: ${VERSION:-main}
@@ -24,7 +26,7 @@ tasks:
     deps:
       - docker:build
     cmds:
-      - docker run -it -p 3333:3333 --rm {{.name}}:{{ `{{ default "latest" .TAG }}` }}
+      - docker run -it -p 3333:3333 -v ./local:/var/run --rm {{.name}}:{{ `{{ default "latest" .TAG }}` }}
 
   hook:setup:
     cmds:

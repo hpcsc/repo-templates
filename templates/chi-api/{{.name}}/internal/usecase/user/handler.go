@@ -4,21 +4,28 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/gookit/validate"
 	"github.com/hpcsc/{{.name}}/internal/response"
+	"github.com/hpcsc/{{.name}}/internal/route"
 	"github.com/unrolled/render"
 )
 
-func Register(router chi.Router) {
-	h := &handler{
+var _ route.Routable = (*handler)(nil)
+
+func NewHandler() route.Routable {
+	return &handler{
 		renderer: render.New(),
 	}
-	router.Post("/users", h.post)
 }
 
 type handler struct {
 	renderer *render.Render
+}
+
+func (h *handler) Routes() []*route.Route {
+	return []*route.Route{
+		route.Protected("POST", "/users", h.post),
+	}
 }
 
 func (h *handler) post(w http.ResponseWriter, req *http.Request) {

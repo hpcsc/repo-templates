@@ -3,21 +3,28 @@ package root
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/hpcsc/{{.name}}/internal/route"
 	"github.com/unrolled/render"
 )
 
 var Version = "main"
 
-func Register(router chi.Router) {
-	h := &handler{
+var _ route.Routable = (*handler)(nil)
+
+func NewHandler() route.Routable {
+	return &handler{
 		renderer: render.New(),
 	}
-	router.Get("/", h.get)
 }
 
 type handler struct {
 	renderer *render.Render
+}
+
+func (h *handler) Routes() []*route.Route {
+	return []*route.Route{
+		route.Public("GET", "/", h.get),
+	}
 }
 
 func (h *handler) get(w http.ResponseWriter, _ *http.Request) {
