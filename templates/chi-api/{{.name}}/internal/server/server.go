@@ -10,9 +10,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/httplog/v2"
 	"github.com/hpcsc/{{.name}}/internal/config"
 	"github.com/hpcsc/{{.name}}/internal/usecase"
+	apiMiddleware "github.com/hpcsc/{{.name}}/internal/middleware"
+	"github.com/hpcsc/{{.name}}/internal/middleware/request"
 )
 
 func New(name string, cfg *config.Config, logger *slog.Logger) (*Server, error) {
@@ -34,12 +35,7 @@ func New(name string, cfg *config.Config, logger *slog.Logger) (*Server, error) 
 func newHandler(name string, cfg *config.Config, logger *slog.Logger) (http.Handler, error) {
 	r := chi.NewRouter()
 
-	r.Use(httplog.RequestLogger(httplog.NewLogger(name, httplog.Options{
-		JSON:           true,
-		LogLevel:       slog.LevelInfo,
-		Concise:        true,
-		RequestHeaders: true,
-	})))
+	r.Use(apiMiddleware.RequestLogger(logger, request.NewRealClock(), nil))
 
 	r.Use(middleware.Recoverer)
 
