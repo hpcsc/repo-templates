@@ -10,7 +10,7 @@ RUN GOARCH=$TARGETARCH \
         -o {{.name}} \
         ./cmd/{{.name}}/main.go
 
-FROM ubuntu:22.04
+FROM scratch
 WORKDIR /app
 
 COPY --from=build-env /build/{{.name}} .
