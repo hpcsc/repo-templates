@@ -7,6 +7,7 @@ tasks:
 
   shellcheck:
     cmds:
+      - find ./scripts -type f -name '*.sh' | xargs shellcheck -S error
       - shellcheck -S error ./hooks/*
 
   vulnerabilities:
