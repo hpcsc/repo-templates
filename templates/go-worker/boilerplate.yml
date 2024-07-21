@@ -39,6 +39,8 @@ hooks:
         - -i
         - standard,gotestyourself/gotestsum
         - standard,go-task/task
+        - standard,koalaman/shellcheck
+        - standard,golang/vuln/govulncheck
       dir: "{{ outputFolder }}/{{.name}}"
     - command: aqua
       args:
