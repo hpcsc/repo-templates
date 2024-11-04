@@ -64,16 +64,13 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
 
-    - uses: robinraju/release-downloader@v1.9
-      with:
-        repository: "gruntwork-io/boilerplate"
-        latest: true
-        fileName: "*_linux_amd64"
-
-    - name: Rename boilerplate
+    - name: Install aqua
       run: |
-        mv boilerplate_linux_amd64 boilerplate
-        chmod +x ./boilerplate && mv ./boilerplate /usr/local/bin/
+        go install github.com/aquaproj/aqua/v2/cmd/aqua@latest
+
+    - name: Install scaffold
+      run: |
+        go install github.com/hay-kot/scaffold@latest
 
     - name: Render
       run: task render-go-worker

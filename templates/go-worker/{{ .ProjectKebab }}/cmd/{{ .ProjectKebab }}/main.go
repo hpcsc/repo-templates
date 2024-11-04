@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/hpcsc/{{.name}}/internal/background"
-	"github.com/hpcsc/{{.name}}/internal/job"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/background"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/job"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
