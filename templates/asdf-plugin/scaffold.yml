@@ -1,0 +1,24 @@
+questions:
+  - name: GithubOwner
+    group: github
+    prompt:
+      message: "Target github owner"
+    validate:
+      required: true
+
+  - name: GithubRepo
+    group: github
+    prompt:
+      message: "Target github repo"
+    validate:
+      required: true
+
+messages:
+  post: |
+    # All set
+
+presets:
+  example:
+    Project: asdf-plugin-boilerplate
+    GithubOwner: gruntwork-io
+    GithubRepo: boilerplate

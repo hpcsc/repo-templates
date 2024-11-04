@@ -1,6 +1,0 @@
-variables:
-  - name: target_github_owner
-  - name: target_github_repo
-  - name: name
-    description: Leave empty to use the name asdf-plugin-{target_github_repo}
-    default: asdf-plugin-{{.target_github_repo}}
