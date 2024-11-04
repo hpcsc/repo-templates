@@ -1,17 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{.name}}
+  name: {{.Scaffold.Name}}
+  labels:
+    app.kubernetes.io/name: {{.Scaffold.Name}}
+    app.kubernetes.io/component: server
+    app.kubernetes.io/part-of: {{.Scaffold.Name}}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{.name}}
+      app.kubernetes.io/name: {{.Scaffold.Name}}
   template:
     metadata:
-      name: {{.name}}
+      name: {{.Scaffold.Name}}
       labels:
-        app: {{.name}}
+        app.kubernetes.io/name: {{.Scaffold.Name}}
+        app.kubernetes.io/component: server
+        app.kubernetes.io/part-of: {{.Scaffold.Name}}
     spec:
       containers:
         - name: nginx

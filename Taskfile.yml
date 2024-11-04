@@ -27,22 +27,31 @@ tasks:
   render-go-worker:
     desc: render go-worker template to a temporary folder for verification
     preconditions:
-      - command -v boilerplate
+      - command -v scaffold
     cmds:
+      - rm -rfv ./tmp/${NAME}
       - |
-        boilerplate \
-          --template-url ./templates/go-worker \
-          --output-folder ./tmp \
-          --missing-config-action ignore \
-          --non-interactive \
-          --var name=${NAME} \
-          --var go_version=${GO_VERSION} \
-          --var with_kustomize=true
+        scaffold \
+          --run-hooks=true \
+          new \
+          --output-dir=./tmp \
+          --no-prompt=true \
+          --preset=${PRESET} \
+          ./templates/go-worker
+      - |
+        scaffold new \
+          --output-dir=./tmp/${NAME} \
+          ./templates/global/git-hook
+      - |
+        scaffold new \
+          --output-dir=./tmp/${NAME} \
+          --no-prompt=true \
+          --preset=${PRESET} \
+          ./templates/global/kustomize
     env:
       NAME:
         sh: echo ${NAME:-go-worker-project}
-      GO_VERSION:
-        sh: echo ${GO_VERSION:-1.21}
+      PRESET: example
 
   render-asdf-plugin:
     desc: render asdf-plugin template to a temporary folder for verification

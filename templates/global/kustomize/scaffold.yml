@@ -1,0 +1,28 @@
+questions:
+  - name: Name
+    prompt:
+      message: "Name"
+    validate:
+      required: true
+
+messages:
+  post: |
+    # kustomize manifests rendered to ./kubernetes
+
+rewrites:
+  - from: templates/Taskfile.kubernetes.yml
+    to: Taskfile.kubernetes.yml
+  - from: templates/kubernetes/configmap-files/index.html
+    to: kubernetes/configmap-files/index.html
+  - from: templates/kubernetes/deployment.yml
+    to: kubernetes/deployment.yml
+  - from: templates/kubernetes/kustomization.yml
+    to: kubernetes/kustomization.yml
+  - from: templates/kubernetes/namespace.yml
+    to: kubernetes/namespace.yml
+  - from: templates/kubernetes/service.yml
+    to: kubernetes/service.yml
+
+presets:
+  example:
+    Name: go-worker-project
