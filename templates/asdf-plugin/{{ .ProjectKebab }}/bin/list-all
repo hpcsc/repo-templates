@@ -3,7 +3,7 @@
 set -eo pipefail
 
 function query_releases() {
-    local releases_path=https://api.github.com/repos/{{.target_github_owner}}/{{.target_github_repo}}/releases
+    local releases_path=https://api.github.com/repos/{{.Scaffold.GithubOwner}}/{{.Scaffold.GithubRepo}}/releases
     if [ -n "${GITHUB_API_TOKEN}" ]; then
         curl -s \
              -H "Authorization: token ${GITHUB_API_TOKEN}" \

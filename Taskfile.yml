@@ -85,12 +85,18 @@ tasks:
   render-asdf-plugin:
     desc: render asdf-plugin template to a temporary folder for verification
     preconditions:
-      - command -v boilerplate
+      - command -v scaffold
     cmds:
+      - rm -rfv ./tmp/${NAME}
       - |
-        boilerplate \
-          --template-url ./templates/asdf-plugin \
-          --output-folder ./tmp \
-          --non-interactive \
-          --var target_github_owner=gruntwork-io \
-          --var target_github_repo=boilerplate
+        scaffold \
+          --run-hooks=true \
+          new \
+          --output-dir=./tmp \
+          --no-prompt=true \
+          --preset=${PRESET} \
+          ./templates/asdf-plugin
+    env:
+      NAME:
+        sh: echo ${NAME:-asdf-plugin-boilerplate}
+      PRESET: example
