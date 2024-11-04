@@ -53,6 +53,35 @@ tasks:
         sh: echo ${NAME:-go-worker-project}
       PRESET: example
 
+  render-chi-api:
+    desc: render chi-api template to a temporary folder for verification
+    preconditions:
+      - command -v scaffold
+    cmds:
+      - rm -rfv ./tmp/${NAME}
+      - |
+        scaffold \
+          --run-hooks=true \
+          new \
+          --output-dir=./tmp \
+          --no-prompt=true \
+          --preset=${PRESET} \
+          ./templates/chi-api
+      - |
+        scaffold new \
+          --output-dir=./tmp/${NAME} \
+          ./templates/global/git-hook
+      - |
+        scaffold new \
+          --output-dir=./tmp/${NAME} \
+          --no-prompt=true \
+          --preset=example \
+          ./templates/global/kustomize
+    env:
+      NAME:
+        sh: echo ${NAME:-chi-api-project}
+      PRESET: example
+
   render-asdf-plugin:
     desc: render asdf-plugin template to a temporary folder for verification
     preconditions:

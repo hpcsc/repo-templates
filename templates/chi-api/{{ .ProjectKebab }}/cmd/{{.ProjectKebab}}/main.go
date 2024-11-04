@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/hpcsc/{{.name}}/internal/config"
-	"github.com/hpcsc/{{.name}}/internal/server"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/config"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/server"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv, err := server.New("{{.name}}", cfg, logger)
+	srv, err := server.New("{{.ProjectKebab}}", cfg, logger)
 	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)

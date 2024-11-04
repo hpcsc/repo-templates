@@ -11,8 +11,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/hpcsc/{{.name}}/internal/middleware/request"
-	"github.com/hpcsc/{{.name}}/internal/test"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/middleware/request"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/test"
 	"github.com/stretchr/testify/require"
 )
 

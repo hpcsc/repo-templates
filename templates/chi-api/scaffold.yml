@@ -1,0 +1,15 @@
+questions:
+  - name: GoVersion
+    prompt:
+      message: "Go version"
+    validate:
+      required: true
+
+messages:
+  post: |
+    # All set
+
+presets:
+  example:
+    Project: chi-api-project
+    GoVersion: "1.23.2"

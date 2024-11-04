@@ -5,11 +5,11 @@ import (
 	"log/slog"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hpcsc/{{.name}}/internal/config"
-	"github.com/hpcsc/{{.name}}/internal/middleware"
-	"github.com/hpcsc/{{.name}}/internal/route"
-	"github.com/hpcsc/{{.name}}/internal/usecase/root"
-	"github.com/hpcsc/{{.name}}/internal/usecase/user"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/config"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/middleware"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/route"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/usecase/root"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/usecase/user"
 )
 
 var routables = []route.Routable{
