@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/hpcsc/{{.name}}/internal/middleware/request"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/middleware/request"
 )
 
 const longRequestThreshold = 500 * time.Millisecond

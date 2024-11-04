@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hpcsc/{{.name}}/internal/response"
-	"github.com/hpcsc/{{.name}}/internal/route"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/response"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/route"
 	"github.com/stretchr/testify/require"
 )
 

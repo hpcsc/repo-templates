@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hpcsc/{{.name}}/internal/response"
-	"github.com/hpcsc/{{.name}}/internal/test"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/response"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/test"
 	"github.com/stretchr/testify/require"
 )
 

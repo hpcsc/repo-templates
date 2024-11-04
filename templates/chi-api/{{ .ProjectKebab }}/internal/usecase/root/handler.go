@@ -3,7 +3,7 @@ package root
 import (
 	"net/http"
 
-	"github.com/hpcsc/{{.name}}/internal/route"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/route"
 	"github.com/unrolled/render"
 )
 
