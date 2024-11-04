@@ -4,11 +4,12 @@ Templates for some of my commonly used project setup
 
 ## Usage
 
-- Install [boilerplate](https://github.com/gruntwork-io/boilerplate)
-- Generate project using template: `boilerplate --template-url ./template-name --output-folder ./destination-folder --missing-config-action ignore`
+- Install [scaffold](https://hay-kot.github.io/scaffold/)
+- Run
 
-## Templates
-
-- `go-cli`: Template for Go CLI that uses [Taskfile](https://taskfile.dev/), [GoReleaser](https://goreleaser.com/), Github Actions
-- `go-worker`: Template for Go Worker that uses [Taskfile](https://taskfile.dev/), Github Actions
-- `asdf-plugin`: Template for ASDF plugins (with assumption that the target of the plugin has Github release available)
+```shell
+scaffold \
+    new \
+    --output-dir={destination-folder} \
+    ./templates/{template-name}
+```
