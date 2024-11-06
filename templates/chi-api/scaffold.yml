@@ -4,12 +4,26 @@ questions:
       message: "Go version"
     validate:
       required: true
+  - name: EnableResilientHttp
+    prompt:
+      confirm: "Enable Resilient Http"
 
 messages:
   post: |
     # All set
 
 presets:
-  example:
+  with-resilient:
     Project: chi-api-project
     GoVersion: "1.23.2"
+    EnableResilientHttp: "true"
+
+  without-resilient:
+    Project: chi-api-project
+    GoVersion: "1.23.2"
+    EnableResilientHttp: "false"
+
+features:
+  - value: "{{ .Scaffold.EnableResilientHttp }}"
+    globs:
+      - "**/internal/resilient/*"

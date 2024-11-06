@@ -80,7 +80,8 @@ tasks:
     env:
       NAME:
         sh: echo ${NAME:-chi-api-project}
-      PRESET: example
+      PRESET:
+        sh: echo ${PRESET:-with-resilient}
 
   render-asdf-plugin:
     desc: render asdf-plugin template to a temporary folder for verification
