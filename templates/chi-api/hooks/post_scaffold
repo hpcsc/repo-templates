@@ -11,6 +11,11 @@ go get github.com/caarlos0/env/v6 \
         github.com/unrolled/render
 go mod tidy
 
+{{ if .Scaffold.EnableResilientHttp }}
+go get github.com/rs/zerolog \
+        github.com/failsafe-go/failsafe-go
+{{ end }}
+
 aqua init
 aqua generate -i \
     standard,gotestyourself/gotestsum \
