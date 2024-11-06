@@ -10,7 +10,7 @@ builds:
       - darwin
     main: ./cmd/{{ .ProjectKebab }}
     ldflags:
-      - -extldflags -static -X 'main.Version={{ `{{.Version}}` }}'
+      - -extldflags -static -X 'github.com/hpcsc/{{.ProjectKebab}}/internal/cmd.Version={{ `{{.Version}}` }}'
 {{`
 archives:
   - format: tar.gz
