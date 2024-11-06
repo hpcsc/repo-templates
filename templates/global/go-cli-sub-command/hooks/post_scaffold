@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# a hack to work around a limitation in scaffold rewrites:
+# when this template is scaffolded, since we don't use rewrites, the files are generated to `templates` folder
+# the `cp` command below merge content of generated `templates` folder to existing folder at the top (.e.g. `templates/e2e/some_file.go` -> `e2e/some_file.go`) by creating hardlinks
+if cp --link >/dev/null 2>&1 ; then
+    echo Using GNU cp
+    cp --force --archive --update --link ./templates/. .
+else
+    echo Using BSD cp
+    cp -la ./templates/. .
+fi
+
+rm -rf ./templates

@@ -1,0 +1,2 @@
+exec main-program {{.Scaffold.Name}}
+stdout '{{.Scaffold.Name}}'

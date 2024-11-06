@@ -1,0 +1,19 @@
+questions:
+  - name: Name
+    prompt:
+      message: "Sub command name"
+    validate:
+      required: true
+  - name: Usage
+    prompt:
+      message: "Sub command usage"
+    validate:
+      required: true
+
+messages:
+  post: |
+    # All set
+
+rewrites:
+  - from: templates
+    to: .
