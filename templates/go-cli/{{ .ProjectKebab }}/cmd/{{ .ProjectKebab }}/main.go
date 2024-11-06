@@ -1,9 +1,10 @@
 package main
 
-import "fmt"
-
-var Version = "main"
+import (
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/cmd"
+	"os"
+)
 
 func main() {
-	fmt.Printf("version %s\n", Version)
+	os.Exit(cmd.Run())
 }
