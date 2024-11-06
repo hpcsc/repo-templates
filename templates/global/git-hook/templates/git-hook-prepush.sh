@@ -36,7 +36,13 @@ ensure_head_ref_exists() {
 }
 
 get_main_branch() {
-  git branch -rl "*/HEAD" | sed "s/^.*\///g"
+  main_branch=$(git branch -rl "*/HEAD" | sed "s/^.*\///g")
+  if [ -z "${main_branch}" ]; then
+    # empty means this is a new repo with no branch in remote, use default branch setting
+    git config init.defaultBranch
+  else
+    echo "${main_branch}"
+  fi
 }
 
 validate_changes_between_commits() {
@@ -68,7 +74,7 @@ fail_if_pushing_to_main() {
 
 validate() {
     local remote="${1}"
-    local local_ref="${2}"
+    local local_ref="$(git rev-parse --abbrev-ref ${2})"
     local local_sha="${3}"
     local remote_ref="${4}"
     local remote_sha="${5}"
@@ -81,8 +87,17 @@ validate() {
     if [ "${remote_sha}" = "${NOT_EXISTING_SHA}" ]; then
         # pushing new local branch, run all validations
         echo_green "pushing new local branch ${local_ref} at sha ${local_sha}"
-        git fetch "${remote}" "$(get_main_branch)"
-        validate_changes_between_commits "${local_sha}" "$(get_main_branch)"
+
+        local main_branch
+        main_branch=$(get_main_branch)
+
+        if [ "${local_ref}" != "${main_branch}" ]; then
+          # only fetch if current branch is not main branch
+          # if current branch is main branch, this is the first push to an empty remote repo, no need to fetch from remote
+          git fetch "${remote}" "${main_branch}"
+        fi
+
+        validate_changes_between_commits "${local_sha}" "${main_branch}"
         exit 0
     fi
 
