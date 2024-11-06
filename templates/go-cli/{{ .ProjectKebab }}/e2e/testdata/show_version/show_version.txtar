@@ -1,0 +1,2 @@
+exec {{.ProjectKebab}} --version
+stdout '{{.ProjectKebab}} version main'
