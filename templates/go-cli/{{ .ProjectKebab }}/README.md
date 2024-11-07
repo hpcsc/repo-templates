@@ -1,4 +1,4 @@
-# {{.name}}
+# {{.ProjectKebab}}
 
 ## Goreleaser
 

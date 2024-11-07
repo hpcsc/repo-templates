@@ -1,0 +1,7 @@
+messages:
+  post: |
+    # git hook shared script copied to scripts/libs/git-hook-prepush.sh
+
+rewrites:
+  - from: templates/git-hook-prepush.sh
+    to: scripts/libs/git-hook-prepush.sh
