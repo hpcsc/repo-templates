@@ -3,8 +3,9 @@
 package e2e
 
 import (
-	"github.com/rogpeppe/go-internal/testscript"
 	"testing"
+
+	"github.com/rogpeppe/go-internal/testscript"
 )
 
 func TestShowVersion(t *testing.T) {

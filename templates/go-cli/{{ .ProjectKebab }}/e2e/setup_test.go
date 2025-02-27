@@ -3,10 +3,11 @@
 package e2e
 
 import (
-	"github.com/hpcsc/{{.ProjectKebab}}/internal/cmd"
-	"github.com/rogpeppe/go-internal/testscript"
 	"os"
 	"testing"
+
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/cmd"
+	"github.com/rogpeppe/go-internal/testscript"
 )
 
 func TestMain(m *testing.M) {
