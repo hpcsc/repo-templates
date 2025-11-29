@@ -1,3 +1,4 @@
+version: 2
 project_name: {{ .ProjectKebab }}
 before:
   hooks:
@@ -13,7 +14,8 @@ builds:
       - -extldflags -static -X 'github.com/hpcsc/{{.ProjectKebab}}/internal/cmd.Version={{ `{{.Version}}` }}'
 {{`
 archives:
-  - format: tar.gz
+  - formats:
+      - tar.gz
     # this name template makes the OS and Arch compatible with the results of uname.
     name_template: >-
       {{ .ProjectName }}-
@@ -24,7 +26,7 @@ archives:
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  name_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-next"
 changelog:
   sort: asc
   filters:
