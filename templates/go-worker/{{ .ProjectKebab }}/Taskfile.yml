@@ -6,7 +6,7 @@ includes:
 tasks:
   run:
     cmds:
-      - go run ./cmd/{{.ProjectKebab}}
+      - go run ./cmd/{{.ProjectKebab}} {{ `{{.CLI_ARGS}}` }}
 
   build:
     cmds:
