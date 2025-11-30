@@ -5,9 +5,17 @@ tasks:
     cmds:
       - gotestsum --format pkgname-and-test-fails -- -tags=unit -race -cover -covermode=atomic -coverprofile=coverage-unit.out ./...
 
-  e2e:
+  e2e:setup:
     cmds:
-      - gotestsum --format pkgname-and-test-fails -- -tags=e2e ./...
+      - goreleaser build --clean --single-target --snapshot -o dist/{{.ProjectKebab}}
+
+  e2e:
+    deps:
+      - e2e:setup
+    cmds:
+      - bats ./e2e
+    env:
+      EXECUTABLE: ./dist/{{.ProjectKebab}}
 
   shellcheck:
     cmds:

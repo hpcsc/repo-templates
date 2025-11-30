@@ -1,0 +1,25 @@
+#!/usr/bin/env expect
+
+if {[llength $argv] != 1} {
+    puts "Usage: test_root.exp path-to-executable"
+    exit 1
+}
+
+log_user 0
+
+set pathToExecutable [lindex $argv 0]
+spawn $pathToExecutable
+
+expect "Name:"
+send "world\r"
+
+expect {
+  "hello world" {
+    set result $expect_out(0,string)
+    puts "OK, stdout: $result"
+  }
+  default {
+    puts "FAIL, stdout not matching"
+    exit 1
+  }
+}

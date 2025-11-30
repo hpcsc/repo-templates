@@ -17,4 +17,9 @@ mise use --pin \
     aqua:go-task/task \
     aqua:koalaman/shellcheck \
     aqua:goreleaser/goreleaser \
+    aqua:bats-core/bats-core \
     go:golang.org/x/vuln/cmd/govulncheck
+
+git init
+git submodule add https://github.com/bats-core/bats-support.git e2e/support/bats-support
+git submodule add https://github.com/bats-core/bats-assert.git e2e/support/bats-assert
