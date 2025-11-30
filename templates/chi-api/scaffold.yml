@@ -15,12 +15,12 @@ messages:
 presets:
   with-resilient:
     Project: chi-api-project
-    GoVersion: "1.23.2"
+    GoVersion: "1.25.4"
     EnableResilientHttp: "true"
 
   without-resilient:
     Project: chi-api-project
-    GoVersion: "1.23.2"
+    GoVersion: "1.25.4"
     EnableResilientHttp: "false"
 
 features:
