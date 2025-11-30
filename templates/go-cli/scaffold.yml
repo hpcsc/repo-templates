@@ -12,4 +12,4 @@ messages:
 presets:
   example:
     Project: go-cli-project
-    GoVersion: "1.23.2"
+    GoVersion: "1.25.4"

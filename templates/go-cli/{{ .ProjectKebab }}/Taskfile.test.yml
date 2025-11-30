@@ -5,15 +5,11 @@ tasks:
     cmds:
       - gotestsum --format pkgname-and-test-fails -- -tags=unit -race -cover -covermode=atomic -coverprofile=coverage-unit.out ./...
 
-  e2e:setup:
-    cmds:
-      - goreleaser build --clean --single-target --snapshot -o dist/{{.ProjectKebab}}
-
   e2e:
-    deps:
-      - e2e:setup
     cmds:
-      - bats ./e2e
+      - git submodule update --init --recursive
+      - docker build -t cli-e2e ./e2e
+      - docker container run --rm -e EXECUTABLE -v $PWD:/app cli-e2e
     env:
       EXECUTABLE: ./dist/{{.ProjectKebab}}
 
