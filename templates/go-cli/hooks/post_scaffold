@@ -11,11 +11,10 @@ go get github.com/fatih/color \
 
 go mod tidy
 
-aqua init
-aqua generate -i \
-    standard,gotestyourself/gotestsum \
-    standard,go-task/task \
-    standard,koalaman/shellcheck \
-    standard,golang/vuln/govulncheck \
-    standard,goreleaser/goreleaser
-aqua install
+mise use --pin \
+    -p . \
+    aqua:gotestyourself/gotestsum \
+    aqua:go-task/task \
+    aqua:koalaman/shellcheck \
+    aqua:goreleaser/goreleaser \
+    go:golang.org/x/vuln/cmd/govulncheck

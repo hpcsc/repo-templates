@@ -16,10 +16,9 @@ go get github.com/rs/zerolog \
         github.com/failsafe-go/failsafe-go
 {{ end }}
 
-aqua init
-aqua generate -i \
-    standard,gotestyourself/gotestsum \
-    standard,go-task/task \
-    standard,koalaman/shellcheck \
-    standard,golang/vuln/govulncheck
-aqua install
+mise use --pin \
+    -p . \
+    aqua:gotestyourself/gotestsum \
+    aqua:go-task/task \
+    aqua:koalaman/shellcheck \
+    go:golang.org/x/vuln/cmd/govulncheck

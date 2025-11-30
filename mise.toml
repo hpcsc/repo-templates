@@ -1,0 +1,4 @@
+[tools]
+"aqua:go-task/task" = "3.45.5"
+"aqua:goreleaser/goreleaser" = "2.12.7"
+"go:github.com/hay-kot/scaffold" = "0.11.0"
