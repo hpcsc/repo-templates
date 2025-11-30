@@ -15,7 +15,10 @@ tasks:
 
   shellcheck:
     cmds:
-      - find ./scripts -type f -name '*.sh' | xargs shellcheck -S error
+      - |
+        if [ -d ./scripts ]; then
+          find ./scripts -type f -name '*.sh' | xargs shellcheck -S error
+        fi
       - shellcheck -S error ./hooks/*
 
   vulnerabilities:
