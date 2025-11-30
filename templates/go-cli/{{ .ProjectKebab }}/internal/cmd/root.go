@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"bufio"
+	"fmt"
 	"os"
 
 	"github.com/fatih/color"
@@ -14,8 +16,18 @@ func Run() int {
 		Name:                 "{{.ProjectKebab}}",
 		Version:              Version,
 		EnableBashCompletion: true,
-		Commands: []*cli.Command{
+		Action: func(context *cli.Context) error {
+			reader := bufio.NewReader(os.Stdin)
+			fmt.Printf("Name: ")
+			text, err := reader.ReadString('\n')
+			if err != nil {
+				return fmt.Errorf("failed to read user input: %w", err)
+			}
+
+			fmt.Printf("hello %s\n", text)
+			return nil
 		},
+		Commands: []*cli.Command{},
 	}
 
 	if err := app.Run(os.Args); err != nil {
