@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cd {{ .ProjectKebab }}
+
+go get github.com/jackc/pgx/v5 \
+        github.com/stretchr/testify
+
+go mod tidy
+
+aqua init
+aqua generate -i \
+    standard,gotestyourself/gotestsum \
+    standard,go-task/task \
+    standard,koalaman/shellcheck \
+    standard,golang/vuln/govulncheck
+aqua install

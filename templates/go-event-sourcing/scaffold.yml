@@ -1,0 +1,33 @@
+questions:
+  - name: GoVersion
+    prompt:
+      message: "Go version"
+    validate:
+      required: true
+
+messages:
+  post: |
+    # All set
+
+    An event-sourcing project with a Postgres event store and one example
+    slice wired end to end.
+
+    Start postgres and run the example:
+
+        task db:up
+        task run -- open   -id acc-1 -owner "Ada Lovelace"
+        task run -- credit -id acc-1 -amount 500 -ref invoice-7
+        task run -- show   -id acc-1
+
+    Tests:
+
+        task test:unit    # no database needed
+        task test:e2e     # starts postgres itself
+
+    Keep internal/es. Everything else under internal/ is the example slice,
+    and README.md explains what to replace it with.
+
+presets:
+  example:
+    Project: go-event-sourcing-project
+    GoVersion: "1.24.0"

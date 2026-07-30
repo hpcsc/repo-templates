@@ -1,0 +1,23 @@
+version: '3'
+
+tasks:
+  unit:
+    desc: aggregates, use cases and the foundation, against an in-memory store
+    cmds:
+      - gotestsum --format pkgname-and-test-fails -- -tags=unit -race -cover -covermode=atomic -coverprofile=coverage-unit.out ./...
+
+  e2e:
+    desc: the same use cases against a real postgres
+    deps:
+      - :db:up
+      - :db:create-test
+    cmds:
+      - gotestsum --format pkgname-and-test-fails -- -tags=e2e -race -count=1 ./...
+
+  shellcheck:
+    cmds:
+      - shellcheck -S error ./hooks/*
+
+  vulnerabilities:
+    cmds:
+      - govulncheck ./...

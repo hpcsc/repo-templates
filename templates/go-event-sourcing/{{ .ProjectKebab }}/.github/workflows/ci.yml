@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push: {}
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: {{ .ProjectSnake }}_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Task
+      uses: arduino/setup-task@v2
+      with:
+        version: 3.x
+        repo-token: {{ `${{ secrets.GITHUB_TOKEN }}` }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: 'go.mod'
+
+    - name: Set up Aqua
+      uses: aquaproj/aqua-installer@v3.0.0
+      with:
+        aqua_version: v2.25.1
+
+    - name: Aqua install
+      run: aqua install
+
+    - name: Run shellcheck
+      run: task test:shellcheck
+
+    - name: Build
+      run: task build
+
+    - name: Run Unit Test
+      run: task test:unit
+
+    - name: Run E2E Test
+      # The service container is already up, so the suite talks to it directly
+      # instead of starting one through docker compose.
+      run: gotestsum --format pkgname-and-test-fails -- -tags=e2e -race -count=1 ./...
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/{{ .ProjectSnake }}_test?sslmode=disable
+
+    - name: Run vulnerabilities check
+      run: task test:vulnerabilities

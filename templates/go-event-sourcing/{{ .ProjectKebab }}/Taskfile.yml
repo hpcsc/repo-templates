@@ -1,0 +1,40 @@
+version: '3'
+
+includes:
+  test: Taskfile.test.yml
+
+tasks:
+  run:
+    cmds:
+      - go run ./cmd/{{.ProjectKebab}} {{ `{{.CLI_ARGS}}` }}
+
+  build:
+    cmds:
+      - mkdir -p ./bin
+      - go build --ldflags "-extldflags -static -X 'main.Version=${VERSION}'" -o ./bin/{{.ProjectKebab}} ./cmd/{{.ProjectKebab}}
+    env:
+      CGO_ENABLED: '0'
+      VERSION: ${VERSION:-main}
+
+  db:up:
+    desc: start postgres and wait until it accepts connections
+    cmds:
+      - docker compose up -d --wait postgres
+
+  db:down:
+    cmds:
+      - docker compose down -v
+
+  db:create-test:
+    desc: create the database the e2e suite uses
+    cmds:
+      - docker compose exec -T postgres psql -U postgres -c 'CREATE DATABASE {{ .ProjectSnake }}_test' || true
+
+  hook:setup:
+    cmds:
+      - git config core.hooksPath ./hooks
+
+  hook:validate-go-changes:
+    cmds:
+      - task: test:unit
+      - task: test:e2e
