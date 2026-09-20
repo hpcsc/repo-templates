@@ -51,8 +51,10 @@ prerelease, and then keeps only the 5 newest prereleases.
 
 ## E2E Test
 
-This project uses [bats](https://bats-core.readthedocs.io) and [expect](https://core.tcl-lang.org/expect/index) for e2e tests against the built binary:
+The end-to-end tests run the built binary in a terminal, send keys to it, and read the screen. They are
+in `e2e/`, and [docs/e2e-tests.md](docs/e2e-tests.md) tells how they work.
 
-- Bats is used as the primary test framework. All non-interactive test cases can be written in Bats
-- For interactive test cases (.i.e program requiring user input), Bats tests run expect scripts, which spawn the program under test and simulate user input.
-Expect scripts are expected to output `OK` when successful and `FAIL` when not. Bats tests assert for absence of `FAIL` keyword from expect script output
+```shell
+task test:e2e          # in Docker, as CI does
+task test:e2e:local    # on this machine, needs node
+```

@@ -14,6 +14,14 @@ messages:
   post: |
     # All set
 
+    Add new{{.Scaffold.Name | toPascalCase}}Subcommand() to the Commands list in internal/cmd/root.go,
+    then run `task test:e2e` to run e2e/tests/{{.Scaffold.Name | toSnakeCase}}.test.ts against it.
+
 rewrites:
   - from: templates
     to: .
+
+presets:
+  example:
+    Name: greet
+    Usage: an example sub command

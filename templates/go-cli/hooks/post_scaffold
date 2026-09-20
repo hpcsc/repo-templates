@@ -6,7 +6,6 @@ cd {{ .ProjectKebab }}
 
 go get github.com/fatih/color \
         github.com/mattn/go-isatty \
-        github.com/rogpeppe/go-internal \
         github.com/stretchr/testify \
         github.com/urfave/cli/v3
 
@@ -19,9 +18,12 @@ mise use --pin \
     aqua:go-task/task \
     aqua:koalaman/shellcheck \
     aqua:goreleaser/goreleaser \
-    aqua:bats-core/bats-core \
+    node \
     go:golang.org/x/vuln/cmd/govulncheck
 
 git init
-git submodule add https://github.com/bats-core/bats-support.git e2e/support/bats-support
-git submodule add https://github.com/bats-core/bats-assert.git e2e/support/bats-assert
+
+# the e2e tests need node_modules and a lock file. The e2e Dockerfile installs
+# the packages by itself when this step does not run.
+(cd e2e && mise exec -- npm install --no-audit --no-fund) \
+    || echo "npm install in e2e failed. Run it before task test:e2e:local"
