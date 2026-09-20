@@ -9,28 +9,30 @@ builds:
     goos:
       - linux
       - darwin
+    goarch:
+      - amd64
+      - arm64
     main: ./cmd/{{ .ProjectKebab }}
     ldflags:
-      - -extldflags -static -X 'github.com/hpcsc/{{.ProjectKebab}}/internal/cmd.Version={{ `{{.Version}}` }}'
-{{`
+      - -s -w -X github.com/hpcsc/{{.ProjectKebab}}/internal/version.releaseTag={{ `{{ .Tag }}` }}
 archives:
   - formats:
       - tar.gz
-    # this name template makes the OS and Arch compatible with the results of uname.
-    name_template: >-
-      {{ .ProjectName }}-
-      {{- tolower .Os }}-
-      {{- if eq .Arch "386" }}i386
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # {{ .ProjectKebab }} update looks for this name, with the GOOS and the GOARCH of the machine that runs it
+    name_template: '{{ `{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}` }}'
 checksum:
   name_template: 'checksums.txt'
 snapshot:
-  version_template: "{{ incpatch .Version }}-next"
+  version_template: '{{ `{{ incpatch .Version }}` }}-next'
 changelog:
   sort: asc
   filters:
     exclude:
       - '^docs:'
       - '^test:'
-`}}
+release:
+  # a tag with a prerelease part, such as v0.2.1-42.g4829f92, gives a prerelease
+  prerelease: auto
+  github:
+    owner: hpcsc
+    name: {{ .ProjectKebab }}

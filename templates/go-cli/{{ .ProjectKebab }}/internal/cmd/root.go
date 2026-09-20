@@ -7,10 +7,11 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/version"
 	"github.com/urfave/cli/v3"
 )
 
-var Version = "main"
+const releaseRepository = "hpcsc/{{.ProjectKebab}}"
 
 func Run(ctx context.Context) int {
 	if err := newCommand().Run(ctx, os.Args); err != nil {
@@ -24,7 +25,7 @@ func Run(ctx context.Context) int {
 func newCommand() *cli.Command {
 	return &cli.Command{
 		Name:                  "{{.ProjectKebab}}",
-		Version:               Version,
+		Version:               version.Current(),
 		EnableShellCompletion: true,
 		Action: func(_ context.Context, cmd *cli.Command) error {
 			reader := bufio.NewReader(os.Stdin)
@@ -37,6 +38,20 @@ func newCommand() *cli.Command {
 			fmt.Fprintf(cmd.Root().Writer, "hello %s\n", text)
 			return nil
 		},
-		Commands: []*cli.Command{},
+		Commands: []*cli.Command{
+			newVersionCommand(),
+			newUpdateCommand(),
+		},
+	}
+}
+
+func newVersionCommand() *cli.Command {
+	return &cli.Command{
+		Name:  "version",
+		Usage: "print the tag {{.ProjectKebab}} was built from, or its commit when it has no tag",
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			_, err := fmt.Fprintln(cmd.Root().Writer, version.Current())
+			return err
+		},
 	}
 }

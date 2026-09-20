@@ -5,11 +5,13 @@ set -euo pipefail
 cd {{ .ProjectKebab }}
 
 go get github.com/fatih/color \
+        github.com/mattn/go-isatty \
         github.com/rogpeppe/go-internal \
         github.com/stretchr/testify \
         github.com/urfave/cli/v3
 
 go mod tidy
+gofmt -w .
 
 mise use --pin \
     -p . \

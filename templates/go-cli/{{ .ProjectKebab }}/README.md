@@ -1,5 +1,35 @@
 # {{.ProjectKebab}}
 
+## Build
+
+```shell
+task build            # build ./bin/{{.ProjectKebab}}
+task run -- --help    # run the CLI from the source
+```
+
+## Version and update
+
+```shell
+{{.ProjectKebab}} version                # the tag of a release or a prerelease, or the commit of any other build
+{{.ProjectKebab}} update                 # install the latest release
+{{.ProjectKebab}} update --prerelease    # install the latest prerelease, a build of main
+{{.ProjectKebab}} update --check         # only tell you whether this build is the latest
+```
+
+`internal/version` reports the version. A release build gets its tag from goreleaser, through
+`-ldflags -X .../internal/version.releaseTag`. Any other build reports the short commit sha that Go
+keeps in the build information, with `-dirty` after it when the working tree had changes.
+
+`{{.ProjectKebab}} update` downloads the archive for your platform from a GitHub release, checks it
+against the `checksums.txt` of that release, and then replaces the binary. It names each step on
+stderr, and in a terminal it shows how much of the download has arrived. `GITHUB_TOKEN` or `GH_TOKEN`
+gives access to a private repository.
+
+Releases and prereleases are two channels. Each command installs the latest build of its channel when
+this build is a different one, so `{{.ProjectKebab}} update` on a prerelease goes back to the latest
+release. A build from a commit is not a release or a prerelease, so `{{.ProjectKebab}} update` does not
+replace it unless you add `--force`.
+
 ## Goreleaser
 
 - Run goreleaser in local: `task release:local`. This will generate a snapshot build under `./dist`
@@ -10,9 +40,14 @@ git tag vX.X.X
 git push origin vX.X.X
 ```
 
-This will trigger release workflow which will create a Github Release with binaries for MacOS and Linux
+This will trigger the release workflow, which runs the CI checks and then creates a Github Release with
+binaries for MacOS and Linux.
 
-Release workflow can also be triggered from Github Actions manually using workflow dispatch. In this mode, the workflow just creates a snapshot build, similar to `task release:local`, no Github Release will be created.
+Each push to `main` starts the prerelease workflow. It tags the commit with the next patch after the
+latest release, the run number and the commit, for example `v0.2.1-42.g4829f92`, publishes that tag as a
+prerelease, and then keeps only the 5 newest prereleases.
+
+`On Demand Build` builds a snapshot of any ref from Github Actions and uploads the archives as artifacts.
 
 ## E2E Test
 

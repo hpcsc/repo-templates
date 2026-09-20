@@ -23,6 +23,10 @@ jobs:
       with:
         go-version-file: ./tmp/go-cli-project/go.mod
 
+    - name: Run unit test for generated project
+      working-directory: ./tmp/go-cli-project
+      run: task test:unit
+
     - name: Run e2e test for generated project
       working-directory: ./tmp/go-cli-project
       run: task test:e2e

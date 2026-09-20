@@ -1,7 +1,13 @@
 name: CI
 
 on:
-  push: {}
+  push:
+    # prerelease.yml runs these checks for main before it publishes a prerelease
+    branches-ignore: [main]
+  workflow_call: {}
+
+permissions:
+  contents: read
 
 jobs:
 
