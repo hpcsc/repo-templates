@@ -7,7 +7,7 @@ cd {{ .ProjectKebab }}
 go get github.com/fatih/color \
         github.com/rogpeppe/go-internal \
         github.com/stretchr/testify \
-        github.com/urfave/cli/v2
+        github.com/urfave/cli/v3
 
 go mod tidy
 

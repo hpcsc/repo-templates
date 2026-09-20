@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func new{{.Scaffold.Name | toPascalCase}}Subcommand() *cli.Command {
@@ -14,7 +15,7 @@ func new{{.Scaffold.Name | toPascalCase}}Subcommand() *cli.Command {
 		Usage:   "{{.Scaffold.Usage}}",
 		Aliases: []string{},
 		Action:  asNoArgumentsAction(defaultAction),
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			{
 				Name:   "slice-args",
 				Usage:  "an example sub-command that takes a slice of arguments",
@@ -35,36 +36,35 @@ func new{{.Scaffold.Name | toPascalCase}}Subcommand() *cli.Command {
 				Usage:  "an example sub-command that takes no arguments",
 				Action: asNoArgumentsAction(noArguments),
 			},
-
 		},
 	}
 }
 
-func sliceArguments(_ *cli.Context, arguments []string) error {
+func sliceArguments(_ context.Context, _ *cli.Command, arguments []string) error {
 	color.Green(fmt.Sprintf("slice arguments: %s", strings.Join(arguments, ", ")))
 
 	return nil
 }
 
-func twoArguments(_ *cli.Context, argument1 string, argument2 string) error {
+func twoArguments(_ context.Context, _ *cli.Command, argument1 string, argument2 string) error {
 	color.Green(fmt.Sprintf("two arguments: %s - %s", argument1, argument2))
 
 	return nil
 }
 
-func oneArgument(_ *cli.Context, argument string) error {
+func oneArgument(_ context.Context, _ *cli.Command, argument string) error {
 	color.Green(fmt.Sprintf("one argument: %s", argument))
 
 	return nil
 }
 
-func noArguments(_ *cli.Context) error {
+func noArguments(_ context.Context, _ *cli.Command) error {
 	color.Green("no arguments")
 
 	return nil
 }
 
-func defaultAction(_ *cli.Context) error {
+func defaultAction(_ context.Context, _ *cli.Command) error {
 	color.Green("default action")
 
 	return nil

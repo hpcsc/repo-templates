@@ -1,47 +1,48 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 // an adapter function that adapt a no-arguments function to CLI action handler
-func asNoArgumentsAction(f func(*cli.Context) error) func(ctx *cli.Context) error {
-	return func(ctx *cli.Context) error {
-		return f(ctx)
+func asNoArgumentsAction(f func(context.Context, *cli.Command) error) func(context.Context, *cli.Command) error {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		return f(ctx, cmd)
 	}
 }
 
-func asOneArgumentAction(f func(*cli.Context, string) error, validationMsg string) func(ctx *cli.Context) error {
-	return func(ctx *cli.Context) error {
-		query := ctx.Args().First()
-		if len(query) == 0 {
+func asOneArgumentAction(f func(context.Context, *cli.Command, string) error, validationMsg string) func(context.Context, *cli.Command) error {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		argument := cmd.Args().First()
+		if len(argument) == 0 {
 			return errors.New(validationMsg)
 		}
 
-		return f(ctx, query)
+		return f(ctx, cmd, argument)
 	}
 }
 
-func asTwoArgumentsAction(f func(*cli.Context, string, string) error, validationMsg string) func(ctx *cli.Context) error {
-	return func(ctx *cli.Context) error {
-		query := ctx.Args().Slice()
-		if len(query) < 2 {
+func asTwoArgumentsAction(f func(context.Context, *cli.Command, string, string) error, validationMsg string) func(context.Context, *cli.Command) error {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		arguments := cmd.Args().Slice()
+		if len(arguments) < 2 {
 			return errors.New(validationMsg)
 		}
 
-		return f(ctx, query[0], query[1])
+		return f(ctx, cmd, arguments[0], arguments[1])
 	}
 }
 
-func asSliceArgumentsAction(f func(*cli.Context, []string) error, validationMsg string) func(ctx *cli.Context) error {
-	return func(ctx *cli.Context) error {
-		args := ctx.Args().Slice()
-		if len(args) == 0 {
+func asSliceArgumentsAction(f func(context.Context, *cli.Command, []string) error, validationMsg string) func(context.Context, *cli.Command) error {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		arguments := cmd.Args().Slice()
+		if len(arguments) == 0 {
 			return errors.New(validationMsg)
 		}
 
-		return f(ctx, args)
+		return f(ctx, cmd, arguments)
 	}
 }

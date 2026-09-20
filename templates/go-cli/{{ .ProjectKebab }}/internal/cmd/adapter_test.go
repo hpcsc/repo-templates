@@ -3,185 +3,141 @@
 package cmd
 
 import (
-	"flag"
+	"context"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
-func cliContextWithArguments(t *testing.T, arguments ...string) *cli.Context {
-	var flags flag.FlagSet
-	require.NoError(t, flags.Parse(arguments))
+func TestAdapter(t *testing.T) {
+	run := func(t *testing.T, action func(context.Context, *cli.Command) error, arguments ...string) error {
+		t.Helper()
+		command := &cli.Command{Name: "test", Action: action, Writer: io.Discard, ErrWriter: io.Discard}
 
-	return cli.NewContext(
-		&cli.App{},
-		&flags,
-		nil,
-	)
-}
+		return command.Run(context.Background(), append([]string{"test"}, arguments...))
+	}
 
-func TestNoArgumentsAction(t *testing.T) {
-	t.Run(
-		"invoke adapted action", func(t *testing.T) {
-			ctx := cliContextWithArguments(t, "argument-1", "argument-2")
+	t.Run("no arguments", func(t *testing.T) {
+		t.Run("runs the action, whatever the arguments are", func(t *testing.T) {
 			invoked := false
-			adaptedAction := asNoArgumentsAction(
-				func(_ *cli.Context) error {
-					invoked = true
-					return nil
-				},
-			)
+			action := asNoArgumentsAction(func(context.Context, *cli.Command) error {
+				invoked = true
+				return nil
+			})
 
-			err := adaptedAction(ctx)
+			err := run(t, action, "argument-1", "argument-2")
 
 			require.NoError(t, err)
-			require.Truef(t, invoked, "adapted action was not invoked")
-		},
-	)
-}
+			require.True(t, invoked, "adapted action was not invoked")
+		})
+	})
 
-func TestOneArgumentAction(t *testing.T) {
-	t.Run(
-		"return error when no arguments provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t)
-			action := func(_ *cli.Context, arg string) error {
+	t.Run("one argument", func(t *testing.T) {
+		t.Run("no argument returns the validation message", func(t *testing.T) {
+			action := asOneArgumentAction(func(context.Context, *cli.Command, string) error {
 				require.Fail(t, "should not be called when error happens")
 				return nil
-			}
-			adaptedAction := asOneArgumentAction(action, "one argument is required")
+			}, "one argument is required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action)
 
 			require.ErrorContains(t, err, "one argument is required")
-		},
-	)
+		})
 
-	t.Run(
-		"return no error when exactly one argument provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t, "argument-1")
-			action := func(_ *cli.Context, arg string) error {
-				require.Equal(t, arg, "argument-1")
+		t.Run("one argument reaches the action", func(t *testing.T) {
+			action := asOneArgumentAction(func(_ context.Context, _ *cli.Command, argument string) error {
+				require.Equal(t, "argument-1", argument)
 				return nil
-			}
-			adaptedAction := asOneArgumentAction(action, "one argument is required")
+			}, "one argument is required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action, "argument-1")
 
 			require.NoError(t, err)
-		},
-	)
+		})
 
-	t.Run(
-		"return no error when more than one argument provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t, "argument-1", "argument-2", "argument-3")
-			action := func(_ *cli.Context, arg string) error {
-				// only the first argument passed to this function
-				require.Equal(t, arg, "argument-1")
+		t.Run("more arguments give the action the first one only", func(t *testing.T) {
+			action := asOneArgumentAction(func(_ context.Context, _ *cli.Command, argument string) error {
+				require.Equal(t, "argument-1", argument)
 				return nil
-			}
-			adaptedAction := asOneArgumentAction(action, "one argument is required")
+			}, "one argument is required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action, "argument-1", "argument-2", "argument-3")
 
 			require.NoError(t, err)
-		},
-	)
-}
+		})
+	})
 
-func TestTwoArgumentsAction(t *testing.T) {
-	t.Run(
-		"return error when no arguments provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t)
-			action := func(_ *cli.Context, arg1 string, arg2 string) error {
+	t.Run("two arguments", func(t *testing.T) {
+		t.Run("no argument returns the validation message", func(t *testing.T) {
+			action := asTwoArgumentsAction(func(context.Context, *cli.Command, string, string) error {
 				require.Fail(t, "should not be called when error happens")
 				return nil
-			}
-			adaptedAction := asTwoArgumentsAction(action, "two arguments are required")
+			}, "two arguments are required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action)
 
 			require.ErrorContains(t, err, "two arguments are required")
-		},
-	)
+		})
 
-	t.Run(
-		"return error when one argument provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t, "argument-1")
-			action := func(_ *cli.Context, arg1 string, arg2 string) error {
+		t.Run("one argument returns the validation message", func(t *testing.T) {
+			action := asTwoArgumentsAction(func(context.Context, *cli.Command, string, string) error {
 				require.Fail(t, "should not be called when error happens")
 				return nil
-			}
-			adaptedAction := asTwoArgumentsAction(action, "two arguments are required")
+			}, "two arguments are required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action, "argument-1")
 
 			require.ErrorContains(t, err, "two arguments are required")
-		},
-	)
+		})
 
-	t.Run(
-		"return no error when exactly two arguments provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t, "argument-1", "argument-2")
-			action := func(_ *cli.Context, arg1 string, arg2 string) error {
-				require.Equal(t, "argument-1", arg1)
-				require.Equal(t, "argument-2", arg2)
+		t.Run("two arguments reach the action", func(t *testing.T) {
+			action := asTwoArgumentsAction(func(_ context.Context, _ *cli.Command, first string, second string) error {
+				require.Equal(t, "argument-1", first)
+				require.Equal(t, "argument-2", second)
 				return nil
-			}
-			adaptedAction := asTwoArgumentsAction(action, "two arguments are required")
+			}, "two arguments are required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action, "argument-1", "argument-2")
 
 			require.NoError(t, err)
-		},
-	)
+		})
 
-	t.Run(
-		"return no error when more than two argument provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t, "argument-1", "argument-2", "argument-3")
-			action := func(_ *cli.Context, arg1 string, arg2 string) error {
-				// only the first two arguments passed to this function
-				require.Equal(t, "argument-1", arg1)
-				require.Equal(t, "argument-2", arg2)
+		t.Run("more arguments give the action the first two only", func(t *testing.T) {
+			action := asTwoArgumentsAction(func(_ context.Context, _ *cli.Command, first string, second string) error {
+				require.Equal(t, "argument-1", first)
+				require.Equal(t, "argument-2", second)
 				return nil
-			}
-			adaptedAction := asTwoArgumentsAction(action, "two arguments are required")
+			}, "two arguments are required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action, "argument-1", "argument-2", "argument-3")
 
 			require.NoError(t, err)
-		},
-	)
-}
+		})
+	})
 
-func TestSliceArgumentAction(t *testing.T) {
-	t.Run(
-		"return error when no arguments provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t)
-			action := func(_ *cli.Context, args []string) error {
+	t.Run("slice arguments", func(t *testing.T) {
+		t.Run("no argument returns the validation message", func(t *testing.T) {
+			action := asSliceArgumentsAction(func(context.Context, *cli.Command, []string) error {
 				require.Fail(t, "should not be called when error happens")
 				return nil
-			}
-			adaptedAction := asSliceArgumentsAction(action, "one argument is required")
+			}, "one argument is required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action)
 
 			require.ErrorContains(t, err, "one argument is required")
-		},
-	)
+		})
 
-	t.Run(
-		"return no error when arguments provided", func(t *testing.T) {
-			ctx := cliContextWithArguments(t, "argument-1", "argument-2", "argument-3")
-			action := func(_ *cli.Context, args []string) error {
-				require.Equal(t, []string{"argument-1", "argument-2", "argument-3"}, args)
+		t.Run("every argument reaches the action", func(t *testing.T) {
+			action := asSliceArgumentsAction(func(_ context.Context, _ *cli.Command, arguments []string) error {
+				require.Equal(t, []string{"argument-1", "argument-2", "argument-3"}, arguments)
 				return nil
-			}
-			adaptedAction := asSliceArgumentsAction(action, "one argument is required")
+			}, "one argument is required")
 
-			err := adaptedAction(ctx)
+			err := run(t, action, "argument-1", "argument-2", "argument-3")
 
 			require.NoError(t, err)
-		},
-	)
+		})
+	})
 }

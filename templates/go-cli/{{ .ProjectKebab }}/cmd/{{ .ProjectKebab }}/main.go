@@ -1,10 +1,16 @@
 package main
 
 import (
-	"github.com/hpcsc/{{.ProjectKebab}}/internal/cmd"
+	"context"
 	"os"
+	"os/signal"
+
+	"github.com/hpcsc/{{.ProjectKebab}}/internal/cmd"
 )
 
 func main() {
-	os.Exit(cmd.Run())
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	os.Exit(cmd.Run(ctx))
 }
