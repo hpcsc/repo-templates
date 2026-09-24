@@ -1,5 +1,30 @@
 # {{.ProjectKebab}}
 
+## Install
+
+The installer downloads the latest release for your platform, verifies its checksum, and puts the
+binary where you can start using it. It needs `sh`, `curl`, `jq`, `tar`, and `gzip`.
+
+```shell
+sh <(curl -fsSL https://raw.githubusercontent.com/hpcsc/{{.ProjectKebab}}/main/scripts/install.sh)
+```
+
+It asks for the release channel and the install directory. To skip the questions on the command line:
+
+```shell
+sh <(curl ...) --channel release --dir ~/.local/bin
+```
+
+The channel is `release` (the latest stable release) or `prerelease` (the latest build of `main`).
+Without `--dir`, the binary lands in `~/.local/bin` (or `$INSTALL_DIR`). When more than one version is
+available in the channel, the installer lists them for you to pick.
+
+`GITHUB_TOKEN` or `GH_TOKEN` gives access to a private repository.
+
+`{{.ProjectKebab}} update` also installs from a release, and it replaces this very binary, so the
+installer and the update command do the same kind of job; use whichever you find convenient on a fresh
+machine.
+
 ## Build
 
 ```shell
