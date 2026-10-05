@@ -1,0 +1,14 @@
+messages:
+  post: |
+    # Process manager added
+
+    The money transfer example now runs as a process manager. The README section
+    "Process Manager Example" tells how to run it, and docs/process-manager-example.md
+    explains the design.
+
+    Run `task migrate:up` or `task run` to create the transfer_processes table.
+
+delimiters:
+  - glob: "**/*.part"
+    left: "[["
+    right: "]]"

@@ -126,6 +126,20 @@ tasks:
       PRESET:
         sh: echo ${PRESET:-example}
 
+  test-go-event-sourcing-service-process-manager:
+    desc: check that the process manager added to a project later gives the same files as the process manager chosen at the start
+    preconditions:
+      - command -v scaffold
+      - command -v ast-grep
+    cmds:
+      - rm -rf ./tmp/process-manager
+      - scaffold --run-hooks=never new --output-dir=./tmp/process-manager/at-start --no-prompt=true --preset=example ./templates/go-event-sourcing-service
+      - scaffold --run-hooks=never new --output-dir=./tmp/process-manager/later --no-prompt=true --preset=minimal ./templates/go-event-sourcing-service
+      - |
+        cd ./tmp/process-manager/later/go-event-sourcing-service-project
+        scaffold --run-hooks=always new --output-dir=. --no-prompt=true --force ../../../../templates/global/go-event-sourcing-service-process-manager
+      - diff -r ./tmp/process-manager/at-start ./tmp/process-manager/later
+
   render-asdf-plugin:
     desc: render asdf-plugin template to a temporary folder for verification
     preconditions:

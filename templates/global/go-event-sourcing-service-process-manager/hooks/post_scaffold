@@ -1,0 +1,239 @@
+#!/bin/bash
+
+set -euo pipefail
+
+for tool in ast-grep jq go gofmt; do
+  if ! command -v "$tool" >/dev/null; then
+    echo "error: adding the process manager needs $tool on PATH" >&2
+    exit 1
+  fi
+done
+
+parts=.process-manager
+example_module=github.com/hpcsc/go-event-sourcing-service-project
+module=$(go list -m)
+failed=0
+
+if [ "$module" != "$example_module" ]; then
+  grep -rlF --include='*.go' "$example_module" internal | xargs perl -pi -e "s#\Q$example_module\E#$module#g"
+fi
+
+# add <file> <text that is there after the change> <ast-grep rule>
+add() {
+  local file=$1 present=$2 rule=$3
+  if grep -qF -- "$present" "$file"; then
+    return
+  fi
+  if [ "$(ast-grep scan --inline-rules "$rule" --json "$file" | jq length)" != 1 ]; then
+    echo "error: cannot find where to add '$present' in $file, add it by hand" >&2
+    failed=1
+    return
+  fi
+  ast-grep scan --inline-rules "$rule" --update-all "$file" >/dev/null 2>&1
+}
+
+block() {
+  sed 's/^/  /'
+}
+
+# the function or method with this name: <function_declaration|method_declaration> <name> <indent>
+named() {
+  printf '%*skind: %s\n%*shas: {field: name, regex: ^%s$}\n' "$3" '' "$1" "$3" '' "$2"
+}
+
+after_last_import() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$LAST
+  kind: import_spec
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: import_spec_list
+fix: |-
+  \$LAST
+$(block <<<"$1")
+EOF
+}
+
+after_last_statement() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$LAST
+  any:
+    - kind: expression_statement
+    - kind: short_var_declaration
+    - kind: assignment_statement
+    - kind: var_declaration
+    - kind: if_statement
+    - kind: for_statement
+    - kind: defer_statement
+    - kind: go_statement
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: statement_list
+    inside:
+      kind: block
+      inside:
+$(named "$1" "$2" 8)
+fix: |-
+  \$LAST
+$(block <<<"$3")
+EOF
+}
+
+after_last_element() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$LAST
+  kind: literal_element
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: literal_value
+    inside:
+      kind: composite_literal
+      inside:
+        stopBy: end
+$(named "$1" "$2" 8)
+fix: |-
+  \$LAST,
+$(block <<<"$3")
+EOF
+}
+
+after_last_case() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$LAST
+  any:
+    - kind: type_case
+    - kind: default_case
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: type_switch_statement
+    inside:
+      stopBy: end
+$(named "$1" "$2" 6)
+transform:
+  TRIMMED:
+    replace:
+      source: \$LAST
+      replace: "\\\\n\$"
+      by: ""
+fix: |-
+  \$TRIMMED
+$(block <<<"$3")
+EOF
+}
+
+before_default() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$DEFAULT
+  kind: default_case
+  inside:
+    kind: type_switch_statement
+    inside:
+      stopBy: end
+$(named "$1" "$2" 6)
+fix: |-
+$(block <<<"$3")
+  \$DEFAULT
+EOF
+}
+
+after_last_field() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$LAST
+  kind: field_declaration
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: field_declaration_list
+    inside:
+      kind: struct_type
+      inside:
+        kind: type_spec
+        has: {field: name, regex: ^$1$}
+fix: |-
+  \$LAST
+$(block <<<"$2")
+EOF
+}
+
+file=internal/usecase/account/account.go
+add $file "transferLedger" "$(after_last_field Account 'transfers transferLedger')"
+add $file "a.applyTransfer(e)" "$(after_last_case method_declaration Apply $'default:\n\ta.applyTransfer(e)')"
+
+file=internal/usecase/account/events.go
+add $file "event.TransferDebited]()" "$(after_last_statement function_declaration RegisterEvents 'reg.Register[event.TransferDebited]()
+reg.Register[event.TransferDebitRejected]()
+reg.Register[event.TransferCredited]()
+reg.Register[event.TransferCreditRejected]()
+reg.Register[event.TransferRefunded]()')"
+
+file=internal/usecase/account/balance/projection.go
+add $file "event.TransferDebited{}.EventType()" "$(after_last_element method_declaration EventTypes 'event.TransferDebited{}.EventType(),
+event.TransferCredited{}.EventType(),
+event.TransferRefunded{}.EventType()')"
+add $file "case *event.TransferDebited:" "$(before_default method_declaration Handle $'case *event.TransferDebited:\n\treturn p.change(ctx, tx, payload.AccountID, -payload.Amount, evt.Version)\ncase *event.TransferCredited:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)\ncase *event.TransferRefunded:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)')"
+
+file=internal/usecase/register.go
+for pkg in internal/usecase/account/transfers internal/usecase/transfer internal/usecase/transfer/start; do
+  add $file "\"$module/$pkg\"" "$(after_last_import "\"$module/$pkg\"")"
+done
+add $file "transfer.RegisterEvents(reg)" "$(after_last_statement function_declaration RegisterEvents 'transfer.RegisterEvents(reg)')"
+add $file "transfers.Register(bus, accounts)" "$(after_last_statement function_declaration RegisterHandlers 'transfers.Register(bus, accounts)
+start.Register(bus, transfer.NewRepository(stream), accounts)')"
+
+file=cmd/catchup/main.go
+add $file "\"$module/internal/usecase/transfer/process\"" "$(after_last_import "\"$module/internal/usecase/transfer/process\"")"
+add $file "process.NewProjection(" "$(after_last_element function_declaration consumers 'projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
+reaction.NewReactor(process.NewDispatcher(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning())')"
+
+file=internal/api/usecase/register.go
+add $file "\"$module/internal/api/usecase/transfer\"" "$(after_last_import "apiTransfer \"$module/internal/api/usecase/transfer\"")"
+add $file "\"$module/internal/usecase/transfer/process\"" "$(after_last_import "\"$module/internal/usecase/transfer/process\"")"
+add $file "apiTransfer.NewHandler(" "$(after_last_element function_declaration allRoutes 'apiTransfer.NewHandler(bus, process.NewQuery(pool))')"
+
+gofmt -w internal/usecase/account internal/usecase/register.go cmd/catchup/main.go internal/api/usecase/register.go
+
+if ! grep -qF "## Process Manager Example" README.md; then
+  printf '\n' >>README.md
+  cat "$parts/README.md.part" >>README.md
+fi
+if ! grep -qF "  transfer:" Taskfile.api.yml; then
+  printf '\n' >>Taskfile.api.yml
+  cat "$parts/Taskfile.api.yml.part" >>Taskfile.api.yml
+fi
+rm -rf "$parts"
+
+# golang-migrate applies no migration that is older than the version of the database
+for added in migrations/*_create-transfer-processes-table.up.sql; do
+  version=${added#migrations/}
+  version=${version%%_*}
+  latest=$(ls migrations/*.up.sql | grep -v create-transfer-processes-table | sed 's#^migrations/##; s#_.*##' | sort | tail -1)
+  if [ "$latest" \> "$version" ]; then
+    now=$(date -u +%Y%m%d%H%M%S)
+    for f in migrations/"$version"_create-transfer-processes-table.*; do
+      mv "$f" "migrations/$now${f#migrations/$version}"
+    done
+  fi
+done
+
+if [ "$failed" != 0 ]; then
+  exit 1
+fi
+
+go build ./...

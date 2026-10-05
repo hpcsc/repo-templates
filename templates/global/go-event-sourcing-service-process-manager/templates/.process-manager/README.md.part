@@ -1,0 +1,22 @@
+## Process Manager Example
+
+A money transfer between two accounts runs as a process manager. A failed credit refunds the debit.
+[docs/process-manager-example.md](docs/process-manager-example.md) explains the design.
+
+```sh
+export FROM=<an account ID with money> TO=<another account ID>
+task api:transfer -- 300                # returns the new transfer ID
+export TRANSFER=<the transfer ID>
+task api:get-transfer                   # completed, or failed with the reason
+```
+
+A transfer to a closed account fails, and the process refunds the source account.
+
+To replace it with your own process, change these:
+
+- `internal/usecase/transfer`: the aggregate that starts a transfer, its events, its commands, the start
+  use case and the process manager
+- `internal/usecase/account/transfers`, and the `transfer` files in `internal/usecase/account`: the account
+  side of a transfer
+- `internal/api/usecase/transfer`: the HTTP handler
+- the migration of the `transfer_processes` table
