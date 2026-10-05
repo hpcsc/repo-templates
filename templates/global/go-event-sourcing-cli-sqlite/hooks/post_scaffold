@@ -1,0 +1,152 @@
+#!/bin/bash
+
+set -euo pipefail
+
+for tool in ast-grep jq go gofmt; do
+  if ! command -v "$tool" >/dev/null; then
+    echo "error: adding the SQLite store needs $tool on PATH" >&2
+    exit 1
+  fi
+done
+
+parts=.sqlite
+example_module=github.com/hpcsc/go-event-sourcing-cli-project
+module=$(go list -m)
+failed=0
+
+if [ "$module" != "$example_module" ]; then
+  grep -rlF --include='*.go' "$example_module" internal | xargs perl -pi -e "s#\Q$example_module\E#$module#g"
+  perl -pi -e "s#\Q${example_module##*/}\E#${module##*/}#g" "$parts/README.md.part"
+fi
+
+# add <file> <text that is there after the change> <ast-grep rule>
+add() {
+  local file=$1 present=$2 rule=$3
+  if grep -qF -- "$present" "$file"; then
+    return
+  fi
+  if [ "$(ast-grep scan --inline-rules "$rule" --json "$file" | jq length)" != 1 ]; then
+    echo "error: cannot find where to add '$present' in $file, add it by hand" >&2
+    failed=1
+    return
+  fi
+  ast-grep scan --inline-rules "$rule" --update-all "$file" >/dev/null 2>&1
+}
+
+block() {
+  sed 's/^/  /'
+}
+
+statements() {
+  cat <<EOF
+  any:
+    - kind: expression_statement
+    - kind: short_var_declaration
+    - kind: assignment_statement
+    - kind: var_declaration
+    - kind: return_statement
+    - kind: if_statement
+    - kind: for_statement
+    - kind: defer_statement
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: statement_list
+    inside:
+      kind: block
+      inside:
+        kind: function_declaration
+        has: {field: name, regex: ^$1$}
+EOF
+}
+
+before_last_statement() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$LAST
+$(statements "$1")
+fix: |-
+$(block <<<"$2")
+  \$LAST
+EOF
+}
+
+# after the last element of the composite literal of this type in the function: <function> <type regex> <text>
+after_last_element() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$LAST
+  any:
+    - kind: literal_element
+    - kind: keyed_element
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: literal_value
+    inside:
+      kind: composite_literal
+      has: {field: type, regex: '$2'}
+      inside:
+        stopBy: end
+        kind: function_declaration
+        has: {field: name, regex: ^$1$}
+fix: |-
+  \$LAST,
+$(block <<<"$3")
+EOF
+}
+
+after_last_field() {
+  cat <<EOF
+id: add
+language: go
+rule:
+  pattern: \$LAST
+  kind: field_declaration
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: field_declaration_list
+    inside:
+      kind: struct_type
+      inside:
+        kind: type_spec
+        has: {field: name, regex: ^$1$}
+fix: |-
+  \$LAST
+$(block <<<"$2")
+EOF
+}
+
+file=internal/app/app.go
+add $file "StorePath string" "$(after_last_field Config $'\nStorePath string')"
+add $file "store.OpenSQLite(" "$(before_last_statement openStore 'if cfg.StorePath != "" {
+	sqlite, err := store.OpenSQLite(ctx, cfg.StorePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	return sqlite, sqlite.Close, nil
+}')"
+
+file=internal/cli/root.go
+add $file "defaultStorePath(name)" "$(after_last_element NewRootCmd '^cli\.Command$' 'Flags: []cli.Flag{
+	&cli.StringFlag{Name: "db", Usage: "the SQLite file that keeps the events", Value: defaultStorePath(name)},
+}')"
+add $file "cfg.StorePath =" "$(before_last_statement openApp 'cfg.StorePath = cmd.String("db")')"
+
+gofmt -w internal/app/app.go internal/cli/root.go
+
+if ! grep -qF "## SQLite Store" README.md; then
+  printf '\n' >>README.md
+  cat "$parts/README.md.part" >>README.md
+fi
+rm -rf "$parts"
+
+if [ "$failed" != 0 ]; then
+  exit 1
+fi
+
+go get modernc.org/sqlite@v1.53.0
+go mod tidy
+go build ./...

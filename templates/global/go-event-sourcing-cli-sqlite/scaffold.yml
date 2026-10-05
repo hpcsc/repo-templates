@@ -1,0 +1,6 @@
+messages:
+  post: |
+    # SQLite store added
+
+    The events now stay in a SQLite file between commands. The `--db` flag names the file. The README
+    section "SQLite Store" tells how the store applies its schema files.

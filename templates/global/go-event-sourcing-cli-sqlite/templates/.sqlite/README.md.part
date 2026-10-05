@@ -1,0 +1,12 @@
+## SQLite Store
+
+The SQLite store keeps the events in one file. The `--db` flag names the file. The default is
+`$XDG_DATA_HOME/go-event-sourcing-cli-project/events.db`, or `~/.local/share/go-event-sourcing-cli-project/events.db`. The store uses `modernc.org/sqlite`, which
+needs no C compiler, so `CGO_ENABLED=0` still builds a static binary.
+
+- The store applies the files in `internal/schema` in name order when it opens, and records the hash of
+  each file. It refuses to open when an applied file changed, so add a new file for each change.
+- It refuses to open a store that has a schema file that this build does not have, because a newer build
+  wrote that store.
+- Triggers refuse `UPDATE` and `DELETE` on the `events` table.
+- `UNIQUE(stream_id, seq)` turns a stale append into `stream.ErrVersionConflict`.
