@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/store"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/stream"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/credit"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/open"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/show"
@@ -13,11 +12,8 @@ import (
 )
 
 type Config struct {
-	Now func() time.Time
-{{- if .Scaffold.SQLite }}
-
+	Now       func() time.Time
 	StorePath string
-{{- end }}
 }
 
 type App struct {
@@ -30,7 +26,7 @@ type App struct {
 }
 
 func New(ctx context.Context, cfg Config) (*App, error) {
-	eventStore, closeStore, err := openStore(ctx, cfg)
+	eventStore, err := store.OpenSQLite(ctx, cfg.StorePath)
 	if err != nil {
 		return nil, err
 	}
@@ -45,23 +41,10 @@ func New(ctx context.Context, cfg Config) (*App, error) {
 		Credit: credit.New(eventStore, now),
 		Show:   show.New(eventStore),
 		Events: events.New(eventStore),
-		close:  closeStore,
+		close:  eventStore.Close,
 	}, nil
 }
 
 func (a *App) Close() error {
 	return a.close()
-}
-
-func openStore(ctx context.Context, cfg Config) (stream.Store, func() error, error) {
-{{- if .Scaffold.SQLite }}
-	if cfg.StorePath != "" {
-		sqlite, err := store.OpenSQLite(ctx, cfg.StorePath)
-		if err != nil {
-			return nil, nil, err
-		}
-		return sqlite, sqlite.Close, nil
-	}
-{{- end }}
-	return store.NewMemory(), func() error { return nil }, nil
 }

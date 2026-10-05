@@ -104,23 +104,7 @@ tasks:
     env:
       NAME:
         sh: echo ${NAME:-go-event-sourcing-cli-project}
-      PRESET:
-        sh: echo ${PRESET:-example}
-
-  test-go-event-sourcing-cli-sqlite:
-    desc: check that the SQLite store added to a project later gives the same files as the SQLite store chosen at the start
-    preconditions:
-      - command -v scaffold
-      - command -v ast-grep
-    cmds:
-      - rm -rf ./tmp/sqlite
-      - scaffold --run-hooks=never new --output-dir=./tmp/sqlite/at-start --no-prompt=true --preset=example ./templates/go-event-sourcing-cli
-      - cd ./tmp/sqlite/at-start/go-event-sourcing-cli-project && go mod tidy
-      - scaffold --run-hooks=never new --output-dir=./tmp/sqlite/later --no-prompt=true --preset=minimal ./templates/go-event-sourcing-cli
-      - |
-        cd ./tmp/sqlite/later/go-event-sourcing-cli-project
-        scaffold --run-hooks=always new --output-dir=. --no-prompt=true --force ../../../../templates/global/go-event-sourcing-cli-sqlite
-      - diff -r ./tmp/sqlite/at-start ./tmp/sqlite/later
+      PRESET: example
 
   render-go-event-sourcing-service:
     desc: render go-event-sourcing-service template to a temporary folder for verification

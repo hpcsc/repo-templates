@@ -24,6 +24,9 @@ func NewRootCmd() *cli.Command {
 		Name:    name,
 		Usage:   "an event-sourced command-line application",
 		Version: version,
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "db", Usage: "the SQLite file that keeps the events", Value: defaultStorePath(name)},
+		},
 		Commands: []*cli.Command{
 			newOpenCmd(),
 			newCreditCmd(),
@@ -32,11 +35,6 @@ func NewRootCmd() *cli.Command {
 		},
 		// urfave prints the error and calls os.Exit when this handler is nil
 		ExitErrHandler: func(context.Context, *cli.Command, error) {},
-{{- if .Scaffold.SQLite }}
-		Flags: []cli.Flag{
-			&cli.StringFlag{Name: "db", Usage: "the SQLite file that keeps the events", Value: defaultStorePath(name)},
-		},
-{{- end }}
 	}
 	classifyUsageErrors(root)
 	return root
@@ -52,11 +50,10 @@ func Execute(ctx context.Context, cmd *cli.Command, args []string) int {
 }
 
 func openApp(ctx context.Context, cmd *cli.Command) (*app.App, error) {
-	cfg := app.Config{Now: func() time.Time { return time.Now().UTC() }}
-{{- if .Scaffold.SQLite }}
-	cfg.StorePath = cmd.String("db")
-{{- end }}
-	return app.New(ctx, cfg)
+	return app.New(ctx, app.Config{
+		Now:       func() time.Time { return time.Now().UTC() },
+		StorePath: cmd.String("db"),
+	})
 }
 
 func mapError(err error) error {

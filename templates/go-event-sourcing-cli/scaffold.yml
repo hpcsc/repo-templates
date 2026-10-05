@@ -5,18 +5,6 @@ questions:
       default: "1.27.1"
     validate:
       required: true
-  - name: SQLite
-    prompt:
-      confirm: "Include the SQLite store, which keeps the events between commands?"
-
-features:
-  - value: "{{ .Scaffold.SQLite }}"
-    globs:
-      - "**/internal/store/sqlite.go"
-      - "**/internal/store/sqlite_test.go"
-      - "**/internal/schema/**"
-      - "**/internal/cli/store_path.go"
-      - "**/internal/cli/sqlite_test.go"
 
 delimiters:
   - glob: "**/Taskfile*.yml"
@@ -28,13 +16,7 @@ messages:
     # All set
 
     An event-sourced command-line application with one example: an account that a command opens,
-    credits and shows.
-    {{- if .Scaffold.SQLite }}
-    The SQLite store keeps the events between commands.
-    {{- else }}
-    The in-memory store keeps the events only while one command runs. To add the SQLite store later,
-    run the go-event-sourcing-cli-sqlite template scaffold in the project.
-    {{- end }}
+    credits and shows. A SQLite file keeps the events between commands.
 
         cd {{ .ProjectKebab }}
         task run -- open   --id acc-1 --owner "Ada Lovelace"
@@ -48,8 +30,3 @@ presets:
   example:
     Project: go-event-sourcing-cli-project
     GoVersion: "1.27.1"
-    SQLite: true
-  minimal:
-    Project: go-event-sourcing-cli-project
-    GoVersion: "1.27.1"
-    SQLite: false

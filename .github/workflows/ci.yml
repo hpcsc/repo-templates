@@ -75,9 +75,6 @@ jobs:
 
   render-go-event-sourcing-cli:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        preset: [example, minimal]
     steps:
     - uses: actions/checkout@v4
 
@@ -93,8 +90,6 @@ jobs:
 
     - name: Render
       run: task render-go-event-sourcing-cli
-      env:
-        PRESET: ${{ matrix.preset }}
 
     - name: Run unit test for generated project
       working-directory: ./tmp/go-event-sourcing-cli-project
@@ -103,24 +98,6 @@ jobs:
     - name: Build the generated binary
       working-directory: ./tmp/go-event-sourcing-cli-project
       run: task build
-
-  test-go-event-sourcing-cli-sqlite:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Mise install
-      uses: jdx/mise-action@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.27.1'
-
-    - name: Add the SQLite store to a project and compare
-      run: task test-go-event-sourcing-cli-sqlite
 
   render-go-event-sourcing-service:
     runs-on: ubuntu-latest

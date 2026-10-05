@@ -13,10 +13,6 @@ task run -- events --stream account-acc-1
 task test:unit
 ```
 
-The in-memory store keeps the events only while one command runs, so each command starts with an empty
-store. The SQLite store keeps them between commands. The template adds it when you answer yes to its
-question, and the `go-event-sourcing-cli-sqlite` template scaffold adds it to an existing project.
-
 Each command prints its result as JSON on stdout. An error prints `{"error": ..., "code": ...}` on stderr,
 and the exit code tells the kind of error:
 
@@ -37,7 +33,7 @@ and the exit code tells the kind of error:
 | `internal/es` | `Event` and `Record`, which every package uses. |
 | `internal/event` | The events, with a `Kind` for each, and the codec with schema versions. |
 | `internal/stream` | `Store`, `Fold`, and `Update`, which loads, folds, decides and appends. |
-| `internal/store` | The stores. |
+| `internal/store` | The SQLite store, and an in-memory store for the unit tests. |
 | `internal/account` | The state of an account, folded from its stream. |
 | `internal/use_cases/<area>/<verb>` | One use case: a runner and its decide function. |
 | `internal/exit` | The exit codes and the JSON output of an error. |
@@ -58,6 +54,19 @@ path, and so does a credit with a reference that the account already has.
 When another process appends to the stream between the load and the append, `Update` loads the stream
 again, decides again and tries once more. A second conflict returns `stream.ErrVersionConflict`, and the
 command exits with code 3.
+
+## The Store
+
+The SQLite store keeps the events in one file. The `--db` flag names the file. The default is
+`$XDG_DATA_HOME/{{ .ProjectKebab }}/events.db`, or `~/.local/share/{{ .ProjectKebab }}/events.db`. The store uses `modernc.org/sqlite`, which
+needs no C compiler, so `CGO_ENABLED=0` still builds a static binary.
+
+- The store applies the files in `internal/schema` in name order when it opens, and records the hash of
+  each file. It refuses to open when an applied file changed, so add a new file for each change.
+- It refuses to open a store that has a schema file that this build does not have, because a newer build
+  wrote that store.
+- Triggers refuse `UPDATE` and `DELETE` on the `events` table.
+- `UNIQUE(stream_id, seq)` turns a stale append into `stream.ErrVersionConflict`.
 
 ## Add a Use Case
 
@@ -83,19 +92,3 @@ Each saved event keeps the schema version of its kind. `register` gives version 
 
 When an old build reads an event with a newer schema version, `Decode` returns a `NewerSchemaError`, and
 the command exits with code 2 and the code `stream-version`.
-
-{{- if .Scaffold.SQLite }}
-
-## SQLite Store
-
-The SQLite store keeps the events in one file. The `--db` flag names the file. The default is
-`$XDG_DATA_HOME/{{ .ProjectKebab }}/events.db`, or `~/.local/share/{{ .ProjectKebab }}/events.db`. The store uses `modernc.org/sqlite`, which
-needs no C compiler, so `CGO_ENABLED=0` still builds a static binary.
-
-- The store applies the files in `internal/schema` in name order when it opens, and records the hash of
-  each file. It refuses to open when an applied file changed, so add a new file for each change.
-- It refuses to open a store that has a schema file that this build does not have, because a newer build
-  wrote that store.
-- Triggers refuse `UPDATE` and `DELETE` on the `events` table.
-- `UNIQUE(stream_id, seq)` turns a stale append into `stream.ErrVersionConflict`.
-{{- end }}
