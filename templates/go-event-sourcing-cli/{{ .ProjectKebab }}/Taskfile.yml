@@ -1,0 +1,26 @@
+version: '3'
+
+includes:
+  test: Taskfile.test.yml
+
+tasks:
+  run:
+    desc: "usage: task run -- open --id acc-1 --owner Ada"
+    cmds:
+      - go run ./cmd/[[ .ProjectKebab ]] {{.CLI_ARGS}}
+
+  build:
+    cmds:
+      - mkdir -p ./bin
+      - go build --ldflags "-extldflags -static -X 'github.com/hpcsc/[[ .ProjectKebab ]]/internal/cli.version=${VERSION}'" -o ./bin/[[ .ProjectKebab ]] ./cmd/[[ .ProjectKebab ]]
+    env:
+      CGO_ENABLED: '0'
+      VERSION: ${VERSION:-main}
+
+  hook:setup:
+    cmds:
+      - git config core.hooksPath ./hooks
+
+  hook:validate-go-changes:
+    cmds:
+      - task: test:unit

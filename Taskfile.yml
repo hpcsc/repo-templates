@@ -83,8 +83,8 @@ tasks:
       PRESET:
         sh: echo ${PRESET:-with-resilient}
 
-  render-go-event-sourcing:
-    desc: render go-event-sourcing template to a temporary folder for verification
+  render-go-event-sourcing-cli:
+    desc: render go-event-sourcing-cli template to a temporary folder for verification
     preconditions:
       - command -v scaffold
     cmds:
@@ -96,15 +96,16 @@ tasks:
           --output-dir=./tmp \
           --no-prompt=true \
           --preset=${PRESET} \
-          ./templates/go-event-sourcing
+          ./templates/go-event-sourcing-cli
       - |
         scaffold new \
           --output-dir=./tmp/${NAME} \
           ./templates/global/git-hook
     env:
       NAME:
-        sh: echo ${NAME:-go-event-sourcing-project}
-      PRESET: example
+        sh: echo ${NAME:-go-event-sourcing-cli-project}
+      PRESET:
+        sh: echo ${PRESET:-example}
 
   render-go-event-sourcing-service:
     desc: render go-event-sourcing-service template to a temporary folder for verification

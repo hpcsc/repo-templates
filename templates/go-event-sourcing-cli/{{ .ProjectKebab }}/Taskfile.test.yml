@@ -1,0 +1,15 @@
+version: '3'
+
+tasks:
+  unit:
+    desc: the unit tests, which need no database server
+    cmds:
+      - gotestsum --format pkgname-and-test-fails -- -tags=unit -race -cover -covermode=atomic -coverprofile=coverage-unit.out ./...
+
+  shellcheck:
+    cmds:
+      - shellcheck -S error ./hooks/*
+
+  vulnerabilities:
+    cmds:
+      - govulncheck ./...

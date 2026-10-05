@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cd {{ .ProjectKebab }}
+
+go mod tidy
+
+if command -v mise >/dev/null; then
+  mise trust --quiet .
+  mise install
+fi
