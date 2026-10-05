@@ -1,0 +1,40 @@
+version: '3'
+
+tasks:
+  run:
+    internal: true
+    dotenv:
+      - .env.local
+    cmds:
+      - migrate -path ./migrations -database "postgres://${DB_USERNAME}:${DB_PASSWORD}@127.0.0.1:${DB_HOST_PORT}/${DB_NAME}?sslmode=disable" {{.COMMAND}}
+
+  create:
+    desc: "usage: task migrate:create -- migration-file-name"
+    cmds:
+      - mkdir -p ./migrations
+      - migrate create -dir ./migrations -ext sql {{.CLI_ARGS}}
+
+  version:
+    cmds:
+      - task: run
+        vars:
+          COMMAND: version
+
+  up:
+    cmds:
+      - task: run
+        vars:
+          COMMAND: up {{default "" .CLI_ARGS}}
+
+  down:
+    cmds:
+      - task: run
+        vars:
+          COMMAND: down {{default "-all" .CLI_ARGS}}
+
+  force:
+    desc: "usage: task migrate:force -- version-to-force"
+    cmds:
+      - task: run
+        vars:
+          COMMAND: force {{.CLI_ARGS}}

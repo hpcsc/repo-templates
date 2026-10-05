@@ -1,0 +1,7 @@
+include:
+  - path: docker-compose.dependencies.yml
+    env_file:
+      - .env.local
+  - path: docker-compose.local.yml
+    env_file:
+      - .env.local

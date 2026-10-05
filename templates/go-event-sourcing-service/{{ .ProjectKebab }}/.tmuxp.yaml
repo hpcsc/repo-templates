@@ -1,0 +1,8 @@
+session_name: {{ .ProjectKebab }}
+start_directory: ./
+windows:
+  - name: dev
+    layout: even-horizontal
+    panes:
+      - task api:run
+      - task catchup:run

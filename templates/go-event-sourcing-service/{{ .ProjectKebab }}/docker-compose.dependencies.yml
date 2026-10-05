@@ -1,0 +1,34 @@
+x-db-config: &x-db-config
+  DB_NAME: ${DB_NAME}
+  DB_USERNAME: ${DB_USERNAME}
+  DB_PASSWORD: ${DB_PASSWORD}
+
+services:
+  db:
+    image: postgres:${POSTGRES_VERSION}
+    healthcheck:
+      test: pg_isready
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 1s
+    ports:
+      - ${DB_HOST_PORT}:5432
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+  migrate:
+    image: migrate/migrate:4
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *x-db-config
+      DB_HOST: db
+      DB_PORT: 5432
+    entrypoint: /app/entrypoint.sh
+    volumes:
+      - ./scripts/local/migrate/entrypoint.sh:/app/entrypoint.sh
+      - ./migrations:/app/migrations

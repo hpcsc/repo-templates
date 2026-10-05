@@ -1,0 +1,66 @@
+questions:
+  - name: GoVersion
+    prompt:
+      message: "Go version"
+      description: "1.27 or later: the registry, the command bus and the event store use generic methods"
+      default: "1.27.1"
+    validate:
+      required: true
+      match:
+        regex: '^1\.(2[7-9]|[3-9][0-9])(\.[0-9]+)?$'
+        message: "use Go 1.27 or later: the code uses generic methods"
+  - name: ProcessManager
+    prompt:
+      confirm: "Include the process manager example, a money transfer between two accounts?"
+
+features:
+  - value: "{{ .Scaffold.ProcessManager }}"
+    globs:
+      - "**/internal/usecase/transfer/**"
+      - "**/internal/api/usecase/transfer/**"
+      - "**/internal/usecase/account/transfers/**"
+      - "**/internal/usecase/account/transfer.go"
+      - "**/internal/usecase/account/transfer_test.go"
+      - "**/internal/usecase/account/event/transfer.go"
+      - "**/internal/usecase/account/command/transfer.go"
+      - "**/migrations/*_create-transfer-processes-table.*"
+      - "**/docs/process-manager-example.md"
+
+delimiters:
+  - glob: "**/Taskfile*.yml"
+    left: "[["
+    right: "]]"
+  - glob: "**/.github/**"
+    left: "[["
+    right: "]]"
+
+messages:
+  post: |
+    # All set
+
+    An event-sourced service with a Postgres event store: an HTTP API that sends commands, and a
+    `catchup` process that runs the projections and the reactions.
+    {{- if .Scaffold.ProcessManager }}
+    The money transfer example runs as a process manager.
+    {{- end }}
+
+        cd {{ .ProjectKebab }}
+        task run              # Postgres, migrations, and the api and catchup processes in tmux
+        task test:unit
+        task test:integration
+
+    README.md tells how to replace the example with your own domain.
+    {{- if not .Scaffold.ProcessManager }}
+    To add the process manager example later, run the go-event-sourcing-service-process-manager
+    template scaffold in the project.
+    {{- end }}
+
+presets:
+  example:
+    Project: go-event-sourcing-service-project
+    GoVersion: "1.27.1"
+    ProcessManager: true
+  minimal:
+    Project: go-event-sourcing-service-project
+    GoVersion: "1.27.1"
+    ProcessManager: false

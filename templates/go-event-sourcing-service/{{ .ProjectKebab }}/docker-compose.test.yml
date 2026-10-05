@@ -1,0 +1,4 @@
+include:
+  - path: docker-compose.dependencies.yml
+    env_file:
+      - .env.integration

@@ -1,0 +1,27 @@
+version: '3'
+
+tasks:
+  run:
+    cmds:
+      - go run ./cmd/catchup
+    env:
+      DB_HOST: localhost
+      DB_NAME: events
+      DB_USERNAME: local-user
+      DB_PASSWORD: local-password
+      DB_HOST_PORT: 45432
+
+  build:
+    cmds:
+      - mkdir -p ./bin
+      - go build --ldflags "-extldflags -static" -o ./bin/catchup ./cmd/catchup
+    env:
+      CGO_ENABLED: '0'
+
+  docker:build:
+    cmds:
+      - |
+        docker build \
+          -t [[ .ProjectKebab ]]-catchup:{{ default "latest" .TAG }} \
+          -f Dockerfile.catchup \
+          .

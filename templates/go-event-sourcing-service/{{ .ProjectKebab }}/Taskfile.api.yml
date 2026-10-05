@@ -1,0 +1,80 @@
+version: '3'
+
+vars:
+  API: http://127.0.0.1:3333
+  AUTH: "Authorization: Bearer valid-token"
+
+tasks:
+  open-account:
+    desc: "usage: task api:open-account -- owner-name"
+    cmds:
+      - |
+        curl -s -X POST "{{.API}}/accounts" -H "{{.AUTH}}" \
+          -d '{"owner": "{{default "alice" .CLI_ARGS}}"}' | jq
+
+  deposit:
+    desc: "usage: ID=<account-id> task api:deposit -- 500"
+    cmds:
+      - |
+        curl -s -X POST "{{.API}}/accounts/${ID}/deposits" -H "{{.AUTH}}" \
+          -d '{"amount": {{default "500" .CLI_ARGS}}}' | jq
+
+  withdraw:
+    desc: "usage: ID=<account-id> task api:withdraw -- 200"
+    cmds:
+      - |
+        curl -s -X POST "{{.API}}/accounts/${ID}/withdrawals" -H "{{.AUTH}}" \
+          -d '{"amount": {{default "200" .CLI_ARGS}}}' | jq
+
+  close-account:
+    desc: "usage: ID=<account-id> task api:close-account"
+    cmds:
+      - curl -s -X POST "{{.API}}/accounts/${ID}/close" -H "{{.AUTH}}" | jq
+
+  get-account:
+    desc: "usage: ID=<account-id> task api:get-account"
+    cmds:
+      - curl -s "{{.API}}/accounts/${ID}" -H "{{.AUTH}}" | jq
+
+  run:
+    cmds:
+      - go run ./cmd/api
+    env:
+      TOKEN_PATH: local/api/token
+      DB_HOST: localhost
+      DB_NAME: events
+      DB_USERNAME: local-user
+      DB_PASSWORD: local-password
+      DB_HOST_PORT: 45432
+
+  build:
+    cmds:
+      - mkdir -p ./bin
+      - go build --ldflags "-extldflags -static -X 'github.com/hpcsc/[[ .ProjectKebab ]]/internal/api/usecase/root.Version=${VERSION}'" -o ./bin/api ./cmd/api
+    env:
+      CGO_ENABLED: '0'
+      VERSION: ${VERSION:-main}
+
+  docker:build:
+    cmds:
+      - |
+        docker build \
+          -t [[ .ProjectKebab ]]-api:{{ default "latest" .TAG }} \
+          -f Dockerfile.api \
+          --build-arg=VERSION=$(git rev-parse HEAD 2>/dev/null || echo main) \
+          .
+
+[[- if .Scaffold.ProcessManager ]]
+
+  transfer:
+    desc: "usage: FROM=<account-id> TO=<account-id> task api:transfer -- 300"
+    cmds:
+      - |
+        curl -s -X POST "{{.API}}/transfers" -H "{{.AUTH}}" \
+          -d "{\"from\": \"${FROM}\", \"to\": \"${TO}\", \"amount\": {{default "300" .CLI_ARGS}}}" | jq
+
+  get-transfer:
+    desc: "usage: TRANSFER=<transfer-id> task api:get-transfer"
+    cmds:
+      - curl -s "{{.API}}/transfers/${TRANSFER}" -H "{{.AUTH}}" | jq
+[[- end ]]

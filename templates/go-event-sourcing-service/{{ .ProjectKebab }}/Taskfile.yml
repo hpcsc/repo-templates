@@ -1,0 +1,55 @@
+version: '3'
+
+includes:
+  migrate: Taskfile.migrate.yml
+  test: Taskfile.test.yml
+  api: Taskfile.api.yml
+  catchup: Taskfile.catchup.yml
+
+tasks:
+  test:shellcheck:
+    cmds:
+      - find ./scripts -type f -name '*.sh' | xargs shellcheck -S error
+      - shellcheck -S error ./hooks/*
+
+  hook:setup:
+    cmds:
+      - git config core.hooksPath ./hooks
+
+  hook:validate-go-changes:
+    cmds:
+      - task: test:all
+
+  db:cli:
+    dotenv:
+      - .env.local
+    cmds:
+      - |
+        docker compose -p [[ .ProjectKebab ]]-local exec \
+          db psql -U${DB_USERNAME} -d${DB_NAME}
+
+  db:query:
+    desc: example `task db:query -- 'select * from account_balances'`
+    silent: true
+    dotenv:
+      - .env.local
+    cmds:
+      - |
+        docker compose -p [[ .ProjectKebab ]]-local exec \
+          db psql -U${DB_USERNAME} -d${DB_NAME} -c {{.CLI_ARGS}}
+
+  run-dependencies:
+    cmds:
+      - docker compose --env-file .env.local -f docker-compose.dependencies.yml -p [[ .ProjectKebab ]]-local up -d --wait db
+      - docker compose --env-file .env.local -f docker-compose.dependencies.yml -p [[ .ProjectKebab ]]-local up --exit-code-from migrate migrate
+      - command -v tmuxp && echo "tmuxp exists" || pip install tmuxp
+
+  remove-dependencies:
+    cmds:
+      - docker compose --env-file .env.local -f docker-compose.dependencies.yml -p [[ .ProjectKebab ]]-local down
+
+  run:
+    deps:
+      - run-dependencies
+    cmds:
+      - tmuxp load -a .tmuxp.yaml

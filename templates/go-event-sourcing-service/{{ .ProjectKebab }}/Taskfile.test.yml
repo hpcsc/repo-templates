@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  unit:
+    cmds:
+      - gotestsum --format pkgname-and-test-fails -- -tags=unit -race -cover -covermode=atomic -coverprofile=coverage-unit.out {{.CLI_ARGS}} ./...
+
+  integration:
+    cmds:
+      - ./scripts/test/start-test-dependencies.sh
+      - gotestsum --format pkgname-and-test-fails -- -tags=integration -race -cover -covermode=atomic -coverprofile=coverage-integration.out {{.CLI_ARGS}} ./...
+    dotenv:
+      - .env.integration
+
+  all:
+    cmds:
+      - task: unit
+      - task: integration
+
+  vulnerabilities:
+    cmds:
+      - govulncheck ./...

@@ -1,0 +1,24 @@
+FROM golang:{{ .Scaffold.GoVersion }} AS build-env
+WORKDIR /build
+
+ARG VERSION=main
+
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
+
+COPY internal internal
+COPY cmd/catchup cmd/catchup
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    GOOS=linux \
+    CGO_ENABLED=0 \
+      go build --ldflags "-extldflags -static -X 'github.com/hpcsc/{{ .ProjectKebab }}/internal/api/usecase/root.Version=${VERSION}'" \
+        -o catchup \
+        ./cmd/catchup
+
+FROM gcr.io/distroless/static
+WORKDIR /app
+
+COPY --from=build-env /build/catchup .
+
+ENTRYPOINT ["/app/catchup"]
