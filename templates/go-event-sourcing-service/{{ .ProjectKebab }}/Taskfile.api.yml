@@ -50,7 +50,7 @@ tasks:
   build:
     cmds:
       - mkdir -p ./bin
-      - go build --ldflags "-extldflags -static -X 'github.com/hpcsc/[[ .ProjectKebab ]]/internal/api/usecase/root.Version=${VERSION}'" -o ./bin/api ./cmd/api
+      - go build --ldflags "-extldflags -static -X 'github.com/hpcsc/[[ .ProjectKebab ]]/internal/api/use_cases/root.Version=${VERSION}'" -o ./bin/api ./cmd/api
     env:
       CGO_ENABLED: '0'
       VERSION: ${VERSION:-main}

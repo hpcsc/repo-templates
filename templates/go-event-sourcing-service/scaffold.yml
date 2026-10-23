@@ -16,13 +16,13 @@ questions:
 features:
   - value: "{{ .Scaffold.ProcessManager }}"
     globs:
-      - "**/internal/usecase/transfer/**"
-      - "**/internal/api/usecase/transfer/**"
-      - "**/internal/usecase/account/transfers/**"
-      - "**/internal/usecase/account/transfer.go"
-      - "**/internal/usecase/account/transfer_test.go"
-      - "**/internal/usecase/account/event/transfer.go"
-      - "**/internal/usecase/account/command/transfer.go"
+      - "**/internal/use_cases/transfer/**"
+      - "**/internal/api/use_cases/transfer/**"
+      - "**/internal/use_cases/account/transfers/**"
+      - "**/internal/use_cases/account/transfer.go"
+      - "**/internal/use_cases/account/transfer_test.go"
+      - "**/internal/use_cases/account/event/transfer.go"
+      - "**/internal/use_cases/account/command/transfer.go"
       - "**/migrations/*_create-transfer-processes-table.*"
       - "**/docs/process-manager-example.md"
 

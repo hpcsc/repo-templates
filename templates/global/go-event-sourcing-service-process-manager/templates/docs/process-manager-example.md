@@ -1,7 +1,7 @@
 # A Money Transfer as a Process Manager
 
 A transfer moves money from one account to another. A process manager runs it in
-`internal/usecase/transfer/process`, as [event-subscription.md](event-subscription.md) describes: a projection keeps the
+`internal/use_cases/transfer/process`, as [event-subscription.md](event-subscription.md) describes: a projection keeps the
 state of each transfer and appends its requests as events, and a reaction sends each request as a command.
 
 
@@ -55,7 +55,7 @@ central part, and a saga is the business transaction with its compensations.
 
 | Part | Package |
 | --- | --- |
-| The transfer example: the aggregate that starts a transfer, its events and its repository | `internal/usecase/transfer` |
-| The start of a transfer, after a check that both accounts exist | `internal/usecase/transfer/start` |
-| The process manager: its state, its projection, the reaction that sends its requests, and its query | `internal/usecase/transfer/process` |
-| The account side of a transfer: debit, credit and refund | `internal/usecase/account/transfers` |
+| The transfer example: the aggregate that starts a transfer, its events and its repository | `internal/use_cases/transfer` |
+| The start of a transfer, after a check that both accounts exist | `internal/use_cases/transfer/start` |
+| The process manager: its state, its projection, the reaction that sends its requests, and its query | `internal/use_cases/transfer/process` |
+| The account side of a transfer: debit, credit and refund | `internal/use_cases/account/transfers` |

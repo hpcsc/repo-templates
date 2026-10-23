@@ -172,25 +172,25 @@ $(block <<<"$2")
 EOF
 }
 
-file=internal/usecase/account/account.go
+file=internal/use_cases/account/account.go
 add $file "transferLedger" "$(after_last_field Account 'transfers transferLedger')"
 add $file "a.applyTransfer(e)" "$(after_last_case method_declaration Apply $'default:\n\ta.applyTransfer(e)')"
 
-file=internal/usecase/account/events.go
+file=internal/use_cases/account/events.go
 add $file "event.TransferDebited]()" "$(after_last_statement function_declaration RegisterEvents 'reg.Register[event.TransferDebited]()
 reg.Register[event.TransferDebitRejected]()
 reg.Register[event.TransferCredited]()
 reg.Register[event.TransferCreditRejected]()
 reg.Register[event.TransferRefunded]()')"
 
-file=internal/usecase/account/balance/projection.go
+file=internal/use_cases/account/balance/projection.go
 add $file "event.TransferDebited{}.EventType()" "$(after_last_element method_declaration EventTypes 'event.TransferDebited{}.EventType(),
 event.TransferCredited{}.EventType(),
 event.TransferRefunded{}.EventType()')"
 add $file "case *event.TransferDebited:" "$(before_default method_declaration Handle $'case *event.TransferDebited:\n\treturn p.change(ctx, tx, payload.AccountID, -payload.Amount, evt.Version)\ncase *event.TransferCredited:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)\ncase *event.TransferRefunded:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)')"
 
-file=internal/usecase/register.go
-for pkg in internal/usecase/account/transfers internal/usecase/transfer internal/usecase/transfer/start; do
+file=internal/use_cases/register.go
+for pkg in internal/use_cases/account/transfers internal/use_cases/transfer internal/use_cases/transfer/start; do
   add $file "\"$module/$pkg\"" "$(after_last_import "\"$module/$pkg\"")"
 done
 add $file "transfer.RegisterEvents(reg)" "$(after_last_statement function_declaration RegisterEvents 'transfer.RegisterEvents(reg)')"
@@ -198,16 +198,16 @@ add $file "transfers.Register(bus, accounts)" "$(after_last_statement function_d
 start.Register(bus, transfer.NewRepository(stream), accounts)')"
 
 file=cmd/catchup/main.go
-add $file "\"$module/internal/usecase/transfer/process\"" "$(after_last_import "\"$module/internal/usecase/transfer/process\"")"
+add $file "\"$module/internal/use_cases/transfer/process\"" "$(after_last_import "\"$module/internal/use_cases/transfer/process\"")"
 add $file "process.NewProjection(" "$(after_last_element function_declaration consumers 'projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
 reaction.NewReactor(process.NewDispatcher(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning())')"
 
-file=internal/api/usecase/register.go
-add $file "\"$module/internal/api/usecase/transfer\"" "$(after_last_import "apiTransfer \"$module/internal/api/usecase/transfer\"")"
-add $file "\"$module/internal/usecase/transfer/process\"" "$(after_last_import "\"$module/internal/usecase/transfer/process\"")"
+file=internal/api/use_cases/register.go
+add $file "\"$module/internal/api/use_cases/transfer\"" "$(after_last_import "apiTransfer \"$module/internal/api/use_cases/transfer\"")"
+add $file "\"$module/internal/use_cases/transfer/process\"" "$(after_last_import "\"$module/internal/use_cases/transfer/process\"")"
 add $file "apiTransfer.NewHandler(" "$(after_last_element function_declaration allRoutes 'apiTransfer.NewHandler(bus, process.NewQuery(pool))')"
 
-gofmt -w internal/usecase/account internal/usecase/register.go cmd/catchup/main.go internal/api/usecase/register.go
+gofmt -w internal/use_cases/account internal/use_cases/register.go cmd/catchup/main.go internal/api/use_cases/register.go
 
 if ! grep -qF "## Process Manager Example" README.md; then
   printf '\n' >>README.md

@@ -19,11 +19,11 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/subscription"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/projection"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/reaction"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/usecase"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/usecase/account/balance"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/usecase/account/welcomebonus"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/balance"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/welcomebonus"
 {{- if .Scaffold.ProcessManager }}
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/usecase/transfer/process"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/process"
 {{- end }}
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -58,11 +58,11 @@ func main() {
 
 func consumers(pool *pgxpool.Pool, logger *slog.Logger) []*consumer.Consumer {
 	reg := registry.New()
-	usecase.RegisterEvents(reg)
+	use_cases.RegisterEvents(reg)
 
 	eventStream := stream.NewPostgres(pool, reg)
 	bus := command.NewBus()
-	usecase.RegisterHandlers(bus, eventStream)
+	use_cases.RegisterHandlers(bus, eventStream)
 
 	checkpointStore := store.NewPostgres(pool)
 	eventSubscription := subscription.NewPostgres(pool, reg, logger)

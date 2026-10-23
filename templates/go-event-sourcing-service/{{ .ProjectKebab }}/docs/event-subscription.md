@@ -285,9 +285,9 @@ result, for example "closed", lists each event type that closes the item.
 | Write path | `internal/domain/event/stream` |
 | Read loop and listener | `internal/domain/event/subscription` |
 | Checkpoints | `internal/domain/checkpoint/store` |
-| The account example: the aggregate, its events, its commands and its repository | `internal/usecase/account` |
-| One package for each account use case: its command handler, and its projection or reaction | `internal/usecase/account/open`, `deposit`, `withdraw`, `welcomebonus`, `balance` |
-| The registration of every event type and every command handler | `internal/usecase/register.go` |
+| The account example: the aggregate, its events, its commands and its repository | `internal/use_cases/account` |
+| One package for each account use case: its command handler, and its projection or reaction | `internal/use_cases/account/open`, `deposit`, `withdraw`, `welcomebonus`, `balance` |
+| The registration of every event type and every command handler | `internal/use_cases/register.go` |
 
 This application has no retry or dead letter in the reactor. Each consumer stops on a handler error, and
 the `catchup` process then exits with code 1.

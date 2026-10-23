@@ -73,11 +73,11 @@ values in `.env.integration`.
 
 Replace the account example with your own domain:
 
-- `internal/usecase/account`: the aggregate, the events, the commands, and one package for each use case
-- `internal/usecase/register.go`: the registration of the event types and the command handlers
-- `internal/api/usecase/account`: the HTTP handler
+- `internal/use_cases/account`: the aggregate, the events, the commands, and one package for each use case
+- `internal/use_cases/register.go`: the registration of the event types and the command handlers
+- `internal/api/use_cases/account`: the HTTP handler
 - the migrations of the read model: `account_balances` and its status column
-- the consumers in `cmd/catchup/main.go`, and the routes in `internal/api/usecase/register.go`
+- the consumers in `cmd/catchup/main.go`, and the routes in `internal/api/use_cases/register.go`
 
 ## Layout
 
@@ -91,19 +91,19 @@ Replace the account example with your own domain:
 | `internal/domain/consumer` | The loop for every consumer. |
 | `internal/domain/projection`, `internal/domain/reaction` | The two kinds of consumer. |
 | `internal/domain/checkpoint/store` | Checkpoints in Postgres. |
-| `internal/usecase/<domain>` | The aggregate of a domain, its events, its commands and its repository. |
-| `internal/usecase/<domain>/<use case>` | One use case: its command handler, and its projection or reaction. |
-| `internal/usecase/register.go` | The registration of every event type and every command handler. |
+| `internal/use_cases/<domain>` | The aggregate of a domain, its events, its commands and its repository. |
+| `internal/use_cases/<domain>/<use case>` | One use case: its command handler, and its projection or reaction. |
+| `internal/use_cases/register.go` | The registration of every event type and every command handler. |
 | `internal/api` | The HTTP server, routes, middleware and handlers. |
 | `migrations` | The schema. The `migrate` container applies it at start. |
 
 ## Add an Event
 
 1. Add a struct for the payload to the `event` package of the domain, for example `MoneyDeposited` in
-   `internal/usecase/account/event`.
+   `internal/use_cases/account/event`.
 2. Give the struct an `EventType` method that returns the name of the event type.
 3. Register the struct in the `RegisterEvents` function of the domain, for example in
-   `internal/usecase/account/events.go`.
+   `internal/use_cases/account/events.go`.
 
 The store saves the name of the event type with each event. When the store reads the event, the registry
 finds the struct from that name. You can rename the struct, but do not change the name of the event type
@@ -136,12 +136,12 @@ deploy, and does not write wrong data to a read model. The `catchup` of the new 
 1. Add a method to the aggregate. The method checks the rule and calls the private `record` method of the
    aggregate with the new event, for example `domain.NewEvent(&event.MoneyDeposited{...})`. `Apply`
    changes the state from that event.
-2. Add a payload type for the command, for example `Deposit` in `internal/usecase/account/command`.
-3. Add a package for the use case, for example `internal/usecase/account/deposit`. Give it a handler type
+2. Add a payload type for the command, for example `Deposit` in `internal/use_cases/account/command`.
+3. Add a package for the use case, for example `internal/use_cases/account/deposit`. Give it a handler type
    with a `Handle(ctx, domain.Command[Deposit]) error` method. The handler loads the aggregate from its
    repository, calls the method, and saves.
 4. Give the package a `Register` function that calls `bus.Register[Deposit](handler{...})`, and call it
-   from `internal/usecase/register.go`.
+   from `internal/use_cases/register.go`.
 
 Send the command with `bus.Dispatch(ctx, domain.NewCommand(Deposit{...}))`. The bus finds the handler from
 the payload type, and calls it again on a concurrency conflict.
@@ -181,10 +181,10 @@ A transfer to a closed account fails, and the process refunds the source account
 
 To replace it with your own process, change these:
 
-- `internal/usecase/transfer`: the aggregate that starts a transfer, its events, its commands, the start
+- `internal/use_cases/transfer`: the aggregate that starts a transfer, its events, its commands, the start
   use case and the process manager
-- `internal/usecase/account/transfers`, and the `transfer` files in `internal/usecase/account`: the account
+- `internal/use_cases/account/transfers`, and the `transfer` files in `internal/use_cases/account`: the account
   side of a transfer
-- `internal/api/usecase/transfer`: the HTTP handler
+- `internal/api/use_cases/transfer`: the HTTP handler
 - the migration of the `transfer_processes` table
 {{- end }}

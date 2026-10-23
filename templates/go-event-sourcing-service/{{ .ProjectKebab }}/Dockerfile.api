@@ -12,7 +12,7 @@ COPY cmd/api cmd/api
 RUN --mount=type=cache,target=/go/pkg/mod \
     GOOS=linux \
     CGO_ENABLED=0 \
-      go build --ldflags "-extldflags -static -X 'github.com/hpcsc/{{ .ProjectKebab }}/internal/api/usecase/root.Version=${VERSION}'" \
+      go build --ldflags "-extldflags -static -X 'github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/root.Version=${VERSION}'" \
         -o api \
         ./cmd/api
 

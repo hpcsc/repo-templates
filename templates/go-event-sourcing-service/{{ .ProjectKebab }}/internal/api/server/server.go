@@ -13,7 +13,7 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api"
 	apiMiddleware "github.com/hpcsc/{{ .ProjectKebab }}/internal/api/middleware"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/middleware/request"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/usecase"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -40,7 +40,7 @@ func newHandler(name string, cfg *api.Config, pool *pgxpool.Pool, logger *slog.L
 
 	r.Use(middleware.Recoverer)
 
-	if err := usecase.Register(r, cfg, pool, logger); err != nil {
+	if err := use_cases.Register(r, cfg, pool, logger); err != nil {
 		return nil, err
 	}
 
