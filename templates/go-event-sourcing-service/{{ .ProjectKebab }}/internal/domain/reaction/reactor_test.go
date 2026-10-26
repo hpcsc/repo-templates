@@ -49,13 +49,17 @@ func TestReactor(t *testing.T) {
 			require.Nil(t, cp)
 		})
 
-		t.Run("starts at the beginning when no checkpoint exists and the store is empty", func(t *testing.T) {
+		t.Run("starts at the beginning of an empty store and saves that position when no checkpoint exists", func(t *testing.T) {
+			checkpointStore := store.NewEmptyMemory()
 			sub := subscription.NewFake().WithEventChannel(closedChannel()).WithLastPosition(nil)
-			r := reaction.NewReactor(reaction.NewFake("test-reaction", nil, nil), store.NewEmptyMemory(), sub, test.DiscardLogger())
+			r := reaction.NewReactor(reaction.NewFake("test-reaction", nil, nil), checkpointStore, sub, test.DiscardLogger())
 
 			_ = r.Start(context.Background())
 
-			require.Nil(t, sub.CalledAfter)
+			require.Equal(t, &domain.Position{}, sub.CalledAfter)
+			cp, err := checkpointStore.Get(context.Background(), "test-reaction")
+			require.NoError(t, err)
+			require.Equal(t, &domain.Position{}, cp)
 		})
 	})
 

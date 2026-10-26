@@ -58,7 +58,11 @@ func (r *reactor) StartWithoutCheckpoint(ctx context.Context, subscription event
 	if r.startAtBeginning {
 		return nil, nil
 	}
-	return subscription.LastPosition(ctx)
+	last, err := subscription.LastPosition(ctx)
+	if err != nil || last != nil {
+		return last, err
+	}
+	return &domain.Position{}, nil
 }
 
 func (r *reactor) HandleBatch(ctx context.Context, events []domain.Event) error {
