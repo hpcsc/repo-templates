@@ -70,8 +70,8 @@ needs no C compiler, so `CGO_ENABLED=0` still builds a static binary.
 
 ## Add a Use Case
 
-1. Add the event to `internal/event`: a struct with a `Kind` method that returns its name, and a
-   `register` call in the `init` function of that file.
+1. Add a file for the event to `internal/event`, for example `account_credited.go`: a struct with a
+   `Kind` method that returns its name, and a `register` call in the `init` function of that file.
 2. Add a field or a case to the state in `internal/account`, or add a state for a new aggregate.
 3. Add a package `internal/use_cases/<area>/<verb>` with a `Runner` and a `decide` function. The runner
    calls `stream.Update` with the decide function.

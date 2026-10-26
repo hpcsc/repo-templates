@@ -99,8 +99,8 @@ Replace the account example with your own domain:
 
 ## Add an Event
 
-1. Add a struct for the payload to the `event` package of the domain, for example `MoneyDeposited` in
-   `internal/use_cases/account/event`.
+1. Add a file with a struct for the payload to the `event` package of the domain, for example
+   `MoneyDeposited` in `internal/use_cases/account/event/money_deposited.go`. Each event has its own file.
 2. Give the struct an `EventType` method that returns the name of the event type.
 3. Register the struct in the `RegisterEvents` function of the domain, for example in
    `internal/use_cases/account/events.go`.
@@ -136,7 +136,8 @@ deploy, and does not write wrong data to a read model. The `catchup` of the new 
 1. Add a method to the aggregate. The method checks the rule and calls the private `record` method of the
    aggregate with the new event, for example `domain.NewEvent(&event.MoneyDeposited{...})`. `Apply`
    changes the state from that event.
-2. Add a payload type for the command, for example `Deposit` in `internal/use_cases/account/command`.
+2. Add a file with a payload type for the command, for example `Deposit` in
+   `internal/use_cases/account/command/deposit.go`. Each command has its own file.
 3. Add a package for the use case, for example `internal/use_cases/account/deposit`. Give it a handler type
    with a `Handle(ctx, domain.Command[Deposit]) error` method. The handler loads the aggregate from its
    repository, calls the method, and saves.

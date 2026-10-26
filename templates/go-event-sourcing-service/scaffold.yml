@@ -21,8 +21,8 @@ features:
       - "**/internal/use_cases/account/transfers/**"
       - "**/internal/use_cases/account/transfer.go"
       - "**/internal/use_cases/account/transfer_test.go"
-      - "**/internal/use_cases/account/event/transfer.go"
-      - "**/internal/use_cases/account/command/transfer.go"
+      - "**/internal/use_cases/account/event/transfer_*.go"
+      - "**/internal/use_cases/account/command/*_transfer.go"
       - "**/migrations/*_create-transfer-processes-table.*"
       - "**/docs/process-manager-example.md"
 
