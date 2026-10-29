@@ -1,0 +1,154 @@
+emod = 1
+
+model "Account" {
+  description = "How the command line opens an account, credits it and shows it"
+}
+
+actor "Operator" {
+  description = "A person who runs the command line"
+}
+
+context "Accounts" {
+  description = "The accounts and the money credited to them"
+
+  aggregate "Account" {
+    description = "One account and its credits, in the stream account-<id>"
+
+    invariants {
+      HasOwner       = "An account has an owner"
+      AccountExists  = "A credit goes only to an account that was opened"
+      PositiveAmount = "A credit is more than 0"
+    }
+
+    slice "Open Account" {
+      description = "The operator opens an account for an owner"
+
+      trigger "open command" {
+        description = "open --id <id> --owner <owner>"
+        actor       = Operator
+      }
+
+      command "OpenAccount" {
+        description = "Ask to open an account for an owner"
+
+        fields {
+          accountId = required(string)
+          owner     = required(string)
+        }
+      }
+
+      event "AccountOpened" {
+        description = "An account was opened for an owner"
+
+        fields {
+          accountId = required(string)
+          owner     = required(string)
+          openedAt  = required(timestamp)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    OpenAccount -> AccountOpened
+        command -> rejected: OpenAccount -> HasOwner
+      FLOW
+
+      spec "opens an account for an owner" {
+        when = OpenAccount({ accountId = "acc-1", owner = "Ada Lovelace" })
+        then = [AccountOpened({ accountId = "acc-1", owner = "Ada Lovelace" })]
+      }
+
+      spec "records nothing for an account that is open" {
+        given = [AccountOpened({ accountId = "acc-1" })]
+        when  = OpenAccount({ accountId = "acc-1", owner = "Ada Lovelace" })
+        then  = []
+      }
+
+      spec "refuses an account with no owner" {
+        when = OpenAccount({ accountId = "acc-1", owner = "" })
+        then = rejected(HasOwner)
+      }
+    }
+
+    slice "Credit Account" {
+      description = "The operator credits an account once for each reference"
+
+      trigger "credit command" {
+        description = "credit --id <id> --amount <amount> --ref <reference>"
+        actor       = Operator
+        reads       = AccountView
+      }
+
+      command "CreditAccount" {
+        description = "Ask to credit an account once for a reference, for example an invoice number"
+
+        fields {
+          accountId = required(string)
+          amount    = required(int)
+          reference = required(string)
+        }
+      }
+
+      event "AccountCredited" {
+        description = "Money was credited to an account for a reference"
+
+        fields {
+          accountId  = required(string)
+          amount     = required(int)
+          reference  = required(string)
+          creditedAt = required(timestamp)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    CreditAccount -> AccountCredited
+        command -> rejected: CreditAccount -> AccountExists
+        command -> rejected: CreditAccount -> PositiveAmount
+      FLOW
+
+      spec "credits an open account" {
+        given = [AccountOpened({ accountId = "acc-1" })]
+        when  = CreditAccount({ accountId = "acc-1", amount = 500, reference = "invoice-7" })
+        then  = [AccountCredited({ accountId = "acc-1", amount = 500, reference = "invoice-7" })]
+      }
+
+      spec "records nothing for a reference that the account has" {
+        given = [AccountOpened({ accountId = "acc-1" }), AccountCredited({ accountId = "acc-1", reference = "invoice-7" })]
+        when  = CreditAccount({ accountId = "acc-1", amount = 500, reference = "invoice-7" })
+        then  = []
+      }
+
+      spec "refuses an account that is not open" {
+        when = CreditAccount({ accountId = "acc-1", amount = 500, reference = "invoice-7" })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        given = [AccountOpened({ accountId = "acc-1" })]
+        when  = CreditAccount({ accountId = "acc-1", amount = 0, reference = "invoice-7" })
+        then  = rejected(PositiveAmount)
+      }
+    }
+
+    slice "Show Account" {
+      description = "The show command folds the stream of an account into a report"
+
+      view "AccountView" {
+        description = "One account with its balance and its credits"
+        subscribes  = [AccountOpened, AccountCredited]
+
+        fields {
+          accountId = required(string)
+          owner     = required(string)
+          balance   = required(int)
+          openedAt  = required(timestamp)
+          credits   = required(CreditList)
+        }
+      }
+
+      spec "shows the balance as the sum of the credits" {
+        given = [AccountOpened, AccountCredited({ amount = 500 }), AccountCredited({ amount = 200 })]
+        then  = view(AccountView)
+      }
+    }
+  }
+}

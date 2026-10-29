@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 1332">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#666666"/>
+</marker>
+</defs>
+<rect x="40" y="60" width="1040" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="80" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Wireframes</text>
+<rect x="40" y="292" width="1040" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="312" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Commands / Views</text>
+<rect x="40" y="524" width="1040" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="544" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Events</text>
+<rect x="40" y="756" width="1040" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="776" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">External Systems</text>
+<rect x="40" y="30" width="900" height="22" fill="#f5f5f5" stroke="#666666" rx="0">
+<title>The accounts and the money credited to them</title>
+</rect>
+<text x="490" y="41" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#666666">Accounts</text>
+<rect x="68" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="60" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>open --id &lt;id&gt; --owner &lt;owner&gt;</title>
+</rect>
+<text x="180" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">open command (Operator)</text>
+<rect x="50" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to open an account for an owner</title>
+</rect>
+<text x="170" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">OpenAccount</text>
+<rect x="50" y="606" width="126" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>An account was opened for an owner</title>
+</rect>
+<text x="113" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">AccountOpened</text>
+<rect x="184" y="606" width="126" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An account has an owner</title>
+</rect>
+<text x="247" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">HasOwner</text>
+<rect x="388" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="380" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>credit --id &lt;id&gt; --amount &lt;amount&gt; --ref &lt;reference&gt;</title>
+</rect>
+<text x="500" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">credit command (Operator)</text>
+<rect x="370" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to credit an account once for a reference, for example an invoice number</title>
+</rect>
+<text x="490" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">CreditAccount</text>
+<rect x="370" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>Money was credited to an account for a reference</title>
+</rect>
+<text x="410" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">AccountCredited</text>
+<rect x="459" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A credit goes only to an account that was opened</title>
+</rect>
+<text x="499" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="548" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A credit is more than 0</title>
+</rect>
+<text x="588" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PositiveAmount</text>
+<rect x="690" y="374" width="240" height="55" fill="#d5e8d4" stroke="#82b366" rx="5">
+<title>One account with its balance and its credits</title>
+</rect>
+<text x="810" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#82b366">AccountView</text>
+<path d="M 170,401 L 170,517 L 113,517 L 113,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 170,401 L 170,517 L 247,517 L 247,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 180,169 L 180,285 L 170,285 L 170,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 410,517 L 410,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 499,517 L 499,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 588,517 L 588,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,285 L 500,285 L 500,169" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 500,169 L 500,285 L 490,285 L 490,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 113,633 L 113,517 L 810,517 L 810,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 410,633 L 410,517 L 810,517 L 810,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="40" y="988" width="1040" height="284" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="1008" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Specs</text>
+<rect x="50" y="1030" width="260" height="160" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="180" y="1110" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="180" dy="-63">&quot;opens an account for an owner&quot;</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">then [AccountOpened]</tspan>
+<tspan x="180" dy="14">&quot;records nothing for an account that is</tspan>
+<tspan x="180" dy="14">open&quot;</tspan>
+<tspan x="180" dy="14">given [AccountOpened]</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">&quot;refuses an account with no owner&quot;</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">then rejected HasOwner</tspan>
+</text>
+<rect x="370" y="1030" width="260" height="230" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="500" y="1145" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="500" dy="-98">&quot;credits an open account&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened]</tspan>
+<tspan x="500" dy="14">when CreditAccount</tspan>
+<tspan x="500" dy="14">then [AccountCredited]</tspan>
+<tspan x="500" dy="14">&quot;records nothing for a reference that the</tspan>
+<tspan x="500" dy="14">account has&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened, AccountCredited]</tspan>
+<tspan x="500" dy="14">when CreditAccount</tspan>
+<tspan x="500" dy="14">&quot;refuses an account that is not open&quot;</tspan>
+<tspan x="500" dy="14">when CreditAccount</tspan>
+<tspan x="500" dy="14">then rejected AccountExists</tspan>
+<tspan x="500" dy="14">&quot;refuses an amount that is not more than 0&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened]</tspan>
+<tspan x="500" dy="14">when CreditAccount</tspan>
+<tspan x="500" dy="14">then rejected PositiveAmount</tspan>
+</text>
+<rect x="690" y="1030" width="260" height="90" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="820" y="1075" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="820" dy="-28">&quot;shows the balance as the sum of the</tspan>
+<tspan x="820" dy="14">credits&quot;</tspan>
+<tspan x="820" dy="14">given [AccountOpened, AccountCredited,</tspan>
+<tspan x="820" dy="14">AccountCredited]</tspan>
+<tspan x="820" dy="14">then view AccountView</tspan>
+</text>
+</svg>

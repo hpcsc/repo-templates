@@ -2,7 +2,8 @@
 
 An event-sourced command-line application. Each command reads the stream that it needs, decides, and
 appends the new events. A command that only reads folds the stream into a report, so the application has
-no read model to keep up to date.
+no read model to keep up to date. [docs/event-model-account.md](docs/event-model-account.md) describes the
+example account as an event model.
 
 ```sh
 task run -- open   --id acc-1 --owner "Ada Lovelace"
