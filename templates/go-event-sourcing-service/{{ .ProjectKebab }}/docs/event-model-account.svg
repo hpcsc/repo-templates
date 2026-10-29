@@ -1,0 +1,305 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2752 1416">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#666666"/>
+</marker>
+</defs>
+<defs>
+<symbol id="gear" viewBox="-15 -15 30 30">
+<path d="M -2.9 -7.88 L -2.9 -12.9 A 1.3 1.3 0 0 1 -1.6 -14.2 L 1.6 -14.2 A 1.3 1.3 0 0 1 2.9 -12.9 L 2.9 -7.88 A 8.4 8.4 0 0 1 3.52 -7.63 L 7.07 -11.17 A 1.3 1.3 0 0 1 8.91 -11.17 L 11.17 -8.91 A 1.3 1.3 0 0 1 11.17 -7.07 L 7.63 -3.52 A 8.4 8.4 0 0 1 7.88 -2.9 L 12.9 -2.9 A 1.3 1.3 0 0 1 14.2 -1.6 L 14.2 1.6 A 1.3 1.3 0 0 1 12.9 2.9 L 7.88 2.9 A 8.4 8.4 0 0 1 7.63 3.52 L 11.17 7.07 A 1.3 1.3 0 0 1 11.17 8.91 L 8.91 11.17 A 1.3 1.3 0 0 1 7.07 11.17 L 3.52 7.63 A 8.4 8.4 0 0 1 2.9 7.88 L 2.9 12.9 A 1.3 1.3 0 0 1 1.6 14.2 L -1.6 14.2 A 1.3 1.3 0 0 1 -2.9 12.9 L -2.9 7.88 A 8.4 8.4 0 0 1 -3.52 7.63 L -7.07 11.17 A 1.3 1.3 0 0 1 -8.91 11.17 L -11.17 8.91 A 1.3 1.3 0 0 1 -11.17 7.07 L -7.63 3.52 A 8.4 8.4 0 0 1 -7.88 2.9 L -12.9 2.9 A 1.3 1.3 0 0 1 -14.2 1.6 L -14.2 -1.6 A 1.3 1.3 0 0 1 -12.9 -2.9 L -7.88 -2.9 A 8.4 8.4 0 0 1 -7.63 -3.52 L -11.17 -7.07 A 1.3 1.3 0 0 1 -11.17 -8.91 L -8.91 -11.17 A 1.3 1.3 0 0 1 -7.07 -11.17 L -3.52 -7.63 A 8.4 8.4 0 0 1 -2.9 -7.88 Z M 0 -3.4 A 3.4 3.4 0 0 0 0 3.4 A 3.4 3.4 0 0 0 0 -3.4 Z"/>
+</symbol>
+</defs>
+<rect x="40" y="60" width="2672" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="80" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Wireframes</text>
+<rect x="40" y="292" width="2672" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="312" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Commands / Views</text>
+<rect x="40" y="524" width="2672" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="544" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Events</text>
+<rect x="40" y="756" width="2672" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="776" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">External Systems</text>
+<rect x="40" y="30" width="2532" height="22" fill="#f5f5f5" stroke="#666666" rx="0">
+<title>The accounts, the money in them and the welcome bonus</title>
+</rect>
+<text x="1306" y="41" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#666666">Accounts</text>
+<rect x="68" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="60" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>The client sends the owner, and gets the new account ID</title>
+</rect>
+<text x="180" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts (Client)</text>
+<rect x="50" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to open an account for an owner. The API makes the account ID</title>
+</rect>
+<text x="170" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">OpenAccount</text>
+<rect x="50" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>An account was opened for an owner</title>
+</rect>
+<text x="90" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">AccountOpened</text>
+<rect x="139" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An account is opened once</title>
+</rect>
+<text x="179" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">OpenedOnce</text>
+<rect x="228" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An account has an owner</title>
+</rect>
+<text x="268" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">HasOwner</text>
+<rect x="370" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to give the welcome bonus to a new account</title>
+</rect>
+<text x="490" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">GrantWelcomeBonus</text>
+<rect x="370" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>A new account got the welcome bonus</title>
+</rect>
+<text x="410" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">WelcomeBonusGranted</text>
+<rect x="459" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="499" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="548" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An amount is more than 0</title>
+</rect>
+<text x="588" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PositiveAmount</text>
+<use href="#gear" x="476" y="435" width="28" height="28" fill="#16201b">
+<title>Sends the bonus command for each account that opens. It starts at the end of the store</title>
+</use>
+<text x="490" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">WelcomeBonusReaction</text>
+<rect x="708" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="700" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>The client sends the amount</title>
+</rect>
+<text x="820" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/deposits (Client)</text>
+<rect x="690" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to put money into an account</title>
+</rect>
+<text x="810" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">Deposit</text>
+<rect x="690" y="606" width="59" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>Money went into an account</title>
+</rect>
+<text x="719" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">MoneyDeposited</text>
+<rect x="757" y="606" width="59" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="786" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="824" y="606" width="59" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A closed account takes no deposit and no withdrawal</title>
+</rect>
+<text x="853" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">NotClosed</text>
+<rect x="891" y="606" width="59" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An amount is more than 0</title>
+</rect>
+<text x="920" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PositiveAmount</text>
+<rect x="1028" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="1020" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>The client sends the amount</title>
+</rect>
+<text x="1140" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/withdrawals (Client)</text>
+<rect x="1010" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to take money out of an account</title>
+</rect>
+<text x="1130" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">Withdraw</text>
+<rect x="1010" y="606" width="45" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>Money went out of an account</title>
+</rect>
+<text x="1032" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">MoneyWithdrawn</text>
+<rect x="1063" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="1085" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="1116" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A closed account takes no deposit and no withdrawal</title>
+</rect>
+<text x="1138" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">NotClosed</text>
+<rect x="1169" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An amount is more than 0</title>
+</rect>
+<text x="1191" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PositiveAmount</text>
+<rect x="1222" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A withdrawal is at most the balance</title>
+</rect>
+<text x="1244" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">EnoughFunds</text>
+<rect x="1348" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="1340" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5"/>
+<text x="1460" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/close (Client)</text>
+<rect x="1330" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to close an account</title>
+</rect>
+<text x="1450" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">CloseAccount</text>
+<rect x="1330" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>An account was closed</title>
+</rect>
+<text x="1370" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">AccountClosed</text>
+<rect x="1419" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="1459" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="1508" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An account is closed once</title>
+</rect>
+<text x="1548" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">ClosedOnce</text>
+<rect x="1650" y="374" width="240" height="55" fill="#d5e8d4" stroke="#82b366" rx="5">
+<title>One account with its owner, balance and status</title>
+</rect>
+<text x="1770" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#82b366">AccountBalanceView</text>
+<rect x="1650" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="1740" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="1740" dy="-7">AccountOpened</tspan>
+<tspan x="1740" dy="15">from Open Account</tspan>
+</text>
+<rect x="1838" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="1928" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="1928" dy="-7">MoneyDeposited</tspan>
+<tspan x="1928" dy="15">from Deposit</tspan>
+</text>
+<rect x="2026" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="2116" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="2116" dy="-7">MoneyWithdrawn</tspan>
+<tspan x="2116" dy="15">from Withdraw</tspan>
+</text>
+<rect x="2214" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="2304" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="2304" dy="-7">WelcomeBonusGranted</tspan>
+<tspan x="2304" dy="15">from Grant Welcome Bonus</tspan>
+</text>
+<rect x="2402" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="2492" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="2492" dy="-7">AccountClosed</tspan>
+<tspan x="2492" dy="15">from Close Account</tspan>
+</text>
+<path d="M 170,401 L 170,517 L 90,517 L 90,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 170,401 L 170,517 L 179,517 L 179,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 170,401 L 170,517 L 268,517 L 268,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 180,169 L 180,285 L 170,285 L 170,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 410,517 L 410,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 499,517 L 499,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 588,517 L 588,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 90,633 L 90,541 L 490,541 L 490,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 490,449 L 490,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,517 L 719,517 L 719,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,517 L 786,517 L 786,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,517 L 853,517 L 853,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,517 L 920,517 L 920,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1770,401 L 1770,285 L 820,285 L 820,169" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 820,169 L 820,285 L 810,285 L 810,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1032,517 L 1032,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1085,517 L 1085,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1138,517 L 1138,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1191,517 L 1191,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1244,517 L 1244,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1770,401 L 1770,285 L 1140,285 L 1140,169" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1140,169 L 1140,285 L 1130,285 L 1130,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1450,401 L 1450,517 L 1370,517 L 1370,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1450,401 L 1450,517 L 1459,517 L 1459,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1450,401 L 1450,517 L 1548,517 L 1548,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1770,401 L 1770,285 L 1460,285 L 1460,169" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1460,169 L 1460,285 L 1450,285 L 1450,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1740,633 L 1740,517 L 1770,517 L 1770,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1928,633 L 1928,517 L 1770,517 L 1770,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2116,633 L 2116,517 L 1770,517 L 1770,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2304,633 L 2304,517 L 1770,517 L 1770,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2492,633 L 2492,517 L 1770,517 L 1770,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="40" y="988" width="2672" height="368" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="1008" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Specs</text>
+<rect x="50" y="1030" width="260" height="160" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="180" y="1110" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="180" dy="-63">&quot;opens an account for an owner&quot;</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">then [AccountOpened]</tspan>
+<tspan x="180" dy="14">&quot;refuses to open an account again&quot;</tspan>
+<tspan x="180" dy="14">given [AccountOpened]</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">then rejected OpenedOnce</tspan>
+<tspan x="180" dy="14">&quot;refuses an account with no owner&quot;</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">then rejected HasOwner</tspan>
+</text>
+<rect x="370" y="1030" width="260" height="314" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="500" y="1187" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="500" dy="-140">&quot;asks for the bonus when an account opens&quot;</tspan>
+<tspan x="500" dy="14">when AccountOpened</tspan>
+<tspan x="500" dy="14">then command GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">&quot;grants the bonus to a new account&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened]</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">then [WelcomeBonusGranted]</tspan>
+<tspan x="500" dy="14">&quot;records nothing for an account that has the</tspan>
+<tspan x="500" dy="14">bonus&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened, WelcomeBonusGranted]</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">&quot;records nothing for a closed account&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened, AccountClosed]</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">then rejected AccountExists</tspan>
+<tspan x="500" dy="14">&quot;refuses a bonus that is not more than 0&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened]</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">then rejected PositiveAmount</tspan>
+</text>
+<rect x="690" y="1030" width="260" height="230" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="820" y="1145" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="820" dy="-98">&quot;puts money into an open account&quot;</tspan>
+<tspan x="820" dy="14">given [AccountOpened]</tspan>
+<tspan x="820" dy="14">when Deposit</tspan>
+<tspan x="820" dy="14">then [MoneyDeposited]</tspan>
+<tspan x="820" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="820" dy="14">when Deposit</tspan>
+<tspan x="820" dy="14">then rejected AccountExists</tspan>
+<tspan x="820" dy="14">&quot;refuses a closed account&quot;</tspan>
+<tspan x="820" dy="14">given [AccountOpened, AccountClosed]</tspan>
+<tspan x="820" dy="14">when Deposit</tspan>
+<tspan x="820" dy="14">then rejected NotClosed</tspan>
+<tspan x="820" dy="14">&quot;refuses an amount that is not more than 0&quot;</tspan>
+<tspan x="820" dy="14">given [AccountOpened]</tspan>
+<tspan x="820" dy="14">when Deposit</tspan>
+<tspan x="820" dy="14">then rejected PositiveAmount</tspan>
+</text>
+<rect x="1010" y="1030" width="260" height="314" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="1140" y="1187" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="1140" dy="-140">&quot;takes money out of an account that has</tspan>
+<tspan x="1140" dy="14">enough&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then [MoneyWithdrawn]</tspan>
+<tspan x="1140" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected AccountExists</tspan>
+<tspan x="1140" dy="14">&quot;refuses a closed account&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="1140" dy="14">AccountClosed]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected NotClosed</tspan>
+<tspan x="1140" dy="14">&quot;refuses an amount that is not more than 0&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected PositiveAmount</tspan>
+<tspan x="1140" dy="14">&quot;refuses an amount more than the balance&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected EnoughFunds</tspan>
+</text>
+<rect x="1330" y="1030" width="260" height="174" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="1460" y="1117" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="1460" dy="-70">&quot;closes an open account&quot;</tspan>
+<tspan x="1460" dy="14">given [AccountOpened]</tspan>
+<tspan x="1460" dy="14">when CloseAccount</tspan>
+<tspan x="1460" dy="14">then [AccountClosed]</tspan>
+<tspan x="1460" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="1460" dy="14">when CloseAccount</tspan>
+<tspan x="1460" dy="14">then rejected AccountExists</tspan>
+<tspan x="1460" dy="14">&quot;refuses to close an account again&quot;</tspan>
+<tspan x="1460" dy="14">given [AccountOpened, AccountClosed]</tspan>
+<tspan x="1460" dy="14">when CloseAccount</tspan>
+<tspan x="1460" dy="14">then rejected ClosedOnce</tspan>
+</text>
+<rect x="1650" y="1030" width="932" height="132" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="2116" y="1096" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="2116" dy="-49">&quot;shows the bonus and each change in the</tspan>
+<tspan x="2116" dy="14">balance&quot;</tspan>
+<tspan x="2116" dy="14">given [AccountOpened, WelcomeBonusGranted,</tspan>
+<tspan x="2116" dy="14">MoneyDeposited, MoneyWithdrawn]</tspan>
+<tspan x="2116" dy="14">then view AccountBalanceView</tspan>
+<tspan x="2116" dy="14">&quot;shows a closed account&quot;</tspan>
+<tspan x="2116" dy="14">given [AccountOpened, AccountClosed]</tspan>
+<tspan x="2116" dy="14">then view AccountBalanceView</tspan>
+</text>
+</svg>

@@ -16,7 +16,8 @@ The repository contains:
   reaction that sends a command.
 
 [docs/event-subscription.md](docs/event-subscription.md) explains the design: the write path, the read
-loop, and how to choose the kind of consumer.
+loop, and how to choose the kind of consumer. [docs/event-model-account.md](docs/event-model-account.md)
+describes the example domain as an event model.
 
 ## Requirements
 

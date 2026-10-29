@@ -1,0 +1,342 @@
+emod = 1
+
+model "Bank Account" {
+  description = "How the HTTP API opens an account, moves money in and out of it, and closes it"
+}
+
+actor "Client" {
+  description = "A program or a person that calls the HTTP API with a bearer token"
+}
+
+context "Accounts" {
+  description = "The accounts, the money in them and the welcome bonus"
+
+  aggregate "Account" {
+    description = "One account, in the stream account-<id>"
+
+    invariants {
+      OpenedOnce     = "An account is opened once"
+      HasOwner       = "An account has an owner"
+      AccountExists  = "A command changes only an account that was opened"
+      NotClosed      = "A closed account takes no deposit and no withdrawal"
+      PositiveAmount = "An amount is more than 0"
+      EnoughFunds    = "A withdrawal is at most the balance"
+      ClosedOnce     = "An account is closed once"
+    }
+
+    slice "Open Account" {
+      description = "A client opens an account for an owner"
+
+      trigger "POST /accounts" {
+        description = "The client sends the owner, and gets the new account ID"
+        actor       = Client
+      }
+
+      command "OpenAccount" {
+        description = "Ask to open an account for an owner. The API makes the account ID"
+
+        fields {
+          accountId = required(uuid)
+          owner     = required(string)
+        }
+      }
+
+      event "AccountOpened" {
+        description = "An account was opened for an owner"
+
+        fields {
+          accountId = required(uuid)
+          owner     = required(string)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    OpenAccount -> AccountOpened
+        command -> rejected: OpenAccount -> OpenedOnce
+        command -> rejected: OpenAccount -> HasOwner
+      FLOW
+
+      spec "opens an account for an owner" {
+        when = OpenAccount({ owner = "alice" })
+        then = [AccountOpened({ owner = "alice" })]
+      }
+
+      spec "refuses to open an account again" {
+        given = [AccountOpened]
+        when  = OpenAccount({ owner = "alice" })
+        then  = rejected(OpenedOnce)
+      }
+
+      spec "refuses an account with no owner" {
+        when = OpenAccount({ owner = "" })
+        then = rejected(HasOwner)
+      }
+    }
+
+    slice "Grant Welcome Bonus" {
+      description = "Each new account gets a bonus of 1000 once"
+
+      command "GrantWelcomeBonus" {
+        description = "Ask to give the welcome bonus to a new account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "WelcomeBonusGranted" {
+        description = "A new account got the welcome bonus"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      automation "WelcomeBonusReaction" {
+        description = "Sends the bonus command for each account that opens. It starts at the end of the store"
+        on          = AccountOpened
+        command     = GrantWelcomeBonus
+      }
+
+      flow = <<-FLOW
+        command -> event:    GrantWelcomeBonus -> WelcomeBonusGranted
+        command -> rejected: GrantWelcomeBonus -> AccountExists
+        command -> rejected: GrantWelcomeBonus -> PositiveAmount
+      FLOW
+
+      spec "asks for the bonus when an account opens" {
+        when = AccountOpened
+        then = command(GrantWelcomeBonus)
+      }
+
+      spec "grants the bonus to a new account" {
+        given = [AccountOpened]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = [WelcomeBonusGranted({ amount = 1000 })]
+      }
+
+      spec "records nothing for an account that has the bonus" {
+        given = [AccountOpened, WelcomeBonusGranted]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = []
+      }
+
+      spec "records nothing for a closed account" {
+        given = [AccountOpened, AccountClosed]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = GrantWelcomeBonus({ amount = 1000 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a bonus that is not more than 0" {
+        given = [AccountOpened]
+        when  = GrantWelcomeBonus({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+    }
+
+    slice "Deposit" {
+      description = "A client puts money into an account"
+
+      trigger "POST /accounts/{id}/deposits" {
+        description = "The client sends the amount"
+        actor       = Client
+        reads       = AccountBalanceView
+      }
+
+      command "Deposit" {
+        description = "Ask to put money into an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "MoneyDeposited" {
+        description = "Money went into an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    Deposit -> MoneyDeposited
+        command -> rejected: Deposit -> AccountExists
+        command -> rejected: Deposit -> NotClosed
+        command -> rejected: Deposit -> PositiveAmount
+      FLOW
+
+      spec "puts money into an open account" {
+        given = [AccountOpened]
+        when  = Deposit({ amount = 500 })
+        then  = [MoneyDeposited({ amount = 500 })]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = Deposit({ amount = 500 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a closed account" {
+        given = [AccountOpened, AccountClosed]
+        when  = Deposit({ amount = 500 })
+        then  = rejected(NotClosed)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        given = [AccountOpened]
+        when  = Deposit({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+    }
+
+    slice "Withdraw" {
+      description = "A client takes money out of an account"
+
+      trigger "POST /accounts/{id}/withdrawals" {
+        description = "The client sends the amount"
+        actor       = Client
+        reads       = AccountBalanceView
+      }
+
+      command "Withdraw" {
+        description = "Ask to take money out of an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "MoneyWithdrawn" {
+        description = "Money went out of an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    Withdraw -> MoneyWithdrawn
+        command -> rejected: Withdraw -> AccountExists
+        command -> rejected: Withdraw -> NotClosed
+        command -> rejected: Withdraw -> PositiveAmount
+        command -> rejected: Withdraw -> EnoughFunds
+      FLOW
+
+      spec "takes money out of an account that has enough" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 200 })
+        then  = [MoneyWithdrawn({ amount = 200 })]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = Withdraw({ amount = 200 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a closed account" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), AccountClosed]
+        when  = Withdraw({ amount = 200 })
+        then  = rejected(NotClosed)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+
+      spec "refuses an amount more than the balance" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 600 })
+        then  = rejected(EnoughFunds)
+      }
+    }
+
+    slice "Close Account" {
+      description = "A client closes an account"
+
+      trigger "POST /accounts/{id}/close" {
+        actor = Client
+        reads = AccountBalanceView
+      }
+
+      command "CloseAccount" {
+        description = "Ask to close an account"
+
+        fields {
+          accountId = required(uuid)
+        }
+      }
+
+      event "AccountClosed" {
+        description = "An account was closed"
+
+        fields {
+          accountId = required(uuid)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    CloseAccount -> AccountClosed
+        command -> rejected: CloseAccount -> AccountExists
+        command -> rejected: CloseAccount -> ClosedOnce
+      FLOW
+
+      spec "closes an open account" {
+        given = [AccountOpened]
+        when  = CloseAccount
+        then  = [AccountClosed]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = CloseAccount
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses to close an account again" {
+        given = [AccountOpened, AccountClosed]
+        when  = CloseAccount
+        then  = rejected(ClosedOnce)
+      }
+    }
+
+    slice "View Account Balance" {
+      description = "The account-balances projection keeps the account_balances table. GET /accounts/{id} reads it"
+
+      view "AccountBalanceView" {
+        description = "One account with its owner, balance and status"
+        subscribes  = [AccountOpened, MoneyDeposited, MoneyWithdrawn, WelcomeBonusGranted, AccountClosed]
+
+        fields {
+          id      = required(uuid)
+          owner   = required(string)
+          balance = required(int)
+          status  = required(string)
+          version = required(int)
+        }
+      }
+
+      spec "shows the bonus and each change in the balance" {
+        given = [AccountOpened, WelcomeBonusGranted({ amount = 1000 }), MoneyDeposited({ amount = 500 }), MoneyWithdrawn({ amount = 200 })]
+        then  = view(AccountBalanceView)
+      }
+
+      spec "shows a closed account" {
+        given = [AccountOpened, AccountClosed]
+        then  = view(AccountBalanceView)
+      }
+    }
+  }
+}
