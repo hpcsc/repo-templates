@@ -3,6 +3,7 @@
 A transfer moves money from one account to another. A process manager runs it in
 `internal/use_cases/transfer/process`, as [event-subscription.md](event-subscription.md) describes: a projection keeps the
 state of each transfer and appends its requests as events, and a reaction sends each request as a command.
+[event-model-transfer.md](event-model-transfer.md) describes the transfer as an event model.
 
 
 ```mermaid

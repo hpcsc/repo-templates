@@ -1,0 +1,775 @@
+emod = 1
+
+model "Bank Account and Money Transfer" {
+  description = "How the HTTP API opens an account, moves money in and out of it, closes it, and moves money between two accounts"
+}
+
+actor "Client" {
+  description = "A program or a person that calls the HTTP API with a bearer token"
+}
+
+context "Accounts" {
+  description = "The accounts, the money in them, the welcome bonus, and the account side of a transfer"
+
+  aggregate "Account" {
+    description = "One account, in the stream account-<id>"
+
+    invariants {
+      OpenedOnce     = "An account is opened once"
+      HasOwner       = "An account has an owner"
+      AccountExists  = "A command changes only an account that was opened"
+      NotClosed      = "A closed account takes no deposit and no withdrawal"
+      PositiveAmount = "An amount is more than 0"
+      EnoughFunds    = "A withdrawal is at most the balance"
+      ClosedOnce     = "An account is closed once"
+    }
+
+    slice "Open Account" {
+      description = "A client opens an account for an owner"
+
+      trigger "POST /accounts" {
+        description = "The client sends the owner, and gets the new account ID"
+        actor       = Client
+      }
+
+      command "OpenAccount" {
+        description = "Ask to open an account for an owner. The API makes the account ID"
+
+        fields {
+          accountId = required(uuid)
+          owner     = required(string)
+        }
+      }
+
+      event "AccountOpened" {
+        description = "An account was opened for an owner"
+
+        fields {
+          accountId = required(uuid)
+          owner     = required(string)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    OpenAccount -> AccountOpened
+        command -> rejected: OpenAccount -> OpenedOnce
+        command -> rejected: OpenAccount -> HasOwner
+      FLOW
+
+      spec "opens an account for an owner" {
+        when = OpenAccount({ owner = "alice" })
+        then = [AccountOpened({ owner = "alice" })]
+      }
+
+      spec "refuses to open an account again" {
+        given = [AccountOpened]
+        when  = OpenAccount({ owner = "alice" })
+        then  = rejected(OpenedOnce)
+      }
+
+      spec "refuses an account with no owner" {
+        when = OpenAccount({ owner = "" })
+        then = rejected(HasOwner)
+      }
+    }
+
+    slice "Grant Welcome Bonus" {
+      description = "Each new account gets a bonus of 1000 once"
+
+      command "GrantWelcomeBonus" {
+        description = "Ask to give the welcome bonus to a new account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "WelcomeBonusGranted" {
+        description = "A new account got the welcome bonus"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      automation "WelcomeBonusReaction" {
+        description = "Sends the bonus command for each account that opens. It starts at the end of the store"
+        on          = AccountOpened
+        command     = GrantWelcomeBonus
+      }
+
+      flow = <<-FLOW
+        command -> event:    GrantWelcomeBonus -> WelcomeBonusGranted
+        command -> rejected: GrantWelcomeBonus -> AccountExists
+        command -> rejected: GrantWelcomeBonus -> PositiveAmount
+      FLOW
+
+      spec "asks for the bonus when an account opens" {
+        when = AccountOpened
+        then = command(GrantWelcomeBonus)
+      }
+
+      spec "grants the bonus to a new account" {
+        given = [AccountOpened]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = [WelcomeBonusGranted({ amount = 1000 })]
+      }
+
+      spec "records nothing for an account that has the bonus" {
+        given = [AccountOpened, WelcomeBonusGranted]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = []
+      }
+
+      spec "records nothing for a closed account" {
+        given = [AccountOpened, AccountClosed]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = GrantWelcomeBonus({ amount = 1000 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a bonus that is not more than 0" {
+        given = [AccountOpened]
+        when  = GrantWelcomeBonus({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+    }
+
+    slice "Deposit" {
+      description = "A client puts money into an account"
+
+      trigger "POST /accounts/{id}/deposits" {
+        description = "The client sends the amount"
+        actor       = Client
+        reads       = AccountBalanceView
+      }
+
+      command "Deposit" {
+        description = "Ask to put money into an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "MoneyDeposited" {
+        description = "Money went into an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    Deposit -> MoneyDeposited
+        command -> rejected: Deposit -> AccountExists
+        command -> rejected: Deposit -> NotClosed
+        command -> rejected: Deposit -> PositiveAmount
+      FLOW
+
+      spec "puts money into an open account" {
+        given = [AccountOpened]
+        when  = Deposit({ amount = 500 })
+        then  = [MoneyDeposited({ amount = 500 })]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = Deposit({ amount = 500 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a closed account" {
+        given = [AccountOpened, AccountClosed]
+        when  = Deposit({ amount = 500 })
+        then  = rejected(NotClosed)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        given = [AccountOpened]
+        when  = Deposit({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+    }
+
+    slice "Withdraw" {
+      description = "A client takes money out of an account"
+
+      trigger "POST /accounts/{id}/withdrawals" {
+        description = "The client sends the amount"
+        actor       = Client
+        reads       = AccountBalanceView
+      }
+
+      command "Withdraw" {
+        description = "Ask to take money out of an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "MoneyWithdrawn" {
+        description = "Money went out of an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    Withdraw -> MoneyWithdrawn
+        command -> rejected: Withdraw -> AccountExists
+        command -> rejected: Withdraw -> NotClosed
+        command -> rejected: Withdraw -> PositiveAmount
+        command -> rejected: Withdraw -> EnoughFunds
+      FLOW
+
+      spec "takes money out of an account that has enough" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 200 })
+        then  = [MoneyWithdrawn({ amount = 200 })]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = Withdraw({ amount = 200 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a closed account" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), AccountClosed]
+        when  = Withdraw({ amount = 200 })
+        then  = rejected(NotClosed)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+
+      spec "refuses an amount more than the balance" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 600 })
+        then  = rejected(EnoughFunds)
+      }
+    }
+
+    slice "Close Account" {
+      description = "A client closes an account"
+
+      trigger "POST /accounts/{id}/close" {
+        actor = Client
+        reads = AccountBalanceView
+      }
+
+      command "CloseAccount" {
+        description = "Ask to close an account"
+
+        fields {
+          accountId = required(uuid)
+        }
+      }
+
+      event "AccountClosed" {
+        description = "An account was closed"
+
+        fields {
+          accountId = required(uuid)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    CloseAccount -> AccountClosed
+        command -> rejected: CloseAccount -> AccountExists
+        command -> rejected: CloseAccount -> ClosedOnce
+      FLOW
+
+      spec "closes an open account" {
+        given = [AccountOpened]
+        when  = CloseAccount
+        then  = [AccountClosed]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = CloseAccount
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses to close an account again" {
+        given = [AccountOpened, AccountClosed]
+        when  = CloseAccount
+        then  = rejected(ClosedOnce)
+      }
+    }
+
+    slice "Debit for Transfer" {
+      description = "The source account of a transfer gives the amount, or records why it cannot"
+
+      command "DebitForTransfer" {
+        description = "Ask the source account to give the amount of a transfer"
+
+        fields {
+          accountId  = required(uuid)
+          transferId = required(uuid)
+          amount     = required(int)
+        }
+      }
+
+      event "TransferDebited" {
+        description = "The source account gave the amount of a transfer"
+
+        fields {
+          accountId  = required(uuid)
+          transferId = required(uuid)
+          amount     = required(int)
+        }
+      }
+
+      event "TransferDebitRejected" {
+        description = "The source account cannot give the amount of a transfer"
+
+        fields {
+          accountId  = required(uuid)
+          transferId = required(uuid)
+          amount     = required(int)
+          reason     = required(string)
+        }
+      }
+
+      automation "TransferProcess" {
+        description = "Starts the process of a new transfer in the debiting state, and asks the source account for the amount"
+        on          = TransferStarted
+        reads       = TransferProcessView
+        command     = DebitForTransfer
+      }
+
+      flow = <<-FLOW
+        command -> event:    DebitForTransfer -> TransferDebited
+        command -> event:    DebitForTransfer -> TransferDebitRejected
+        command -> rejected: DebitForTransfer -> AccountExists
+      FLOW
+
+      spec "asks for the debit when a transfer starts" {
+        when = TransferStarted
+        then = command(DebitForTransfer)
+      }
+
+      spec "debits an account that has enough" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = DebitForTransfer({ amount = 300 })
+        then  = [TransferDebited({ amount = 300 })]
+      }
+
+      spec "records a debit that the balance does not cover" {
+        given = [AccountOpened, MoneyDeposited({ amount = 200 })]
+        when  = DebitForTransfer({ amount = 300 })
+        then  = [TransferDebitRejected({ amount = 300, reason = "balance is less than the amount" })]
+      }
+
+      spec "records a debit from a closed account" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), AccountClosed]
+        when  = DebitForTransfer({ amount = 300 })
+        then  = [TransferDebitRejected({ amount = 300, reason = "account is closed" })]
+      }
+
+      spec "records nothing for a transfer that the account decided" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), TransferDebited]
+        when  = DebitForTransfer({ amount = 300 })
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = DebitForTransfer({ amount = 300 })
+        then = rejected(AccountExists)
+      }
+    }
+
+    slice "Credit for Transfer" {
+      description = "The destination account of a transfer takes the amount, or records why it cannot"
+
+      command "CreditForTransfer" {
+        description = "Ask the destination account to take the amount of a transfer"
+
+        fields {
+          accountId  = required(uuid)
+          transferId = required(uuid)
+          amount     = required(int)
+        }
+      }
+
+      event "TransferCredited" {
+        description = "The destination account took the amount of a transfer"
+
+        fields {
+          accountId  = required(uuid)
+          transferId = required(uuid)
+          amount     = required(int)
+        }
+      }
+
+      event "TransferCreditRejected" {
+        description = "The destination account cannot take the amount of a transfer"
+
+        fields {
+          accountId  = required(uuid)
+          transferId = required(uuid)
+          amount     = required(int)
+          reason     = required(string)
+        }
+      }
+
+      automation "TransferProcess" {
+        description = "Moves a transfer from debiting to crediting, and asks the destination account to take the amount"
+        on          = TransferDebited
+        reads       = TransferProcessView
+        command     = CreditForTransfer
+      }
+
+      flow = <<-FLOW
+        command -> event:    CreditForTransfer -> TransferCredited
+        command -> event:    CreditForTransfer -> TransferCreditRejected
+        command -> rejected: CreditForTransfer -> AccountExists
+      FLOW
+
+      spec "asks for the credit when the source account gives the amount" {
+        when = TransferDebited
+        then = command(CreditForTransfer)
+      }
+
+      spec "credits an open account" {
+        given = [AccountOpened]
+        when  = CreditForTransfer({ amount = 300 })
+        then  = [TransferCredited({ amount = 300 })]
+      }
+
+      spec "records a credit to a closed account" {
+        given = [AccountOpened, AccountClosed]
+        when  = CreditForTransfer({ amount = 300 })
+        then  = [TransferCreditRejected({ amount = 300, reason = "account is closed" })]
+      }
+
+      spec "records nothing for a transfer that the account decided" {
+        given = [AccountOpened, TransferCredited]
+        when  = CreditForTransfer({ amount = 300 })
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = CreditForTransfer({ amount = 300 })
+        then = rejected(AccountExists)
+      }
+    }
+
+    slice "Refund Transfer" {
+      description = "The source account gets back the amount of a transfer that the destination account did not take"
+
+      command "RefundTransfer" {
+        description = "Ask the source account to take back the amount of a transfer"
+
+        fields {
+          accountId  = required(uuid)
+          transferId = required(uuid)
+          amount     = required(int)
+        }
+      }
+
+      event "TransferRefunded" {
+        description = "The source account got back the amount of a transfer"
+
+        fields {
+          accountId  = required(uuid)
+          transferId = required(uuid)
+          amount     = required(int)
+        }
+      }
+
+      automation "TransferProcess" {
+        description = "Moves a transfer from crediting to refunding, keeps the reason, and asks the source account to take the amount back"
+        on          = TransferCreditRejected
+        reads       = TransferProcessView
+        command     = RefundTransfer
+      }
+
+      flow = <<-FLOW
+        command -> event:    RefundTransfer -> TransferRefunded
+        command -> rejected: RefundTransfer -> AccountExists
+      FLOW
+
+      spec "asks for the refund when the destination account cannot take the amount" {
+        when = TransferCreditRejected
+        then = command(RefundTransfer)
+      }
+
+      spec "gives the amount back to the source account" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), TransferDebited({ amount = 300 })]
+        when  = RefundTransfer({ amount = 300 })
+        then  = [TransferRefunded({ amount = 300 })]
+      }
+
+      spec "records nothing for a transfer that the account refunded" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), TransferDebited({ amount = 300 }), TransferRefunded({ amount = 300 })]
+        when  = RefundTransfer({ amount = 300 })
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = RefundTransfer({ amount = 300 })
+        then = rejected(AccountExists)
+      }
+    }
+
+    slice "View Account Balance" {
+      description = "The account-balances projection keeps the account_balances table. GET /accounts/{id} reads it"
+
+      view "AccountBalanceView" {
+        description = "One account with its owner, balance and status"
+        subscribes  = [AccountOpened, MoneyDeposited, MoneyWithdrawn, WelcomeBonusGranted, AccountClosed, TransferDebited, TransferCredited, TransferRefunded]
+
+        fields {
+          id      = required(uuid)
+          owner   = required(string)
+          balance = required(int)
+          status  = required(string)
+          version = required(int)
+        }
+      }
+
+      spec "shows the bonus and each change in the balance" {
+        given = [AccountOpened, WelcomeBonusGranted({ amount = 1000 }), MoneyDeposited({ amount = 500 }), MoneyWithdrawn({ amount = 200 })]
+        then  = view(AccountBalanceView)
+      }
+
+      spec "shows a closed account" {
+        given = [AccountOpened, AccountClosed]
+        then  = view(AccountBalanceView)
+      }
+    }
+  }
+}
+
+context "Transfers" {
+  description = "The transfers between two accounts, and the process that runs each transfer"
+
+  aggregate "Transfer" {
+    description = "One transfer, in the stream transfer-<id>. The start writes the first event, and after that only the process writes"
+
+    invariants {
+      StartedOnce    = "A transfer is started once"
+      TwoAccounts    = "A transfer moves money between two different accounts"
+      PositiveAmount = "An amount is more than 0"
+      AccountsExist  = "Both accounts of a transfer were opened"
+      EndsOnce       = "A transfer ends once: it completes or it fails"
+    }
+
+    slice "Start Transfer" {
+      description = "A client starts a transfer from one account to another"
+
+      trigger "POST /transfers" {
+        description = "The client sends the two account IDs and the amount, and gets the new transfer ID"
+        actor       = Client
+      }
+
+      command "StartTransfer" {
+        description = "Ask to move an amount from one account to another. The API makes the transfer ID"
+
+        fields {
+          transferId = required(uuid)
+          from       = required(uuid)
+          to         = required(uuid)
+          amount     = required(int)
+        }
+      }
+
+      event "TransferStarted" {
+        description = "A transfer from one account to another started"
+
+        fields {
+          transferId = required(uuid)
+          from       = required(uuid)
+          to         = required(uuid)
+          amount     = required(int)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    StartTransfer -> TransferStarted
+        command -> rejected: StartTransfer -> StartedOnce
+        command -> rejected: StartTransfer -> TwoAccounts
+        command -> rejected: StartTransfer -> PositiveAmount
+        command -> rejected: StartTransfer -> AccountsExist
+      FLOW
+
+      spec "starts a transfer between two accounts" {
+        when = StartTransfer({ amount = 300 })
+        then = [TransferStarted({ amount = 300 })]
+      }
+
+      spec "refuses to start a transfer again" {
+        given = [TransferStarted]
+        when  = StartTransfer({ amount = 300 })
+        then  = rejected(StartedOnce)
+      }
+
+      spec "refuses a transfer to the same account" {
+        when = StartTransfer({ from = "0b3c1c1e-6d2a-4f5e-9a7b-1c2d3e4f5a6b", to = "0b3c1c1e-6d2a-4f5e-9a7b-1c2d3e4f5a6b", amount = 300 })
+        then = rejected(TwoAccounts)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        when = StartTransfer({ amount = 0 })
+        then = rejected(PositiveAmount)
+      }
+
+      spec "refuses an account that was not opened" {
+        when = StartTransfer({ amount = 300 })
+        then = rejected(AccountsExist)
+      }
+    }
+
+    slice "View Transfer Process" {
+      description = "The transfer-process projection keeps the state of each transfer in the transfer_processes table. GET /transfers/{id} reads it"
+
+      view "TransferProcessView" {
+        description = "One transfer with its accounts, amount, state and reason"
+        subscribes  = [TransferStarted, TransferDebited, TransferDebitRejected, TransferCredited, TransferCreditRejected, TransferRefunded]
+
+        fields {
+          id            = required(uuid)
+          from          = required(uuid)
+          to            = required(uuid)
+          amount        = required(int)
+          state         = required(string)
+          reason        = optional(string)
+          streamVersion = required(int)
+        }
+      }
+
+      spec "shows a transfer that waits for the debit" {
+        given = [TransferStarted]
+        then  = view(TransferProcessView)
+      }
+    }
+
+    slice "Complete Transfer" {
+      description = "The process records that the money moved"
+
+      command "CompleteTransfer" {
+        description = "The decision of the process to end a transfer that moved the money. The process appends the event itself, so the code has no type for this command"
+
+        fields {
+          transferId = required(uuid)
+        }
+      }
+
+      event "TransferCompleted" {
+        description = "The money of a transfer moved from one account to the other"
+
+        fields {
+          transferId = required(uuid)
+        }
+      }
+
+      automation "TransferProcess" {
+        description = "Moves a transfer from crediting to completed"
+        on          = TransferCredited
+        reads       = TransferProcessView
+        command     = CompleteTransfer
+      }
+
+      flow = <<-FLOW
+        command -> event:    CompleteTransfer -> TransferCompleted
+        command -> rejected: CompleteTransfer -> EndsOnce
+      FLOW
+
+      spec "completes the transfer when the destination account takes the amount" {
+        when = TransferCredited
+        then = command(CompleteTransfer)
+      }
+
+      spec "completes a started transfer" {
+        given = [TransferStarted]
+        when  = CompleteTransfer
+        then  = [TransferCompleted]
+      }
+
+      spec "completes a transfer once" {
+        given = [TransferStarted, TransferCompleted]
+        when  = CompleteTransfer
+        then  = rejected(EndsOnce)
+      }
+    }
+
+    slice "Fail Transfer" {
+      description = "The process records that the money did not move"
+
+      command "FailTransfer" {
+        description = "The decision of the process to end a transfer that did not move the money. The process appends the event itself, so the code has no type for this command"
+
+        fields {
+          transferId = required(uuid)
+          reason     = required(string)
+        }
+      }
+
+      event "TransferFailed" {
+        description = "The money of a transfer did not move, and the reason tells why"
+
+        fields {
+          transferId = required(uuid)
+          reason     = required(string)
+        }
+      }
+
+      automation "TransferProcess" {
+        description = "Moves a transfer from debiting to failed"
+        on          = TransferDebitRejected
+        reads       = TransferProcessView
+        command     = FailTransfer
+      }
+
+      automation "TransferProcess" {
+        description = "Moves a transfer from refunding to failed, with the reason of the rejected credit"
+        on          = TransferRefunded
+        reads       = TransferProcessView
+        command     = FailTransfer
+      }
+
+      flow = <<-FLOW
+        command -> event:    FailTransfer -> TransferFailed
+        command -> rejected: FailTransfer -> EndsOnce
+      FLOW
+
+      spec "fails the transfer when the source account cannot give the amount" {
+        when = TransferDebitRejected
+        then = command(FailTransfer)
+      }
+
+      spec "fails the transfer when the source account gets the amount back" {
+        when = TransferRefunded
+        then = command(FailTransfer)
+      }
+
+      spec "fails a started transfer with the reason" {
+        given = [TransferStarted]
+        when  = FailTransfer({ reason = "balance is less than the amount" })
+        then  = [TransferFailed({ reason = "balance is less than the amount" })]
+      }
+
+      spec "fails a transfer once" {
+        given = [TransferStarted, TransferFailed]
+        when  = FailTransfer
+        then  = rejected(EndsOnce)
+      }
+    }
+  }
+}

@@ -9,6 +9,9 @@ bonus. A projection keeps the balance of each account in the `account_balances` 
 - Model: [event-model-account.emod](event-model-account.emod), in the [emod](https://github.com/hpcsc/emod) DSL
 - Diagram: [event-model-account.svg](event-model-account.svg), drawn from the model
 
+When the project has the money transfer example, [event-model-transfer.md](event-model-transfer.md)
+describes the full model: this account model plus the transfer.
+
 Check the model and draw the diagram again after a change:
 
 ```sh

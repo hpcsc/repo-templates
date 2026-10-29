@@ -25,6 +25,7 @@ features:
       - "**/internal/use_cases/account/command/*_transfer.go"
       - "**/migrations/*_create-transfer-processes-table.*"
       - "**/docs/process-manager-example.md"
+      - "**/docs/event-model-transfer.*"
 
 delimiters:
   - glob: "**/Taskfile*.yml"
