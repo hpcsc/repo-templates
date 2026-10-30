@@ -11,21 +11,27 @@ questions:
         message: "use Go 1.27 or later: the code uses generic methods"
   - name: ProcessManager
     prompt:
-      confirm: "Include the process manager example, a money transfer between two accounts?"
+      confirm: "Include the process manager example, a payment to another bank?"
 
 features:
   - value: "{{ .Scaffold.ProcessManager }}"
     globs:
-      - "**/internal/use_cases/transfer/**"
-      - "**/internal/api/use_cases/transfer/**"
-      - "**/internal/use_cases/account/transfers/**"
-      - "**/internal/use_cases/account/transfer.go"
-      - "**/internal/use_cases/account/transfer_test.go"
-      - "**/internal/use_cases/account/event/transfer_*.go"
-      - "**/internal/use_cases/account/command/*_transfer.go"
-      - "**/migrations/*_create-transfer-processes-table.*"
+      - "**/internal/use_cases/payment/**"
+      - "**/internal/api/use_cases/payment/**"
+      - "**/internal/api/use_cases/webhook/**"
+      - "**/internal/use_cases/account/holds/**"
+      - "**/internal/use_cases/account/hold.go"
+      - "**/internal/use_cases/account/hold_test.go"
+      - "**/internal/use_cases/account/event/hold_*.go"
+      - "**/internal/use_cases/account/command/*_hold.go"
+      - "**/internal/fakeservices/**"
+      - "**/cmd/fakeservices/**"
+      - "**/Taskfile.fakeservices.yml"
+      - "**/Dockerfile.fakeservices"
+      - "**/migrations/*_create-payments-table.*"
+      - "**/migrations/*_create-payment-deadlines-table.*"
       - "**/docs/process-manager-example.md"
-      - "**/docs/event-model-transfer.*"
+      - "**/docs/event-model-payment.*"
 
 delimiters:
   - glob: "**/Taskfile*.yml"
@@ -42,7 +48,8 @@ messages:
     An event-sourced service with a Postgres event store: an HTTP API that sends commands, and a
     `catchup` process that runs the projections and the reactions.
     {{- if .Scaffold.ProcessManager }}
-    The money transfer example runs as a process manager.
+    The payment to another bank runs as a process manager, and task run also starts
+    fake outside systems for it.
     {{- end }}
 
         cd {{ .ProjectKebab }}

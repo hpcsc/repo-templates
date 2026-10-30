@@ -1,0 +1,1317 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11314 1654">
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#666666"/>
+</marker>
+</defs>
+<defs>
+<symbol id="gear" viewBox="-15 -15 30 30">
+<path d="M -2.9 -7.88 L -2.9 -12.9 A 1.3 1.3 0 0 1 -1.6 -14.2 L 1.6 -14.2 A 1.3 1.3 0 0 1 2.9 -12.9 L 2.9 -7.88 A 8.4 8.4 0 0 1 3.52 -7.63 L 7.07 -11.17 A 1.3 1.3 0 0 1 8.91 -11.17 L 11.17 -8.91 A 1.3 1.3 0 0 1 11.17 -7.07 L 7.63 -3.52 A 8.4 8.4 0 0 1 7.88 -2.9 L 12.9 -2.9 A 1.3 1.3 0 0 1 14.2 -1.6 L 14.2 1.6 A 1.3 1.3 0 0 1 12.9 2.9 L 7.88 2.9 A 8.4 8.4 0 0 1 7.63 3.52 L 11.17 7.07 A 1.3 1.3 0 0 1 11.17 8.91 L 8.91 11.17 A 1.3 1.3 0 0 1 7.07 11.17 L 3.52 7.63 A 8.4 8.4 0 0 1 2.9 7.88 L 2.9 12.9 A 1.3 1.3 0 0 1 1.6 14.2 L -1.6 14.2 A 1.3 1.3 0 0 1 -2.9 12.9 L -2.9 7.88 A 8.4 8.4 0 0 1 -3.52 7.63 L -7.07 11.17 A 1.3 1.3 0 0 1 -8.91 11.17 L -11.17 8.91 A 1.3 1.3 0 0 1 -11.17 7.07 L -7.63 3.52 A 8.4 8.4 0 0 1 -7.88 2.9 L -12.9 2.9 A 1.3 1.3 0 0 1 -14.2 1.6 L -14.2 -1.6 A 1.3 1.3 0 0 1 -12.9 -2.9 L -7.88 -2.9 A 8.4 8.4 0 0 1 -7.63 -3.52 L -11.17 -7.07 A 1.3 1.3 0 0 1 -11.17 -8.91 L -8.91 -11.17 A 1.3 1.3 0 0 1 -7.07 -11.17 L -3.52 -7.63 A 8.4 8.4 0 0 1 -2.9 -7.88 Z M 0 -3.4 A 3.4 3.4 0 0 0 0 3.4 A 3.4 3.4 0 0 0 0 -3.4 Z"/>
+</symbol>
+</defs>
+<rect x="40" y="60" width="11234" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="80" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Wireframes</text>
+<rect x="40" y="292" width="11234" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="312" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Commands / Views</text>
+<rect x="40" y="524" width="11234" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="544" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Events</text>
+<rect x="40" y="756" width="11234" height="202" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="776" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">External Systems</text>
+<rect x="40" y="30" width="3610" height="22" fill="#f5f5f5" stroke="#666666" rx="0">
+<title>The accounts, the money in them, the welcome bonus, and the holds for payments</title>
+</rect>
+<text x="1845" y="41" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#666666">Accounts</text>
+<rect x="3810" y="30" width="7324" height="22" fill="#f5f5f5" stroke="#666666" rx="0">
+<title>The payments to accounts at other banks. The payment aggregate, with its reactions and gateways, is the process manager of each payment</title>
+</rect>
+<text x="7472" y="41" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#666666">Payments</text>
+<rect x="68" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="60" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>The client sends the owner, and gets the new account ID</title>
+</rect>
+<text x="180" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts (Client)</text>
+<rect x="50" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to open an account for an owner. The API makes the account ID</title>
+</rect>
+<text x="170" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">OpenAccount</text>
+<rect x="50" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>An account was opened for an owner</title>
+</rect>
+<text x="90" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">AccountOpened</text>
+<rect x="139" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An account is opened once</title>
+</rect>
+<text x="179" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">OpenedOnce</text>
+<rect x="228" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An account has an owner</title>
+</rect>
+<text x="268" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">HasOwner</text>
+<rect x="370" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to give the welcome bonus to a new account</title>
+</rect>
+<text x="490" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">GrantWelcomeBonus</text>
+<rect x="370" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>A new account got the welcome bonus</title>
+</rect>
+<text x="410" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">WelcomeBonusGranted</text>
+<rect x="459" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="499" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="548" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An amount is more than 0</title>
+</rect>
+<text x="588" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PositiveAmount</text>
+<use href="#gear" x="476" y="435" width="28" height="28" fill="#16201b">
+<title>Sends the bonus command for each account that opens. It starts at the end of the store</title>
+</use>
+<text x="490" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">WelcomeBonusReaction</text>
+<rect x="708" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="700" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>The client sends the amount</title>
+</rect>
+<text x="820" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/deposits (Client)</text>
+<rect x="690" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to put money into an account</title>
+</rect>
+<text x="810" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">Deposit</text>
+<rect x="690" y="606" width="59" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>Money went into an account</title>
+</rect>
+<text x="719" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">MoneyDeposited</text>
+<rect x="757" y="606" width="59" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="786" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="824" y="606" width="59" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A closed account takes no deposit and no withdrawal</title>
+</rect>
+<text x="853" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">NotClosed</text>
+<rect x="891" y="606" width="59" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An amount is more than 0</title>
+</rect>
+<text x="920" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PositiveAmount</text>
+<rect x="1028" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="1020" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>The client sends the amount</title>
+</rect>
+<text x="1140" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/withdrawals (Client)</text>
+<rect x="1010" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to take money out of an account</title>
+</rect>
+<text x="1130" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">Withdraw</text>
+<rect x="1010" y="606" width="45" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>Money went out of an account</title>
+</rect>
+<text x="1032" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">MoneyWithdrawn</text>
+<rect x="1063" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="1085" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="1116" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A closed account takes no deposit and no withdrawal</title>
+</rect>
+<text x="1138" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">NotClosed</text>
+<rect x="1169" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An amount is more than 0</title>
+</rect>
+<text x="1191" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PositiveAmount</text>
+<rect x="1222" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A withdrawal is at most the available balance: the balance minus the holds</title>
+</rect>
+<text x="1244" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">EnoughFunds</text>
+<rect x="1348" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="1340" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5"/>
+<text x="1460" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/close (Client)</text>
+<rect x="1330" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to close an account</title>
+</rect>
+<text x="1450" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">CloseAccount</text>
+<rect x="1330" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>An account was closed</title>
+</rect>
+<text x="1370" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">AccountClosed</text>
+<rect x="1419" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="1459" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="1508" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An account is closed once</title>
+</rect>
+<text x="1548" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">ClosedOnce</text>
+<rect x="1650" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask the account to hold the amount of a payment</title>
+</rect>
+<text x="1770" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">PlaceHold</text>
+<rect x="1650" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The account holds the amount of a payment. The amount stays in the balance, but it is not available</title>
+</rect>
+<text x="1690" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">HoldPlaced</text>
+<rect x="1739" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The account cannot hold the amount of a payment, and the reason tells why</title>
+</rect>
+<text x="1779" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">HoldRejected</text>
+<rect x="1828" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="1868" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<use href="#gear" x="1756" y="435" width="28" height="28" fill="#16201b">
+<title>Asks the account of a new payment to hold the amount</title>
+</use>
+<text x="1770" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentFundingReaction</text>
+<rect x="1970" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask the account to release the hold of a payment</title>
+</rect>
+<text x="2090" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">ReleaseHold</text>
+<rect x="1970" y="606" width="126" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The held amount of a payment is available again</title>
+</rect>
+<text x="2033" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">HoldReleased</text>
+<rect x="2104" y="606" width="126" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="2167" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<use href="#gear" x="1996" y="435" width="28" height="28" fill="#16201b">
+<title>Releases the hold of a payment that the bank refused</title>
+</use>
+<text x="2010" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentHoldsReaction</text>
+<use href="#gear" x="2085" y="435" width="28" height="28" fill="#16201b">
+<title>Releases the hold of a payment that failed. A payment that failed because the account rejected the hold has no hold to release</title>
+</use>
+<text x="2099" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentHoldsReaction</text>
+<use href="#gear" x="2174" y="435" width="28" height="28" fill="#16201b">
+<title>Releases the hold of a payment that the other bank returned</title>
+</use>
+<text x="2188" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentHoldsReaction</text>
+<rect x="2290" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask the account to take the held amount of a payment out of the balance</title>
+</rect>
+<text x="2410" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">CaptureHold</text>
+<rect x="2290" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The held amount of a payment left the account</title>
+</rect>
+<text x="2330" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">HoldCaptured</text>
+<rect x="2379" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only an account that was opened</title>
+</rect>
+<text x="2419" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="2468" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>The account captures only a hold that it placed and did not release</title>
+</rect>
+<text x="2508" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">HoldExists</text>
+<use href="#gear" x="2396" y="435" width="28" height="28" fill="#16201b">
+<title>Captures the hold of a payment that the payment network settled</title>
+</use>
+<text x="2410" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentHoldsReaction</text>
+<rect x="2610" y="374" width="240" height="55" fill="#d5e8d4" stroke="#82b366" rx="5">
+<title>One account with its owner, balance and status</title>
+</rect>
+<text x="2730" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#82b366">AccountBalanceView</text>
+<rect x="2610" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="2700" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="2700" dy="-7">AccountOpened</tspan>
+<tspan x="2700" dy="15">from Open Account</tspan>
+</text>
+<rect x="2798" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="2888" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="2888" dy="-7">MoneyDeposited</tspan>
+<tspan x="2888" dy="15">from Deposit</tspan>
+</text>
+<rect x="2986" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="3076" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="3076" dy="-7">MoneyWithdrawn</tspan>
+<tspan x="3076" dy="15">from Withdraw</tspan>
+</text>
+<rect x="3174" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="3264" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="3264" dy="-7">WelcomeBonusGranted</tspan>
+<tspan x="3264" dy="15">from Grant Welcome Bonus</tspan>
+</text>
+<rect x="3362" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="3452" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="3452" dy="-7">AccountClosed</tspan>
+<tspan x="3452" dy="15">from Close Account</tspan>
+</text>
+<rect x="3550" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="3640" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="3640" dy="-7">HoldCaptured</tspan>
+<tspan x="3640" dy="15">from Capture Hold</tspan>
+</text>
+<rect x="3838" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="3830" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>The client sends the account ID, the creditor IBAN and the amount, and gets the new payment ID</title>
+</rect>
+<text x="3950" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /payments (Client)</text>
+<rect x="3820" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Ask to pay an amount from an account to an account at another bank. The API makes the payment ID</title>
+</rect>
+<text x="3940" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">RequestPayment</text>
+<rect x="3820" y="606" width="45" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>A client asked to pay an amount from an account to an account at another bank</title>
+</rect>
+<text x="3842" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentRequested</text>
+<rect x="3873" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A payment is requested once</title>
+</rect>
+<text x="3895" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">RequestedOnce</text>
+<rect x="3926" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>An amount is more than 0</title>
+</rect>
+<text x="3948" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PositiveAmount</text>
+<rect x="3979" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A payment has a creditor IBAN</title>
+</rect>
+<text x="4001" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">HasCreditor</text>
+<rect x="4032" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>The account of a payment was opened</title>
+</rect>
+<text x="4054" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">AccountExists</text>
+<rect x="4140" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment whether its account holds the amount</title>
+</rect>
+<text x="4260" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">RecordFunding</text>
+<rect x="4140" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The account holds the amount of the payment. The checks start, and they have a deadline</title>
+</rect>
+<text x="4180" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentFunded</text>
+<rect x="4229" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The payment ended before the payment network got it, and the reason tells why</title>
+</rect>
+<text x="4269" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentFailed</text>
+<rect x="4318" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="4358" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<use href="#gear" x="4189" y="435" width="28" height="28" fill="#16201b">
+<title>Tells the payment that the account holds the amount</title>
+</use>
+<text x="4203" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentFundingReaction</text>
+<use href="#gear" x="4323" y="435" width="28" height="28" fill="#16201b">
+<title>Tells the payment that the account cannot hold the amount, with the reason of the account</title>
+</use>
+<text x="4337" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentFundingReaction</text>
+<use href="#gear" x="4509" y="435" width="28" height="28" fill="#16201b">
+<title>Calls POST /checks of the fraud service and POST /screenings of the sanctions service. Each attempt has a new Idempotency-Key. The code has no command for these calls</title>
+</use>
+<text x="4523" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentChecksGateway</text>
+<use href="#gear" x="4643" y="435" width="28" height="28" fill="#16201b">
+<title>Calls the fraud service and the sanctions service again after the deadline of the checks passed</title>
+</use>
+<text x="4657" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentChecksGateway</text>
+<rect x="4780" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment the result of the fraud check</title>
+</rect>
+<text x="4900" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">RecordFraudResult</text>
+<rect x="4780" y="606" width="45" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>Both checks passed. The payment goes to the payment network, and the submission has a deadline</title>
+</rect>
+<text x="4802" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentCleared</text>
+<rect x="4833" y="606" width="45" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>A check failed, so the bank refuses the payment, and the reason tells why</title>
+</rect>
+<text x="4855" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentRefused</text>
+<rect x="4886" y="606" width="45" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The fraud service found no risk of fraud in the payment</title>
+</rect>
+<text x="4908" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">FraudCheckPassed</text>
+<rect x="4939" y="606" width="45" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The fraud service found a risk of fraud in the payment, and the reason tells why</title>
+</rect>
+<text x="4961" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">FraudCheckFailed</text>
+<rect x="4992" y="606" width="45" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="5014" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<rect x="4780" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
+<title>The fraud service sends a check that passed</title>
+</rect>
+<text x="4843" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/fraud-checks</text>
+<rect x="4914" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
+<title>The fraud service sends a check that failed, with the reason</title>
+</rect>
+<text x="4977" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/fraud-checks</text>
+<rect x="4860" y="816" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
+<title>The fraud service sends a check that passed</title>
+</rect>
+<text x="4910" y="838" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#666666">Fraud service</text>
+<rect x="4860" y="869" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
+<title>The fraud service sends a check that failed, with the reason</title>
+</rect>
+<text x="4910" y="891" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#666666">Fraud service</text>
+<rect x="5100" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment the result of the sanctions screening</title>
+</rect>
+<text x="5220" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">RecordScreeningResult</text>
+<rect x="5100" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The sanctions service found the creditor on no sanctions list</title>
+</rect>
+<text x="5140" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">SanctionsScreeningPassed</text>
+<rect x="5189" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The sanctions service found the creditor on a sanctions list, and the reason tells why</title>
+</rect>
+<text x="5229" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">SanctionsScreeningFailed</text>
+<rect x="5278" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="5318" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<rect x="5100" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
+<title>The sanctions service sends a screening that passed</title>
+</rect>
+<text x="5163" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/sanctions-screenings</text>
+<rect x="5234" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
+<title>The sanctions service sends a screening that failed, with the reason</title>
+</rect>
+<text x="5297" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/sanctions-screenings</text>
+<rect x="5180" y="816" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
+<title>The sanctions service sends a screening that passed</title>
+</rect>
+<text x="5230" y="838" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#666666">Sanctions service</text>
+<rect x="5180" y="869" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
+<title>The sanctions service sends a screening that failed, with the reason</title>
+</rect>
+<text x="5230" y="891" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#666666">Sanctions service</text>
+<rect x="5420" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment that the deadline of an attempt of the checks passed</title>
+</rect>
+<text x="5540" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">TimeOutChecks</text>
+<rect x="5420" y="606" width="126" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The payment asks for the checks again, with a new attempt and a new deadline</title>
+</rect>
+<text x="5483" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentChecksRetried</text>
+<rect x="5554" y="606" width="126" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="5617" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<use href="#gear" x="5526" y="435" width="28" height="28" fill="#16201b">
+<title>Each second, reads the passed deadlines, and sends TimeOutChecks for each payment that waits for its checks</title>
+</use>
+<text x="5540" y="478" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">
+<tspan x="5540" dy="-7">PaymentTimeoutsScheduler</tspan>
+<tspan x="5540" dy="14">⏱ 1s</tspan>
+</text>
+<rect x="5740" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment that the payment network took it, with the reference of the network</title>
+</rect>
+<text x="5860" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">RecordSubmission</text>
+<rect x="5740" y="606" width="126" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The payment network took the payment. The settlement has a deadline</title>
+</rect>
+<text x="5803" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentSubmitted</text>
+<rect x="5874" y="606" width="126" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="5937" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<use href="#gear" x="5789" y="435" width="28" height="28" fill="#16201b">
+<title>Calls POST /payments of the payment network, then records the reference of the network. All attempts have one Idempotency-Key, so the network takes the payment once</title>
+</use>
+<text x="5803" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentSubmissionGateway</text>
+<use href="#gear" x="5923" y="435" width="28" height="28" fill="#16201b">
+<title>Calls the payment network again after the deadline of the submission passed</title>
+</use>
+<text x="5937" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentSubmissionGateway</text>
+<rect x="6060" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment that the deadline of an attempt of the submission passed</title>
+</rect>
+<text x="6180" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">TimeOutSubmission</text>
+<rect x="6060" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The payment asks to send it to the payment network again, with a new attempt and a new deadline</title>
+</rect>
+<text x="6100" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentSubmissionRetried</text>
+<rect x="6149" y="606" width="81" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The payment network did not answer after the last attempt, so a person must check the payment. The hold stays, and a later settlement or return ends the payment</title>
+</rect>
+<text x="6189" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentEscalated</text>
+<rect x="6238" y="606" width="81" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="6278" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<use href="#gear" x="6166" y="435" width="28" height="28" fill="#16201b">
+<title>Each second, reads the passed deadlines, and sends TimeOutSubmission for each payment that waits for the payment network to take it</title>
+</use>
+<text x="6180" y="478" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">
+<tspan x="6180" dy="-7">PaymentTimeoutsScheduler</tspan>
+<tspan x="6180" dy="14">⏱ 1s</tspan>
+</text>
+<rect x="6380" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment that the deadline of an attempt of the settlement passed</title>
+</rect>
+<text x="6500" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">TimeOutSettlement</text>
+<rect x="6380" y="606" width="126" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The payment asks the payment network for its status, with a new attempt and a new deadline</title>
+</rect>
+<text x="6443" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentStatusQueried</text>
+<rect x="6514" y="606" width="126" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="6577" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<use href="#gear" x="6486" y="435" width="28" height="28" fill="#16201b">
+<title>Each second, reads the passed deadlines, and sends TimeOutSettlement for each payment that waits for the payment network to settle it</title>
+</use>
+<text x="6500" y="478" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">
+<tspan x="6500" dy="-7">PaymentTimeoutsScheduler</tspan>
+<tspan x="6500" dy="14">⏱ 1s</tspan>
+</text>
+<rect x="6700" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment that the payment network settled it</title>
+</rect>
+<text x="6820" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">RecordSettlement</text>
+<rect x="6700" y="606" width="126" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The payment network settled the payment, so the money left the bank</title>
+</rect>
+<text x="6763" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentSettled</text>
+<rect x="6834" y="606" width="126" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="6897" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<use href="#gear" x="6749" y="435" width="28" height="28" fill="#16201b">
+<title>Calls GET /payments/{reference} of the payment network, and records the settlement when the network answers settled</title>
+</use>
+<text x="6763" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentStatusGateway</text>
+<rect x="6834" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
+<title>The payment network sends the status settled</title>
+</rect>
+<text x="6897" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/payment-network</text>
+<rect x="6780" y="816" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
+<title>The payment network sends the status settled</title>
+</rect>
+<text x="6830" y="838" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#666666">Payment network</text>
+<rect x="7020" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
+<title>Tell the payment that the other bank returned it, with the reason of the other bank</title>
+</rect>
+<text x="7140" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#6c8ebf">RecordReturn</text>
+<rect x="7020" y="606" width="126" height="55" fill="#ffe6cc" stroke="#d79b00" rx="5">
+<title>The other bank returned the payment, and the reason tells why</title>
+</rect>
+<text x="7083" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">PaymentReturned</text>
+<rect x="7154" y="606" width="126" height="55" fill="#f8cecc" stroke="#b85450" rx="5" stroke-dasharray="5,3">
+<title>A command changes only a payment that was requested</title>
+</rect>
+<text x="7217" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">PaymentExists</text>
+<use href="#gear" x="7069" y="435" width="28" height="28" fill="#16201b">
+<title>Records the return when the payment network answers returned</title>
+</use>
+<text x="7083" y="471" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#16201b">PaymentStatusGateway</text>
+<rect x="7154" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
+<title>The payment network sends the status returned, with the reason of the other bank</title>
+</rect>
+<text x="7217" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/payment-network</text>
+<rect x="7100" y="816" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
+<title>The payment network sends the status returned, with the reason of the other bank</title>
+</rect>
+<text x="7150" y="838" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#666666">Payment network</text>
+<rect x="8070" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
+<rect x="8062" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
+<title>The client reads the status of a payment, and the reason when the payment did not settle</title>
+</rect>
+<text x="8182" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">GET /payments/{id} (Client)</text>
+<rect x="7340" y="374" width="240" height="55" fill="#d5e8d4" stroke="#82b366" rx="5">
+<title>One payment with its account, creditor IBAN, amount, status, reason and network reference</title>
+</rect>
+<text x="7460" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#82b366">PaymentSummaryView</text>
+<rect x="7340" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="7430" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="7430" dy="-7">PaymentRequested</tspan>
+<tspan x="7430" dy="15">from Request Payment</tspan>
+</text>
+<rect x="7528" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="7618" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="7618" dy="-7">PaymentFunded</tspan>
+<tspan x="7618" dy="15">from Record Funding</tspan>
+</text>
+<rect x="7716" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="7806" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="7806" dy="-7">PaymentFailed</tspan>
+<tspan x="7806" dy="15">from Record Funding</tspan>
+</text>
+<rect x="7904" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="7994" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="7994" dy="-7">PaymentCleared</tspan>
+<tspan x="7994" dy="15">from Record Fraud Result</tspan>
+</text>
+<rect x="8092" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="8182" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="8182" dy="-7">PaymentRefused</tspan>
+<tspan x="8182" dy="15">from Record Fraud Result</tspan>
+</text>
+<rect x="8280" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="8370" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="8370" dy="-7">PaymentSubmitted</tspan>
+<tspan x="8370" dy="15">from Record Submission</tspan>
+</text>
+<rect x="8468" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="8558" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="8558" dy="-7">PaymentEscalated</tspan>
+<tspan x="8558" dy="15">from Time Out Submission</tspan>
+</text>
+<rect x="8656" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="8746" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="8746" dy="-7">PaymentSettled</tspan>
+<tspan x="8746" dy="15">from Record Settlement</tspan>
+</text>
+<rect x="8844" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="8934" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="8934" dy="-7">PaymentReturned</tspan>
+<tspan x="8934" dy="15">from Record Return</tspan>
+</text>
+<rect x="9084" y="374" width="240" height="55" fill="#d5e8d4" stroke="#82b366" rx="5">
+<title>Each open payment with the stage that waits, the attempt and the deadline</title>
+</rect>
+<text x="9204" y="401" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#82b366">PaymentDeadlinesView</text>
+<rect x="9084" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="9174" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="9174" dy="-7">PaymentFunded</tspan>
+<tspan x="9174" dy="15">from Record Funding</tspan>
+</text>
+<rect x="9272" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="9362" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="9362" dy="-7">PaymentChecksRetried</tspan>
+<tspan x="9362" dy="15">from Time Out Checks</tspan>
+</text>
+<rect x="9460" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="9550" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="9550" dy="-7">PaymentCleared</tspan>
+<tspan x="9550" dy="15">from Record Fraud Result</tspan>
+</text>
+<rect x="9648" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="9738" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="9738" dy="-7">PaymentSubmissionRetried</tspan>
+<tspan x="9738" dy="15">from Time Out Submission</tspan>
+</text>
+<rect x="9836" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="9926" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="9926" dy="-7">PaymentSubmitted</tspan>
+<tspan x="9926" dy="15">from Record Submission</tspan>
+</text>
+<rect x="10024" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="10114" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="10114" dy="-7">PaymentStatusQueried</tspan>
+<tspan x="10114" dy="15">from Time Out Settlement</tspan>
+</text>
+<rect x="10212" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="10302" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="10302" dy="-7">PaymentFailed</tspan>
+<tspan x="10302" dy="15">from Record Funding</tspan>
+</text>
+<rect x="10400" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="10490" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="10490" dy="-7">PaymentRefused</tspan>
+<tspan x="10490" dy="15">from Record Fraud Result</tspan>
+</text>
+<rect x="10588" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="10678" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="10678" dy="-7">PaymentEscalated</tspan>
+<tspan x="10678" dy="15">from Time Out Submission</tspan>
+</text>
+<rect x="10776" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="10866" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="10866" dy="-7">PaymentSettled</tspan>
+<tspan x="10866" dy="15">from Record Settlement</tspan>
+</text>
+<rect x="10964" y="606" width="180" height="55" fill="#ffffff" stroke="#d79b00" rx="5" stroke-dasharray="5,3"/>
+<text x="11054" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#d79b00">
+<tspan x="11054" dy="-7">PaymentReturned</tspan>
+<tspan x="11054" dy="15">from Record Return</tspan>
+</text>
+<path d="M 170,401 L 170,517 L 90,517 L 90,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 170,401 L 170,517 L 179,517 L 179,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 170,401 L 170,517 L 268,517 L 268,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 180,169 L 180,285 L 170,285 L 170,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 410,517 L 410,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 499,517 L 499,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 490,401 L 490,517 L 588,517 L 588,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 90,633 L 90,541 L 490,541 L 490,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 490,449 L 490,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,517 L 719,517 L 719,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,517 L 786,517 L 786,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,517 L 853,517 L 853,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 810,401 L 810,517 L 920,517 L 920,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 2730,401 L 2730,285 L 820,285 L 820,169" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 820,169 L 820,285 L 810,285 L 810,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1032,517 L 1032,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1085,517 L 1085,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1138,517 L 1138,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1191,517 L 1191,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1130,401 L 1130,517 L 1244,517 L 1244,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 2730,401 L 2730,285 L 1140,285 L 1140,169" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1140,169 L 1140,285 L 1130,285 L 1130,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1450,401 L 1450,517 L 1370,517 L 1370,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1450,401 L 1450,517 L 1459,517 L 1459,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1450,401 L 1450,517 L 1548,517 L 1548,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 2730,401 L 2730,285 L 1460,285 L 1460,169" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1460,169 L 1460,285 L 1450,285 L 1450,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1770,401 L 1770,517 L 1690,517 L 1690,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1770,401 L 1770,517 L 1779,517 L 1779,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1770,401 L 1770,517 L 1868,517 L 1868,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 3842,633 L 3842,541 L 4337,541 L 4337,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4337,449 L 4337,425 L 1770,425 L 1770,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2090,401 L 2090,517 L 2033,517 L 2033,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2090,401 L 2090,517 L 2167,517 L 2167,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 4855,633 L 4855,541 L 2410,541 L 2410,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2410,449 L 2410,425 L 2090,425 L 2090,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4269,633 L 4269,541 L 2410,541 L 2410,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2410,449 L 2410,425 L 2090,425 L 2090,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7083,633 L 7083,541 L 2410,541 L 2410,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2410,449 L 2410,425 L 2090,425 L 2090,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2410,401 L 2410,517 L 2330,517 L 2330,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2410,401 L 2410,517 L 2419,517 L 2419,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 2410,401 L 2410,517 L 2508,517 L 2508,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 6763,633 L 6763,541 L 2410,541 L 2410,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2410,449 L 2410,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2700,633 L 2700,517 L 2730,517 L 2730,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 2888,633 L 2888,517 L 2730,517 L 2730,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 3076,633 L 3076,517 L 2730,517 L 2730,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 3264,633 L 3264,517 L 2730,517 L 2730,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 3452,633 L 3452,517 L 2730,517 L 2730,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 3640,633 L 3640,517 L 2730,517 L 2730,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 3940,401 L 3940,517 L 3842,517 L 3842,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 3940,401 L 3940,517 L 3895,517 L 3895,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 3940,401 L 3940,517 L 3948,517 L 3948,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 3940,401 L 3940,517 L 4001,517 L 4001,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 3940,401 L 3940,517 L 4054,517 L 4054,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 3950,169 L 3950,285 L 3940,285 L 3940,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4260,401 L 4260,517 L 4180,517 L 4180,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4260,401 L 4260,517 L 4269,517 L 4269,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4260,401 L 4260,517 L 4358,517 L 4358,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 1690,633 L 1690,541 L 4337,541 L 4337,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4337,449 L 4337,425 L 4260,425 L 4260,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 1779,633 L 1779,541 L 4337,541 L 4337,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4337,449 L 4337,425 L 4260,425 L 4260,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4180,633 L 4180,541 L 4657,541 L 4657,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5483,633 L 5483,541 L 4657,541 L 4657,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4900,401 L 4900,517 L 4802,517 L 4802,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4900,401 L 4900,517 L 4855,517 L 4855,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4900,401 L 4900,517 L 5014,517 L 5014,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 4910,891 L 4910,673 L 4977,673 L 4977,455" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4977,455 L 4977,428 L 4900,428 L 4900,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4900,401 L 4900,517 L 4908,517 L 4908,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4910,891 L 4910,673 L 4977,673 L 4977,455" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4977,455 L 4977,428 L 4900,428 L 4900,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 4900,401 L 4900,517 L 4961,517 L 4961,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5220,401 L 5220,517 L 4802,517 L 4802,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5220,401 L 5220,517 L 4855,517 L 4855,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5220,401 L 5220,517 L 5318,517 L 5318,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 5230,891 L 5230,673 L 5297,673 L 5297,455" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5297,455 L 5297,428 L 5220,428 L 5220,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5220,401 L 5220,517 L 5140,517 L 5140,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5230,891 L 5230,673 L 5297,673 L 5297,455" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5297,455 L 5297,428 L 5220,428 L 5220,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5220,401 L 5220,517 L 5229,517 L 5229,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5540,401 L 5540,517 L 5483,517 L 5483,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5540,401 L 5540,517 L 4269,517 L 4269,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5540,401 L 5540,517 L 5617,517 L 5617,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 9204,401 L 9204,425 L 6500,425 L 6500,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6500,449 L 6500,425 L 5540,425 L 5540,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5860,401 L 5860,517 L 5803,517 L 5803,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5860,401 L 5860,517 L 5937,517 L 5937,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 4802,633 L 4802,541 L 5937,541 L 5937,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5937,449 L 5937,425 L 5860,425 L 5860,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6100,633 L 6100,541 L 5937,541 L 5937,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 5937,449 L 5937,425 L 5860,425 L 5860,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6180,401 L 6180,517 L 6100,517 L 6100,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6180,401 L 6180,517 L 6189,517 L 6189,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6180,401 L 6180,517 L 6278,517 L 6278,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 9204,401 L 9204,425 L 6500,425 L 6500,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6500,449 L 6500,425 L 6180,425 L 6180,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6500,401 L 6500,517 L 6443,517 L 6443,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6500,401 L 6500,517 L 6189,517 L 6189,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6500,401 L 6500,517 L 6577,517 L 6577,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 9204,401 L 9204,425 L 6500,425 L 6500,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6500,449 L 6500,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6820,401 L 6820,517 L 6763,517 L 6763,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 6820,401 L 6820,517 L 6897,517 L 6897,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 6443,633 L 6443,541 L 7083,541 L 7083,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7083,449 L 7083,425 L 6820,425 L 6820,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7150,838 L 7150,646 L 7217,646 L 7217,455" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7217,455 L 7217,428 L 6820,428 L 6820,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7140,401 L 7140,517 L 7083,517 L 7083,633" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7140,401 L 7140,517 L 7217,517 L 7217,633" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+<path d="M 6443,633 L 6443,541 L 7083,541 L 7083,449" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7083,449 L 7083,425 L 7140,425 L 7140,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7150,838 L 7150,646 L 7217,646 L 7217,455" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7217,455 L 7217,428 L 7140,428 L 7140,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7460,401 L 7460,285 L 8182,285 L 8182,169" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7430,633 L 7430,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7618,633 L 7618,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7806,633 L 7806,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 7994,633 L 7994,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 8182,633 L 8182,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 8370,633 L 8370,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 8558,633 L 8558,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 8746,633 L 8746,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 8934,633 L 8934,517 L 7460,517 L 7460,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 9174,633 L 9174,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 9362,633 L 9362,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 9550,633 L 9550,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 9738,633 L 9738,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 9926,633 L 9926,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 10114,633 L 10114,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 10302,633 L 10302,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 10490,633 L 10490,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 10678,633 L 10678,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 10866,633 L 10866,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<path d="M 11054,633 L 11054,517 L 9204,517 L 9204,401" fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="40" y="988" width="11234" height="606" fill="#ffffff" stroke="#000000" rx="5"/>
+<text x="50" y="1008" font-family="sans-serif" font-size="14" font-weight="bold" fill="#000000">Specs</text>
+<rect x="50" y="1030" width="260" height="160" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="180" y="1110" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="180" dy="-63">&quot;opens an account for an owner&quot;</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">then [AccountOpened]</tspan>
+<tspan x="180" dy="14">&quot;refuses to open an account again&quot;</tspan>
+<tspan x="180" dy="14">given [AccountOpened]</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">then rejected OpenedOnce</tspan>
+<tspan x="180" dy="14">&quot;refuses an account with no owner&quot;</tspan>
+<tspan x="180" dy="14">when OpenAccount</tspan>
+<tspan x="180" dy="14">then rejected HasOwner</tspan>
+</text>
+<rect x="370" y="1030" width="260" height="314" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="500" y="1187" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="500" dy="-140">&quot;asks for the bonus when an account opens&quot;</tspan>
+<tspan x="500" dy="14">when AccountOpened</tspan>
+<tspan x="500" dy="14">then command GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">&quot;grants the bonus to a new account&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened]</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">then [WelcomeBonusGranted]</tspan>
+<tspan x="500" dy="14">&quot;records nothing for an account that has the</tspan>
+<tspan x="500" dy="14">bonus&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened, WelcomeBonusGranted]</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">&quot;records nothing for a closed account&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened, AccountClosed]</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">then rejected AccountExists</tspan>
+<tspan x="500" dy="14">&quot;refuses a bonus that is not more than 0&quot;</tspan>
+<tspan x="500" dy="14">given [AccountOpened]</tspan>
+<tspan x="500" dy="14">when GrantWelcomeBonus</tspan>
+<tspan x="500" dy="14">then rejected PositiveAmount</tspan>
+</text>
+<rect x="690" y="1030" width="260" height="230" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="820" y="1145" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="820" dy="-98">&quot;puts money into an open account&quot;</tspan>
+<tspan x="820" dy="14">given [AccountOpened]</tspan>
+<tspan x="820" dy="14">when Deposit</tspan>
+<tspan x="820" dy="14">then [MoneyDeposited]</tspan>
+<tspan x="820" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="820" dy="14">when Deposit</tspan>
+<tspan x="820" dy="14">then rejected AccountExists</tspan>
+<tspan x="820" dy="14">&quot;refuses a closed account&quot;</tspan>
+<tspan x="820" dy="14">given [AccountOpened, AccountClosed]</tspan>
+<tspan x="820" dy="14">when Deposit</tspan>
+<tspan x="820" dy="14">then rejected NotClosed</tspan>
+<tspan x="820" dy="14">&quot;refuses an amount that is not more than 0&quot;</tspan>
+<tspan x="820" dy="14">given [AccountOpened]</tspan>
+<tspan x="820" dy="14">when Deposit</tspan>
+<tspan x="820" dy="14">then rejected PositiveAmount</tspan>
+</text>
+<rect x="1010" y="1030" width="260" height="384" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="1140" y="1222" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="1140" dy="-175">&quot;takes money out of an account that has</tspan>
+<tspan x="1140" dy="14">enough&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then [MoneyWithdrawn]</tspan>
+<tspan x="1140" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected AccountExists</tspan>
+<tspan x="1140" dy="14">&quot;refuses a closed account&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="1140" dy="14">AccountClosed]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected NotClosed</tspan>
+<tspan x="1140" dy="14">&quot;refuses an amount that is not more than 0&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected PositiveAmount</tspan>
+<tspan x="1140" dy="14">&quot;refuses an amount more than the balance&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected EnoughFunds</tspan>
+<tspan x="1140" dy="14">&quot;refuses a withdrawal of held money&quot;</tspan>
+<tspan x="1140" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="1140" dy="14">HoldPlaced]</tspan>
+<tspan x="1140" dy="14">when Withdraw</tspan>
+<tspan x="1140" dy="14">then rejected EnoughFunds</tspan>
+</text>
+<rect x="1330" y="1030" width="260" height="174" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="1460" y="1117" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="1460" dy="-70">&quot;closes an open account&quot;</tspan>
+<tspan x="1460" dy="14">given [AccountOpened]</tspan>
+<tspan x="1460" dy="14">when CloseAccount</tspan>
+<tspan x="1460" dy="14">then [AccountClosed]</tspan>
+<tspan x="1460" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="1460" dy="14">when CloseAccount</tspan>
+<tspan x="1460" dy="14">then rejected AccountExists</tspan>
+<tspan x="1460" dy="14">&quot;refuses to close an account again&quot;</tspan>
+<tspan x="1460" dy="14">given [AccountOpened, AccountClosed]</tspan>
+<tspan x="1460" dy="14">when CloseAccount</tspan>
+<tspan x="1460" dy="14">then rejected ClosedOnce</tspan>
+</text>
+<rect x="1650" y="1030" width="260" height="398" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="1780" y="1229" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="1780" dy="-182">&quot;asks for the hold when a payment is</tspan>
+<tspan x="1780" dy="14">requested&quot;</tspan>
+<tspan x="1780" dy="14">when PaymentRequested</tspan>
+<tspan x="1780" dy="14">then command PlaceHold</tspan>
+<tspan x="1780" dy="14">&quot;holds an amount that the available balance</tspan>
+<tspan x="1780" dy="14">covers&quot;</tspan>
+<tspan x="1780" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="1780" dy="14">when PlaceHold</tspan>
+<tspan x="1780" dy="14">then [HoldPlaced]</tspan>
+<tspan x="1780" dy="14">&quot;records a hold that the available balance</tspan>
+<tspan x="1780" dy="14">does not cover&quot;</tspan>
+<tspan x="1780" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="1780" dy="14">when PlaceHold</tspan>
+<tspan x="1780" dy="14">then [HoldRejected]</tspan>
+<tspan x="1780" dy="14">&quot;records a hold on a closed account&quot;</tspan>
+<tspan x="1780" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="1780" dy="14">AccountClosed]</tspan>
+<tspan x="1780" dy="14">when PlaceHold</tspan>
+<tspan x="1780" dy="14">then [HoldRejected]</tspan>
+<tspan x="1780" dy="14">&quot;records nothing for a payment that the</tspan>
+<tspan x="1780" dy="14">account decided&quot;</tspan>
+<tspan x="1780" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="1780" dy="14">HoldPlaced]</tspan>
+<tspan x="1780" dy="14">when PlaceHold</tspan>
+<tspan x="1780" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="1780" dy="14">when PlaceHold</tspan>
+<tspan x="1780" dy="14">then rejected AccountExists</tspan>
+</text>
+<rect x="1970" y="1030" width="260" height="426" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="2100" y="1243" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="2100" dy="-196">&quot;asks for the release when the bank refuses</tspan>
+<tspan x="2100" dy="14">a payment&quot;</tspan>
+<tspan x="2100" dy="14">when PaymentRefused</tspan>
+<tspan x="2100" dy="14">then command ReleaseHold</tspan>
+<tspan x="2100" dy="14">&quot;asks for the release when a payment fails&quot;</tspan>
+<tspan x="2100" dy="14">when PaymentFailed</tspan>
+<tspan x="2100" dy="14">then command ReleaseHold</tspan>
+<tspan x="2100" dy="14">&quot;asks for the release when the other bank</tspan>
+<tspan x="2100" dy="14">returns a payment&quot;</tspan>
+<tspan x="2100" dy="14">when PaymentReturned</tspan>
+<tspan x="2100" dy="14">then command ReleaseHold</tspan>
+<tspan x="2100" dy="14">&quot;releases the held amount&quot;</tspan>
+<tspan x="2100" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="2100" dy="14">HoldPlaced]</tspan>
+<tspan x="2100" dy="14">when ReleaseHold</tspan>
+<tspan x="2100" dy="14">then [HoldReleased]</tspan>
+<tspan x="2100" dy="14">&quot;records nothing for a hold that the account</tspan>
+<tspan x="2100" dy="14">rejected&quot;</tspan>
+<tspan x="2100" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="2100" dy="14">HoldRejected]</tspan>
+<tspan x="2100" dy="14">when ReleaseHold</tspan>
+<tspan x="2100" dy="14">&quot;records nothing for a hold that the account</tspan>
+<tspan x="2100" dy="14">released&quot;</tspan>
+<tspan x="2100" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="2100" dy="14">HoldPlaced, HoldReleased]</tspan>
+<tspan x="2100" dy="14">when ReleaseHold</tspan>
+<tspan x="2100" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="2100" dy="14">when ReleaseHold</tspan>
+<tspan x="2100" dy="14">then rejected AccountExists</tspan>
+</text>
+<rect x="2290" y="1030" width="260" height="384" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="2420" y="1222" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="2420" dy="-175">&quot;asks for the capture when the network</tspan>
+<tspan x="2420" dy="14">settles a payment&quot;</tspan>
+<tspan x="2420" dy="14">when PaymentSettled</tspan>
+<tspan x="2420" dy="14">then command CaptureHold</tspan>
+<tspan x="2420" dy="14">&quot;captures the held amount&quot;</tspan>
+<tspan x="2420" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="2420" dy="14">HoldPlaced]</tspan>
+<tspan x="2420" dy="14">when CaptureHold</tspan>
+<tspan x="2420" dy="14">then [HoldCaptured]</tspan>
+<tspan x="2420" dy="14">&quot;records nothing for a hold that the account</tspan>
+<tspan x="2420" dy="14">captured&quot;</tspan>
+<tspan x="2420" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="2420" dy="14">HoldPlaced, HoldCaptured]</tspan>
+<tspan x="2420" dy="14">when CaptureHold</tspan>
+<tspan x="2420" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="2420" dy="14">when CaptureHold</tspan>
+<tspan x="2420" dy="14">then rejected AccountExists</tspan>
+<tspan x="2420" dy="14">&quot;refuses a payment with no hold&quot;</tspan>
+<tspan x="2420" dy="14">given [AccountOpened, MoneyDeposited]</tspan>
+<tspan x="2420" dy="14">when CaptureHold</tspan>
+<tspan x="2420" dy="14">then rejected HoldExists</tspan>
+<tspan x="2420" dy="14">&quot;refuses a hold that the account released&quot;</tspan>
+<tspan x="2420" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="2420" dy="14">HoldPlaced, HoldReleased]</tspan>
+<tspan x="2420" dy="14">when CaptureHold</tspan>
+<tspan x="2420" dy="14">then rejected HoldExists</tspan>
+</text>
+<rect x="2610" y="1030" width="1120" height="188" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="3170" y="1124" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="3170" dy="-77">&quot;shows the bonus and each change in the</tspan>
+<tspan x="3170" dy="14">balance&quot;</tspan>
+<tspan x="3170" dy="14">given [AccountOpened, WelcomeBonusGranted,</tspan>
+<tspan x="3170" dy="14">MoneyDeposited, MoneyWithdrawn]</tspan>
+<tspan x="3170" dy="14">then view AccountBalanceView</tspan>
+<tspan x="3170" dy="14">&quot;shows a closed account&quot;</tspan>
+<tspan x="3170" dy="14">given [AccountOpened, AccountClosed]</tspan>
+<tspan x="3170" dy="14">then view AccountBalanceView</tspan>
+<tspan x="3170" dy="14">&quot;takes a captured hold off the balance&quot;</tspan>
+<tspan x="3170" dy="14">given [AccountOpened, MoneyDeposited,</tspan>
+<tspan x="3170" dy="14">HoldPlaced, HoldCaptured]</tspan>
+<tspan x="3170" dy="14">then view AccountBalanceView</tspan>
+</text>
+<rect x="3820" y="1030" width="260" height="244" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="3950" y="1152" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="3950" dy="-105">&quot;requests a payment from an open account&quot;</tspan>
+<tspan x="3950" dy="14">when RequestPayment</tspan>
+<tspan x="3950" dy="14">then [PaymentRequested]</tspan>
+<tspan x="3950" dy="14">&quot;refuses to request a payment again&quot;</tspan>
+<tspan x="3950" dy="14">given [PaymentRequested]</tspan>
+<tspan x="3950" dy="14">when RequestPayment</tspan>
+<tspan x="3950" dy="14">then rejected RequestedOnce</tspan>
+<tspan x="3950" dy="14">&quot;refuses an amount that is not more than 0&quot;</tspan>
+<tspan x="3950" dy="14">when RequestPayment</tspan>
+<tspan x="3950" dy="14">then rejected PositiveAmount</tspan>
+<tspan x="3950" dy="14">&quot;refuses a payment with no creditor IBAN&quot;</tspan>
+<tspan x="3950" dy="14">when RequestPayment</tspan>
+<tspan x="3950" dy="14">then rejected HasCreditor</tspan>
+<tspan x="3950" dy="14">&quot;refuses an account that was not opened&quot;</tspan>
+<tspan x="3950" dy="14">when RequestPayment</tspan>
+<tspan x="3950" dy="14">then rejected AccountExists</tspan>
+</text>
+<rect x="4140" y="1030" width="260" height="384" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="4270" y="1222" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="4270" dy="-175">&quot;asks to record the funding when the account</tspan>
+<tspan x="4270" dy="14">holds the amount&quot;</tspan>
+<tspan x="4270" dy="14">when HoldPlaced</tspan>
+<tspan x="4270" dy="14">then command RecordFunding</tspan>
+<tspan x="4270" dy="14">&quot;asks to record the funding when the account</tspan>
+<tspan x="4270" dy="14">cannot hold the amount&quot;</tspan>
+<tspan x="4270" dy="14">when HoldRejected</tspan>
+<tspan x="4270" dy="14">then command RecordFunding</tspan>
+<tspan x="4270" dy="14">&quot;funds the payment and sets the deadline of</tspan>
+<tspan x="4270" dy="14">the checks&quot;</tspan>
+<tspan x="4270" dy="14">given [PaymentRequested]</tspan>
+<tspan x="4270" dy="14">when RecordFunding</tspan>
+<tspan x="4270" dy="14">then [PaymentFunded]</tspan>
+<tspan x="4270" dy="14">&quot;fails the payment with the reason of the</tspan>
+<tspan x="4270" dy="14">account&quot;</tspan>
+<tspan x="4270" dy="14">given [PaymentRequested]</tspan>
+<tspan x="4270" dy="14">when RecordFunding</tspan>
+<tspan x="4270" dy="14">then [PaymentFailed]</tspan>
+<tspan x="4270" dy="14">&quot;records nothing when the funding arrives</tspan>
+<tspan x="4270" dy="14">again&quot;</tspan>
+<tspan x="4270" dy="14">given [PaymentRequested, PaymentFunded]</tspan>
+<tspan x="4270" dy="14">when RecordFunding</tspan>
+<tspan x="4270" dy="14">&quot;refuses the funding of a payment that was</tspan>
+<tspan x="4270" dy="14">not requested&quot;</tspan>
+<tspan x="4270" dy="14">when RecordFunding</tspan>
+<tspan x="4270" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="4780" y="1030" width="260" height="482" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="4910" y="1271" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="4910" dy="-224">&quot;records the pass and waits for the</tspan>
+<tspan x="4910" dy="14">screening&quot;</tspan>
+<tspan x="4910" dy="14">given [PaymentRequested, PaymentFunded]</tspan>
+<tspan x="4910" dy="14">when RecordFraudResult</tspan>
+<tspan x="4910" dy="14">then [FraudCheckPassed]</tspan>
+<tspan x="4910" dy="14">&quot;clears the payment when the screening</tspan>
+<tspan x="4910" dy="14">passed&quot;</tspan>
+<tspan x="4910" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="4910" dy="14">SanctionsScreeningPassed]</tspan>
+<tspan x="4910" dy="14">when RecordFraudResult</tspan>
+<tspan x="4910" dy="14">then [FraudCheckPassed, PaymentCleared]</tspan>
+<tspan x="4910" dy="14">&quot;refuses the payment when the fraud check</tspan>
+<tspan x="4910" dy="14">fails&quot;</tspan>
+<tspan x="4910" dy="14">given [PaymentRequested, PaymentFunded]</tspan>
+<tspan x="4910" dy="14">when RecordFraudResult</tspan>
+<tspan x="4910" dy="14">then [FraudCheckFailed, PaymentRefused]</tspan>
+<tspan x="4910" dy="14">&quot;records nothing when the result arrives</tspan>
+<tspan x="4910" dy="14">again&quot;</tspan>
+<tspan x="4910" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="4910" dy="14">FraudCheckPassed]</tspan>
+<tspan x="4910" dy="14">when RecordFraudResult</tspan>
+<tspan x="4910" dy="14">&quot;records nothing when the result arrives</tspan>
+<tspan x="4910" dy="14">before the funding&quot;</tspan>
+<tspan x="4910" dy="14">given [PaymentRequested]</tspan>
+<tspan x="4910" dy="14">when RecordFraudResult</tspan>
+<tspan x="4910" dy="14">&quot;records nothing after the payment ended&quot;</tspan>
+<tspan x="4910" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="4910" dy="14">SanctionsScreeningFailed, PaymentRefused]</tspan>
+<tspan x="4910" dy="14">when RecordFraudResult</tspan>
+<tspan x="4910" dy="14">&quot;refuses the result of a payment that was</tspan>
+<tspan x="4910" dy="14">not requested&quot;</tspan>
+<tspan x="4910" dy="14">when RecordFraudResult</tspan>
+<tspan x="4910" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="5100" y="1030" width="260" height="412" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="5230" y="1236" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="5230" dy="-189">&quot;records the pass and waits for the fraud</tspan>
+<tspan x="5230" dy="14">check&quot;</tspan>
+<tspan x="5230" dy="14">given [PaymentRequested, PaymentFunded]</tspan>
+<tspan x="5230" dy="14">when RecordScreeningResult</tspan>
+<tspan x="5230" dy="14">then [SanctionsScreeningPassed]</tspan>
+<tspan x="5230" dy="14">&quot;clears the payment when the fraud check</tspan>
+<tspan x="5230" dy="14">passed&quot;</tspan>
+<tspan x="5230" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="5230" dy="14">FraudCheckPassed]</tspan>
+<tspan x="5230" dy="14">when RecordScreeningResult</tspan>
+<tspan x="5230" dy="14">then [SanctionsScreeningPassed,</tspan>
+<tspan x="5230" dy="14">PaymentCleared]</tspan>
+<tspan x="5230" dy="14">&quot;refuses the payment when the screening</tspan>
+<tspan x="5230" dy="14">fails, also after the fraud check passed&quot;</tspan>
+<tspan x="5230" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="5230" dy="14">FraudCheckPassed]</tspan>
+<tspan x="5230" dy="14">when RecordScreeningResult</tspan>
+<tspan x="5230" dy="14">then [SanctionsScreeningFailed,</tspan>
+<tspan x="5230" dy="14">PaymentRefused]</tspan>
+<tspan x="5230" dy="14">&quot;records nothing when the result arrives</tspan>
+<tspan x="5230" dy="14">again&quot;</tspan>
+<tspan x="5230" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="5230" dy="14">SanctionsScreeningPassed]</tspan>
+<tspan x="5230" dy="14">when RecordScreeningResult</tspan>
+<tspan x="5230" dy="14">&quot;refuses the result of a payment that was</tspan>
+<tspan x="5230" dy="14">not requested&quot;</tspan>
+<tspan x="5230" dy="14">when RecordScreeningResult</tspan>
+<tspan x="5230" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="5420" y="1030" width="260" height="398" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="5550" y="1229" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="5550" dy="-182">&quot;reports a passed deadline of the checks&quot;</tspan>
+<tspan x="5550" dy="14">given [PaymentRequested, PaymentFunded]</tspan>
+<tspan x="5550" dy="14">then command TimeOutChecks</tspan>
+<tspan x="5550" dy="14">&quot;asks for the checks again with a new</tspan>
+<tspan x="5550" dy="14">deadline&quot;</tspan>
+<tspan x="5550" dy="14">given [PaymentRequested, PaymentFunded]</tspan>
+<tspan x="5550" dy="14">when TimeOutChecks</tspan>
+<tspan x="5550" dy="14">then [PaymentChecksRetried]</tspan>
+<tspan x="5550" dy="14">&quot;fails the payment after the last attempt&quot;</tspan>
+<tspan x="5550" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="5550" dy="14">PaymentChecksRetried, PaymentChecksRetried]</tspan>
+<tspan x="5550" dy="14">when TimeOutChecks</tspan>
+<tspan x="5550" dy="14">then [PaymentFailed]</tspan>
+<tspan x="5550" dy="14">&quot;records nothing for an attempt that is not</tspan>
+<tspan x="5550" dy="14">the current one&quot;</tspan>
+<tspan x="5550" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="5550" dy="14">PaymentChecksRetried]</tspan>
+<tspan x="5550" dy="14">when TimeOutChecks</tspan>
+<tspan x="5550" dy="14">&quot;records nothing after the payment cleared&quot;</tspan>
+<tspan x="5550" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="5550" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="5550" dy="14">PaymentCleared]</tspan>
+<tspan x="5550" dy="14">when TimeOutChecks</tspan>
+<tspan x="5550" dy="14">&quot;refuses the timeout of a payment that was</tspan>
+<tspan x="5550" dy="14">not requested&quot;</tspan>
+<tspan x="5550" dy="14">when TimeOutChecks</tspan>
+<tspan x="5550" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="5740" y="1030" width="260" height="412" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="5870" y="1236" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="5870" dy="-189">&quot;sends a cleared payment to the network&quot;</tspan>
+<tspan x="5870" dy="14">when PaymentCleared</tspan>
+<tspan x="5870" dy="14">then command RecordSubmission</tspan>
+<tspan x="5870" dy="14">&quot;sends the payment to the network again when</tspan>
+<tspan x="5870" dy="14">the payment asks again&quot;</tspan>
+<tspan x="5870" dy="14">when PaymentSubmissionRetried</tspan>
+<tspan x="5870" dy="14">then command RecordSubmission</tspan>
+<tspan x="5870" dy="14">&quot;records the reference of the network and</tspan>
+<tspan x="5870" dy="14">sets the deadline of the settlement&quot;</tspan>
+<tspan x="5870" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="5870" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="5870" dy="14">PaymentCleared]</tspan>
+<tspan x="5870" dy="14">when RecordSubmission</tspan>
+<tspan x="5870" dy="14">then [PaymentSubmitted]</tspan>
+<tspan x="5870" dy="14">&quot;records nothing when the submission arrives</tspan>
+<tspan x="5870" dy="14">again&quot;</tspan>
+<tspan x="5870" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="5870" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="5870" dy="14">PaymentCleared, PaymentSubmitted]</tspan>
+<tspan x="5870" dy="14">when RecordSubmission</tspan>
+<tspan x="5870" dy="14">&quot;records nothing when the payment is not</tspan>
+<tspan x="5870" dy="14">cleared&quot;</tspan>
+<tspan x="5870" dy="14">given [PaymentRequested, PaymentFunded]</tspan>
+<tspan x="5870" dy="14">when RecordSubmission</tspan>
+<tspan x="5870" dy="14">&quot;refuses the submission of a payment that</tspan>
+<tspan x="5870" dy="14">was not requested&quot;</tspan>
+<tspan x="5870" dy="14">when RecordSubmission</tspan>
+<tspan x="5870" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="6060" y="1030" width="260" height="454" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="6190" y="1257" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="6190" dy="-210">&quot;reports a passed deadline of the</tspan>
+<tspan x="6190" dy="14">submission&quot;</tspan>
+<tspan x="6190" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6190" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6190" dy="14">PaymentCleared]</tspan>
+<tspan x="6190" dy="14">then command TimeOutSubmission</tspan>
+<tspan x="6190" dy="14">&quot;asks to send the payment again with a new</tspan>
+<tspan x="6190" dy="14">deadline&quot;</tspan>
+<tspan x="6190" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6190" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6190" dy="14">PaymentCleared]</tspan>
+<tspan x="6190" dy="14">when TimeOutSubmission</tspan>
+<tspan x="6190" dy="14">then [PaymentSubmissionRetried]</tspan>
+<tspan x="6190" dy="14">&quot;escalates the payment after the last</tspan>
+<tspan x="6190" dy="14">attempt, and does not fail it&quot;</tspan>
+<tspan x="6190" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6190" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6190" dy="14">PaymentCleared, PaymentSubmissionRetried,</tspan>
+<tspan x="6190" dy="14">PaymentSubmissionRetried]</tspan>
+<tspan x="6190" dy="14">when TimeOutSubmission</tspan>
+<tspan x="6190" dy="14">then [PaymentEscalated]</tspan>
+<tspan x="6190" dy="14">&quot;records nothing after the network took the</tspan>
+<tspan x="6190" dy="14">payment&quot;</tspan>
+<tspan x="6190" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6190" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6190" dy="14">PaymentCleared, PaymentSubmitted]</tspan>
+<tspan x="6190" dy="14">when TimeOutSubmission</tspan>
+<tspan x="6190" dy="14">&quot;refuses the timeout of a payment that was</tspan>
+<tspan x="6190" dy="14">not requested&quot;</tspan>
+<tspan x="6190" dy="14">when TimeOutSubmission</tspan>
+<tspan x="6190" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="6380" y="1030" width="260" height="454" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="6510" y="1257" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="6510" dy="-210">&quot;reports a passed deadline of the</tspan>
+<tspan x="6510" dy="14">settlement&quot;</tspan>
+<tspan x="6510" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6510" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6510" dy="14">PaymentCleared, PaymentSubmitted]</tspan>
+<tspan x="6510" dy="14">then command TimeOutSettlement</tspan>
+<tspan x="6510" dy="14">&quot;asks the network for the status with a new</tspan>
+<tspan x="6510" dy="14">deadline&quot;</tspan>
+<tspan x="6510" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6510" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6510" dy="14">PaymentCleared, PaymentSubmitted]</tspan>
+<tspan x="6510" dy="14">when TimeOutSettlement</tspan>
+<tspan x="6510" dy="14">then [PaymentStatusQueried]</tspan>
+<tspan x="6510" dy="14">&quot;escalates the payment after the last</tspan>
+<tspan x="6510" dy="14">attempt&quot;</tspan>
+<tspan x="6510" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6510" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6510" dy="14">PaymentCleared, PaymentSubmitted,</tspan>
+<tspan x="6510" dy="14">PaymentStatusQueried, PaymentStatusQueried]</tspan>
+<tspan x="6510" dy="14">when TimeOutSettlement</tspan>
+<tspan x="6510" dy="14">then [PaymentEscalated]</tspan>
+<tspan x="6510" dy="14">&quot;records nothing for an escalated payment&quot;</tspan>
+<tspan x="6510" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6510" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6510" dy="14">PaymentCleared, PaymentSubmitted,</tspan>
+<tspan x="6510" dy="14">PaymentEscalated]</tspan>
+<tspan x="6510" dy="14">when TimeOutSettlement</tspan>
+<tspan x="6510" dy="14">&quot;refuses the timeout of a payment that was</tspan>
+<tspan x="6510" dy="14">not requested&quot;</tspan>
+<tspan x="6510" dy="14">when TimeOutSettlement</tspan>
+<tspan x="6510" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="6700" y="1030" width="260" height="552" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="6830" y="1306" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="6830" dy="-259">&quot;asks to record the settlement when the</tspan>
+<tspan x="6830" dy="14">network answers settled&quot;</tspan>
+<tspan x="6830" dy="14">when PaymentStatusQueried</tspan>
+<tspan x="6830" dy="14">then command RecordSettlement</tspan>
+<tspan x="6830" dy="14">&quot;settles a submitted payment&quot;</tspan>
+<tspan x="6830" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6830" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6830" dy="14">PaymentCleared, PaymentSubmitted]</tspan>
+<tspan x="6830" dy="14">when RecordSettlement</tspan>
+<tspan x="6830" dy="14">then [PaymentSettled]</tspan>
+<tspan x="6830" dy="14">&quot;settles a cleared payment when the</tspan>
+<tspan x="6830" dy="14">settlement arrives before the submission&quot;</tspan>
+<tspan x="6830" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6830" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6830" dy="14">PaymentCleared]</tspan>
+<tspan x="6830" dy="14">when RecordSettlement</tspan>
+<tspan x="6830" dy="14">then [PaymentSettled]</tspan>
+<tspan x="6830" dy="14">&quot;settles an escalated payment&quot;</tspan>
+<tspan x="6830" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6830" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6830" dy="14">PaymentCleared, PaymentSubmitted,</tspan>
+<tspan x="6830" dy="14">PaymentEscalated]</tspan>
+<tspan x="6830" dy="14">when RecordSettlement</tspan>
+<tspan x="6830" dy="14">then [PaymentSettled]</tspan>
+<tspan x="6830" dy="14">&quot;records nothing when the payment settled&quot;</tspan>
+<tspan x="6830" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="6830" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="6830" dy="14">PaymentCleared, PaymentSubmitted,</tspan>
+<tspan x="6830" dy="14">PaymentSettled]</tspan>
+<tspan x="6830" dy="14">when RecordSettlement</tspan>
+<tspan x="6830" dy="14">&quot;records nothing when the payment is not</tspan>
+<tspan x="6830" dy="14">cleared&quot;</tspan>
+<tspan x="6830" dy="14">given [PaymentRequested, PaymentFunded]</tspan>
+<tspan x="6830" dy="14">when RecordSettlement</tspan>
+<tspan x="6830" dy="14">&quot;refuses the settlement of a payment that</tspan>
+<tspan x="6830" dy="14">was not requested&quot;</tspan>
+<tspan x="6830" dy="14">when RecordSettlement</tspan>
+<tspan x="6830" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="7020" y="1030" width="260" height="412" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="7150" y="1236" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="7150" dy="-189">&quot;asks to record the return when the network</tspan>
+<tspan x="7150" dy="14">answers returned&quot;</tspan>
+<tspan x="7150" dy="14">when PaymentStatusQueried</tspan>
+<tspan x="7150" dy="14">then command RecordReturn</tspan>
+<tspan x="7150" dy="14">&quot;records the return with the reason of the</tspan>
+<tspan x="7150" dy="14">other bank&quot;</tspan>
+<tspan x="7150" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="7150" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="7150" dy="14">PaymentCleared, PaymentSubmitted]</tspan>
+<tspan x="7150" dy="14">when RecordReturn</tspan>
+<tspan x="7150" dy="14">then [PaymentReturned]</tspan>
+<tspan x="7150" dy="14">&quot;records the return of an escalated payment&quot;</tspan>
+<tspan x="7150" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="7150" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="7150" dy="14">PaymentCleared, PaymentSubmitted,</tspan>
+<tspan x="7150" dy="14">PaymentEscalated]</tspan>
+<tspan x="7150" dy="14">when RecordReturn</tspan>
+<tspan x="7150" dy="14">then [PaymentReturned]</tspan>
+<tspan x="7150" dy="14">&quot;records nothing when the payment settled&quot;</tspan>
+<tspan x="7150" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="7150" dy="14">FraudCheckPassed, SanctionsScreeningPassed,</tspan>
+<tspan x="7150" dy="14">PaymentCleared, PaymentSubmitted,</tspan>
+<tspan x="7150" dy="14">PaymentSettled]</tspan>
+<tspan x="7150" dy="14">when RecordReturn</tspan>
+<tspan x="7150" dy="14">&quot;refuses the return of a payment that was</tspan>
+<tspan x="7150" dy="14">not requested&quot;</tspan>
+<tspan x="7150" dy="14">when RecordReturn</tspan>
+<tspan x="7150" dy="14">then rejected PaymentExists</tspan>
+</text>
+<rect x="7340" y="1030" width="1684" height="230" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="8182" y="1145" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="8182" dy="-98">&quot;shows a payment that settled&quot;</tspan>
+<tspan x="8182" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="8182" dy="14">PaymentCleared, PaymentSubmitted,</tspan>
+<tspan x="8182" dy="14">PaymentSettled]</tspan>
+<tspan x="8182" dy="14">then view PaymentSummaryView</tspan>
+<tspan x="8182" dy="14">&quot;shows the reason of a payment that the bank</tspan>
+<tspan x="8182" dy="14">refused&quot;</tspan>
+<tspan x="8182" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="8182" dy="14">PaymentRefused]</tspan>
+<tspan x="8182" dy="14">then view PaymentSummaryView</tspan>
+<tspan x="8182" dy="14">&quot;shows an escalated payment with its reason&quot;</tspan>
+<tspan x="8182" dy="14">given [PaymentRequested, PaymentFunded,</tspan>
+<tspan x="8182" dy="14">PaymentCleared, PaymentSubmitted,</tspan>
+<tspan x="8182" dy="14">PaymentEscalated]</tspan>
+<tspan x="8182" dy="14">then view PaymentSummaryView</tspan>
+</text>
+<rect x="9084" y="1030" width="2060" height="314" fill="#fff2cc" stroke="#d6b656" rx="5"/>
+<text x="10114" y="1187" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#d6b656">
+<tspan x="10114" dy="-140">&quot;lists a funded payment with the deadline of</tspan>
+<tspan x="10114" dy="14">the checks&quot;</tspan>
+<tspan x="10114" dy="14">given [PaymentFunded]</tspan>
+<tspan x="10114" dy="14">then view PaymentDeadlinesView</tspan>
+<tspan x="10114" dy="14">&quot;moves a payment to the next attempt with a</tspan>
+<tspan x="10114" dy="14">new deadline&quot;</tspan>
+<tspan x="10114" dy="14">given [PaymentFunded, PaymentChecksRetried]</tspan>
+<tspan x="10114" dy="14">then view PaymentDeadlinesView</tspan>
+<tspan x="10114" dy="14">&quot;moves a payment to the deadline of the next</tspan>
+<tspan x="10114" dy="14">stage&quot;</tspan>
+<tspan x="10114" dy="14">given [PaymentFunded, PaymentCleared,</tspan>
+<tspan x="10114" dy="14">PaymentSubmitted]</tspan>
+<tspan x="10114" dy="14">then view PaymentDeadlinesView</tspan>
+<tspan x="10114" dy="14">&quot;removes a payment that settled&quot;</tspan>
+<tspan x="10114" dy="14">given [PaymentFunded, PaymentCleared,</tspan>
+<tspan x="10114" dy="14">PaymentSubmitted, PaymentSettled]</tspan>
+<tspan x="10114" dy="14">then view PaymentDeadlinesView</tspan>
+<tspan x="10114" dy="14">&quot;removes an escalated payment&quot;</tspan>
+<tspan x="10114" dy="14">given [PaymentFunded, PaymentCleared,</tspan>
+<tspan x="10114" dy="14">PaymentSubmitted, PaymentEscalated]</tspan>
+<tspan x="10114" dy="14">then view PaymentDeadlinesView</tspan>
+</text>
+</svg>

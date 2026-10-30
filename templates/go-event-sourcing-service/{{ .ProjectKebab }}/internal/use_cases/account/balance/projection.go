@@ -30,11 +30,8 @@ func (p *Projection) EventTypes() []string {
 		event.MoneyWithdrawn{}.EventType(),
 		event.WelcomeBonusGranted{}.EventType(),
 		event.AccountClosed{}.EventType(),
-		event.HoldCaptured{}.EventType(),
 {{- if .Scaffold.ProcessManager }}
-		event.TransferDebited{}.EventType(),
-		event.TransferCredited{}.EventType(),
-		event.TransferRefunded{}.EventType(),
+		event.HoldCaptured{}.EventType(),
 {{- end }}
 	}
 }
@@ -61,15 +58,9 @@ func (p *Projection) Handle(ctx context.Context, tx pgx.Tx, evt *domain.Event) e
 			payload.AccountID, evt.Version, evt.RecordedAt,
 		)
 		return err
+{{- if .Scaffold.ProcessManager }}
 	case *event.HoldCaptured:
 		return p.change(ctx, tx, payload.AccountID, -payload.Amount, evt)
-{{- if .Scaffold.ProcessManager }}
-	case *event.TransferDebited:
-		return p.change(ctx, tx, payload.AccountID, -payload.Amount, evt)
-	case *event.TransferCredited:
-		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt)
-	case *event.TransferRefunded:
-		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt)
 {{- end }}
 	default:
 		return fmt.Errorf("received unexpected payload type: %T", evt.Payload)

@@ -47,7 +47,7 @@ database. The welcome bonus reactor sends a command, so the `catchup` process al
 | `id`, `type`, `data` | The event itself. |
 | `metadata` | The correlation ID and the causation ID of the event. [The Chain of a Request](#the-chain-of-a-request) tells what they mean. |
 | `schema_version` | The version of the shape of `data` for the event type. |
-| `command_id` | The ID of the command that recorded the event. An event that a process manager appends has none. |
+| `command_id` | The ID of the command that recorded the event. |
 | `created_at` | The time when the store recorded the event: the start of the transaction that wrote it. A consumer gets it as `domain.Event.RecordedAt`. |
 
 The position of an event in the store is the pair (`transaction_id`, `sequence`). A checkpoint saves
@@ -183,7 +183,7 @@ limits the commit throughput. Measure it before you depend on it.
 | --- | --- | --- |
 | **No state** | No use | Reactor |
 | **State in memory** | In-memory projection, for example a cache | Do not build. Each restart replays the history and repeats the effects. |
-| **State in a database** | Projection | Process manager |
+| **State in a database** | Projection | Split it: the state in an aggregate or a projection, and the effect in a reactor or a scheduler |
 
 ```mermaid
 flowchart TD
@@ -193,7 +193,7 @@ flowchart TD
     PROJ["Projection"]
     MEM["In-memory projection"]
     REACT["Reactor"]
-    PM["Process manager: a projection with an outbox, and a reactor for the outbox"]
+    SPLIT["Split it: the state in an aggregate or a projection, and the effect in a reactor or a scheduler"]
     AVOID["Do not build: each restart repeats the effects"]
 
     Q1 -- "No" --> Q2
@@ -201,7 +201,7 @@ flowchart TD
     Q2 -- "Memory" --> MEM
     Q1 -- "Yes" --> Q3
     Q3 -- "No state" --> REACT
-    Q3 -- "Database" --> PM
+    Q3 -- "Database" --> SPLIT
     Q3 -- "Memory" --> AVOID
 ```
 
@@ -210,40 +210,57 @@ flowchart TD
 One fact decides the rest: does the effect commit in the same transaction as the checkpoint? If it
 does, a replay is safe. If it does not, a replay repeats the effect.
 
-| Property | Projection | In-memory projection | Reactor | Process manager |
+| Property | Projection | In-memory projection | Reactor | Scheduler |
 | --- | --- | --- | --- | --- |
-| Start with no checkpoint | Beginning of the store | Beginning, at each process start | End of the store, saved as the checkpoint before the first event | Beginning of the store |
-| Checkpoint save | Same transaction as the rows | No checkpoint | After each effect | Same transaction as its state and its requests |
-| Batch | Yes | Yes | No | Yes |
-| Delivery of the effect | Exactly once, because of the transaction | Not applicable | At least once, so the effect needs an idempotency key | State and requests exactly once, commands at least once |
-| Bad event | Stop. A skip makes the read model wrong. | Stop | Retry, then a dead letter and a skip, if the effects do not depend on each other | Stop |
-| Rebuild | Empty the table and replay, or build a new table and swap | Restart the process | Never replay. Move the checkpoint by hand. | Not by replay: the replay appends the requests again, and the version check of the stream stops it |
+| Start with no checkpoint | Beginning of the store | Beginning, at each process start | End of the store, saved as the checkpoint before the first event | No checkpoint: each tick reads the todo list |
+| Checkpoint save | Same transaction as the rows | No checkpoint | After each effect | No checkpoint |
+| Batch | Yes | Yes | No | The items that are due, up to a limit |
+| Delivery of the effect | Exactly once, because of the transaction | Not applicable | At least once, so the effect needs an idempotency key | At least once, so each command has a fixed ID |
+| Bad event | Stop. A skip makes the read model wrong. | Stop | Retry, then a dead letter and a skip, if the effects do not depend on each other | Not applicable. A tick that fails stops the scheduler. |
+| Rebuild | Empty the table and replay, or build a new table and swap | Restart the process | Never replay. Move the checkpoint by hand. | Rebuild its todo list, which is a projection |
 
 A reactor also has a backlog. After downtime, it must handle each event that arrived while it was down,
 from its checkpoint. It skips only the history from before it existed.
 
-A reaction that sends the requests of a process manager is different: it starts at the beginning of the
-store (`reaction.StartAtBeginning()`). Each request in the store is an effect that must happen. If the
-reaction started at the end, a request that the process manager appends before the first start of the
-reaction would never go out. The receivers accept a repeated command, so a first start that sends old
-requests is safe.
+A reaction that a process manager needs is different: it starts at the beginning of the store
+(`reaction.StartAtBeginning()`). Each event that it handles is a step that must happen. If the reaction
+started at the end, a process that the API starts before the first start of the reaction would stop
+there. The commands have fixed IDs, and the outside systems take an `Idempotency-Key`, so a first start
+that sends old messages is safe.
 
 ### Two Meanings of "Mode"
 
 1. **Delivery mode, catch-up or live:** the read loop has no such mode. No consumer needs to know about it.
-2. **Replay mode, rebuild or normal:** this belongs to a consumer with state and an outside effect. When
-   a process manager rebuilds its state from history, it must not send its commands again. A projection
-   has no outside effect, so its replay is safe. A reactor never replays.
+2. **Replay mode, rebuild or normal:** this belongs to a consumer with state and an outside effect, and
+   no consumer here is of that kind. A process manager keeps its state in an aggregate, and stateless
+   reactions cause its effects. A projection has no outside effect, so its replay is safe. A reactor
+   never replays.
 
-### A Process Manager Is a Projection and a Reactor
+### A Process Manager
 
-A process manager keeps the state of a process that spans more than one aggregate, and decides the next
-step from each event. Here it is two consumers:
+A process manager keeps the state of a process and decides each step. A process needs one when it has
+branches, deadlines, a next step that depends on the state of the process, or a wait for N of M results.
+A linear process with none of these needs no process manager: each participant can react to the events
+of the others.
 
-- **A projection** keeps the state of each process in a table. In the same transaction, it appends the
-  requests that it decides as events. The events table is the outbox, so no other table is necessary.
-- **A reaction** sends each request as a command. The command ID comes from the request, so a repeated
-  request gives the same command, and the receiver accepts it once.
+The state of a process is usually a set of business facts. So the process manager is an aggregate that
+has the name of the process, and three kinds of consumer serve it:
+
+- **The aggregate** holds the state as events and makes each decision. Each input reaches it as a
+  command, and each decision leaves it as an event.
+- **Reactions and gateways** carry the messages. They turn the events of other aggregates and the
+  answers of outside systems into commands for the aggregate. They turn its decisions into commands for
+  other aggregates and calls to outside systems. They make no decision.
+- **A scheduler** reports each deadline that passes. It reads a todo list, a projection of the
+  deadlines, and sends a command to the aggregate. The aggregate decides what the passed deadline means.
+
+No consumer keeps the state of the process. So no consumer has both state and an outside effect, and
+each consumer replays safely.
+
+A process manager with its state in tables of its own fits only technical steps with no business
+facts, for example the setup of a tenant through cloud APIs. When the project has the payment example,
+[process-manager-example.md](process-manager-example.md) shows the design with a payment to another
+bank.
 
 ### A Command Is an Outside Effect
 
@@ -265,7 +282,8 @@ caused:
   event, so its own ID is the causation ID.
 
 `dispatch.CommandFor` gives a command the correlation ID of the event that the reaction handles, and
-that event ID as the causation ID. A process manager gives the requests that it appends the same IDs.
+that event ID as the causation ID. A gateway builds its commands in the same way. A command from a
+scheduler starts a new chain, because no event causes a deadline.
 Thus all the events that follow from one request have the same correlation ID, also in other streams.
 For example, `WelcomeBonusGranted` has the ID of the command that opened the account.
 

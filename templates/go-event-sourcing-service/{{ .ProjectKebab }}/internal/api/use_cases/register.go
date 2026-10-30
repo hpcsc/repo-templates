@@ -9,20 +9,20 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/middleware"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/route"
 	apiAccount "github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/account"
+{{- if .Scaffold.ProcessManager }}
 	apiPayment "github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/payment"
+{{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/root"
 {{- if .Scaffold.ProcessManager }}
-	apiTransfer "github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/transfer"
-{{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/webhook"
+{{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/command"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/registry"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/stream"
 	coreUseCases "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/balance"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/summary"
 {{- if .Scaffold.ProcessManager }}
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/process"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/summary"
 {{- end }}
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -70,10 +70,9 @@ func allRoutes(pool *pgxpool.Pool) []*route.Route {
 	routables := []route.Routable{
 		root.NewHandler(),
 		apiAccount.NewHandler(bus, balance.NewQuery(pool)),
+{{- if .Scaffold.ProcessManager }}
 		apiPayment.NewHandler(bus, summary.NewQuery(pool)),
 		webhook.NewHandler(bus),
-{{- if .Scaffold.ProcessManager }}
-		apiTransfer.NewHandler(bus, process.NewQuery(pool)),
 {{- end }}
 	}
 

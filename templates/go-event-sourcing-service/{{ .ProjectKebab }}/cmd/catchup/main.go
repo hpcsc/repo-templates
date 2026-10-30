@@ -19,10 +19,13 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/subscription"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/projection"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/reaction"
+{{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/scheduler"
+{{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/balance"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/welcomebonus"
+{{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/checks"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/deadlines"
@@ -32,15 +35,17 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/status"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/submission"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/summary"
-{{- if .Scaffold.ProcessManager }}
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/process"
 {{- end }}
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Config struct {
+{{- if .Scaffold.ProcessManager }}
 	DB      config.DB
 	Outside outside.Config
+{{- else }}
+	DB config.DB
+{{- end }}
 }
 
 func main() {
@@ -59,7 +64,7 @@ func main() {
 	}
 
 	ctx := runShutdownSignalHandler(context.Background(), logger)
-	failed := run(ctx, workers(pool, cfg.Outside, logger), lock.NewPostgres(pool), logger)
+	failed := run(ctx, workers(pool, cfg, logger), lock.NewPostgres(pool), logger)
 
 	pool.Close()
 	if failed {
@@ -73,7 +78,7 @@ type worker interface {
 	Start(ctx context.Context) error
 }
 
-func workers(pool *pgxpool.Pool, outsideCfg outside.Config, logger *slog.Logger) []worker {
+func workers(pool *pgxpool.Pool, cfg *Config, logger *slog.Logger) []worker {
 	reg := registry.New()
 	use_cases.RegisterEvents(reg)
 
@@ -83,23 +88,19 @@ func workers(pool *pgxpool.Pool, outsideCfg outside.Config, logger *slog.Logger)
 
 	checkpointStore := store.NewPostgres(pool)
 	eventSubscription := subscription.NewPostgres(pool, reg, logger)
-	payments := payment.NewRepository(eventStream)
-	outsideClient := outside.NewClient()
 
 	return []worker{
 		projection.NewProjector(balance.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(welcomebonus.NewReaction(bus), checkpointStore, eventSubscription, logger),
+{{- if .Scaffold.ProcessManager }}
 		reaction.NewReactor(funding.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 		reaction.NewReactor(holds.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
-		reaction.NewReactor(checks.NewGateway(payments, outsideClient, outsideCfg, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
-		reaction.NewReactor(submission.NewGateway(bus, payments, outsideClient, outsideCfg, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
-		reaction.NewReactor(status.NewGateway(bus, payments, outsideClient, outsideCfg, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(checks.NewGateway(payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(submission.NewGateway(bus, payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(status.NewGateway(bus, payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 		projection.NewProjector(summary.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		projection.NewProjector(deadlines.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		scheduler.New(deadlines.NewReporter(pool, bus), logger),
-{{- if .Scaffold.ProcessManager }}
-		projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
-		reaction.NewReactor(process.NewDispatcher(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 {{- end }}
 	}
 }

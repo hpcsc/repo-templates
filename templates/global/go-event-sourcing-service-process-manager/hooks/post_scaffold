@@ -15,7 +15,7 @@ module=$(go list -m)
 failed=0
 
 if [ "$module" != "$example_module" ]; then
-  grep -rlF --include='*.go' "$example_module" internal | xargs perl -pi -e "s#\Q$example_module\E#$module#g"
+  grep -rlF --include='*.go' "$example_module" internal cmd | xargs perl -pi -e "s#\Q$example_module\E#$module#g"
 fi
 
 # add <file> <text that is there after the change> <ast-grep rule>
@@ -173,39 +173,55 @@ EOF
 }
 
 file=internal/use_cases/account/account.go
-add $file "transferLedger" "$(after_last_field Account 'transfers transferLedger')"
-add $file "a.applyTransfer(e)" "$(after_last_case method_declaration Apply $'default:\n\ta.applyTransfer(e)')"
+add $file "map[uuid.UUID]hold" "$(after_last_field Account 'holds map[uuid.UUID]hold')"
+add $file "a.applyHold(e)" "$(after_last_case method_declaration Apply $'case *event.HoldPlaced, *event.HoldRejected, *event.HoldReleased, *event.HoldCaptured:\n\ta.applyHold(e)')"
 
 file=internal/use_cases/account/events.go
-add $file "event.TransferDebited]()" "$(after_last_statement function_declaration RegisterEvents 'reg.Register[event.TransferDebited]()
-reg.Register[event.TransferDebitRejected]()
-reg.Register[event.TransferCredited]()
-reg.Register[event.TransferCreditRejected]()
-reg.Register[event.TransferRefunded]()')"
+add $file "event.HoldPlaced]()" "$(after_last_statement function_declaration RegisterEvents 'reg.Register[event.HoldPlaced]()
+reg.Register[event.HoldRejected]()
+reg.Register[event.HoldReleased]()
+reg.Register[event.HoldCaptured]()')"
 
 file=internal/use_cases/account/balance/projection.go
-add $file "event.TransferDebited{}.EventType()" "$(after_last_element method_declaration EventTypes 'event.TransferDebited{}.EventType(),
-event.TransferCredited{}.EventType(),
-event.TransferRefunded{}.EventType()')"
-add $file "case *event.TransferDebited:" "$(before_default method_declaration Handle $'case *event.TransferDebited:\n\treturn p.change(ctx, tx, payload.AccountID, -payload.Amount, evt)\ncase *event.TransferCredited:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt)\ncase *event.TransferRefunded:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt)')"
+add $file "event.HoldCaptured{}.EventType()" "$(after_last_element method_declaration EventTypes 'event.HoldCaptured{}.EventType()')"
+add $file "case *event.HoldCaptured:" "$(before_default method_declaration Handle $'case *event.HoldCaptured:\n\treturn p.change(ctx, tx, payload.AccountID, -payload.Amount, evt)')"
 
 file=internal/use_cases/register.go
-for pkg in internal/use_cases/account/transfers internal/use_cases/transfer internal/use_cases/transfer/start; do
+for pkg in internal/use_cases/account/holds internal/use_cases/payment internal/use_cases/payment/record internal/use_cases/payment/request internal/use_cases/payment/timeout; do
   add $file "\"$module/$pkg\"" "$(after_last_import "\"$module/$pkg\"")"
 done
-add $file "transfer.RegisterEvents(reg)" "$(after_last_statement function_declaration RegisterEvents 'transfer.RegisterEvents(reg)')"
-add $file "transfers.Register(bus, accounts)" "$(after_last_statement function_declaration RegisterHandlers 'transfers.Register(bus, accounts)
-start.Register(bus, transfer.NewRepository(stream), accounts)')"
+add $file "payment.RegisterEvents(reg)" "$(after_last_statement function_declaration RegisterEvents 'payment.RegisterEvents(reg)')"
+add $file "holds.Register(bus, accounts)" "$(after_last_statement function_declaration RegisterHandlers 'holds.Register(bus, accounts)
+
+payments := payment.NewRepository(stream)
+request.Register(bus, payments, accounts)
+record.Register(bus, payments, payment.DefaultTimeouts, time.Now)
+timeout.Register(bus, payments, payment.DefaultTimeouts, time.Now)')"
+# a standard library import goes in a group of its own, and ast-grep adds only to the last group
+if ! grep -qF '"time"' $file; then
+  perl -0pi -e 's/^import \(\n/import (\n\t"time"\n\n/m' $file
+fi
 
 file=cmd/catchup/main.go
-add $file "\"$module/internal/use_cases/transfer/process\"" "$(after_last_import "\"$module/internal/use_cases/transfer/process\"")"
-add $file "process.NewProjection(" "$(after_last_element function_declaration workers 'projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
-reaction.NewReactor(process.NewDispatcher(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning())')"
+for pkg in internal/domain/scheduler internal/use_cases/payment internal/use_cases/payment/checks internal/use_cases/payment/deadlines internal/use_cases/payment/funding internal/use_cases/payment/holds internal/use_cases/payment/outside internal/use_cases/payment/status internal/use_cases/payment/submission internal/use_cases/payment/summary; do
+  add $file "\"$module/$pkg\"" "$(after_last_import "\"$module/$pkg\"")"
+done
+add $file "outside.Config" "$(after_last_field Config 'Outside outside.Config')"
+add $file "funding.NewReaction(" "$(after_last_element function_declaration workers 'reaction.NewReactor(funding.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+reaction.NewReactor(holds.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+reaction.NewReactor(checks.NewGateway(payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+reaction.NewReactor(submission.NewGateway(bus, payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+reaction.NewReactor(status.NewGateway(bus, payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+projection.NewProjector(summary.NewProjection(), pool, checkpointStore, eventSubscription, logger),
+projection.NewProjector(deadlines.NewProjection(), pool, checkpointStore, eventSubscription, logger),
+scheduler.New(deadlines.NewReporter(pool, bus), logger)')"
 
 file=internal/api/use_cases/register.go
-add $file "\"$module/internal/api/use_cases/transfer\"" "$(after_last_import "apiTransfer \"$module/internal/api/use_cases/transfer\"")"
-add $file "\"$module/internal/use_cases/transfer/process\"" "$(after_last_import "\"$module/internal/use_cases/transfer/process\"")"
-add $file "apiTransfer.NewHandler(" "$(after_last_element function_declaration allRoutes 'apiTransfer.NewHandler(bus, process.NewQuery(pool))')"
+add $file "\"$module/internal/api/use_cases/payment\"" "$(after_last_import "apiPayment \"$module/internal/api/use_cases/payment\"")"
+add $file "\"$module/internal/api/use_cases/webhook\"" "$(after_last_import "\"$module/internal/api/use_cases/webhook\"")"
+add $file "\"$module/internal/use_cases/payment/summary\"" "$(after_last_import "\"$module/internal/use_cases/payment/summary\"")"
+add $file "apiPayment.NewHandler(" "$(after_last_element function_declaration allRoutes 'apiPayment.NewHandler(bus, summary.NewQuery(pool)),
+webhook.NewHandler(bus)')"
 
 gofmt -w internal/use_cases/account internal/use_cases/register.go cmd/catchup/main.go internal/api/use_cases/register.go
 
@@ -213,23 +229,40 @@ if ! grep -qF "## Process Manager Example" README.md; then
   printf '\n' >>README.md
   cat "$parts/README.md.part" >>README.md
 fi
-if ! grep -qF "  transfer:" Taskfile.api.yml; then
+if ! grep -qF "  pay:" Taskfile.api.yml; then
   printf '\n' >>Taskfile.api.yml
   cat "$parts/Taskfile.api.yml.part" >>Taskfile.api.yml
+fi
+if ! grep -qF "fakeservices: Taskfile.fakeservices.yml" Taskfile.yml; then
+  perl -0pi -e 's/(  catchup: Taskfile\.catchup\.yml\n)/$1  fakeservices: Taskfile.fakeservices.yml\n/' Taskfile.yml
+fi
+if ! grep -qF "task fakeservices:run" .tmuxp.yaml; then
+  perl -0pi -e 's/(      - task catchup:run\n)/$1      - task fakeservices:run\n/' .tmuxp.yaml
+fi
+# the catchup service is the last service, and its environment is its last key
+if ! grep -qF "  fakeservices:" docker-compose.local.yml; then
+  cat "$parts/docker-compose.local.yml.part" >>docker-compose.local.yml
+fi
+if [ ! -f Dockerfile.fakeservices ]; then
+  sed 's/catchup/fakeservices/g' Dockerfile.catchup >Dockerfile.fakeservices
 fi
 rm -rf "$parts"
 
 # golang-migrate applies no migration that is older than the version of the database
-for added in migrations/*_create-transfer-processes-table.up.sql; do
-  version=${added#migrations/}
-  version=${version%%_*}
-  latest=$(ls migrations/*.up.sql | grep -v create-transfer-processes-table | sed 's#^migrations/##; s#_.*##' | sort | tail -1)
-  if [ "$latest" \> "$version" ]; then
-    now=$(date -u +%Y%m%d%H%M%S)
-    for f in migrations/"$version"_create-transfer-processes-table.*; do
-      mv "$f" "migrations/$now${f#migrations/$version}"
-    done
-  fi
+latest=$(ls migrations/*.up.sql | grep -v -e create-payments-table -e create-payment-deadlines-table | sed 's#^migrations/##; s#_.*##' | sort | tail -1)
+offset=0
+for name in create-payments-table create-payment-deadlines-table; do
+  for added in migrations/*_"$name".up.sql; do
+    version=${added#migrations/}
+    version=${version%%_*}
+    if [ "$latest" \> "$version" ]; then
+      now=$(($(date -u +%Y%m%d%H%M%S) + offset))
+      for f in migrations/"$version"_"$name".*; do
+        mv "$f" "migrations/$now${f#migrations/$version}"
+      done
+    fi
+  done
+  offset=$((offset + 1))
 done
 
 if [ "$failed" != 0 ]; then

@@ -1,0 +1,1463 @@
+emod = 1
+
+model "Bank Account and Payment to Another Bank" {
+  description = "How the HTTP API opens an account, moves money in and out of it, closes it, and pays an amount from it to an account at another bank"
+}
+
+actor "Client" {
+  description = "A program or a person that calls the HTTP API with a bearer token"
+}
+
+context "Accounts" {
+  description = "The accounts, the money in them, the welcome bonus, and the holds for payments"
+
+  aggregate "Account" {
+    description = "One account, in the stream account-<id>"
+
+    invariants {
+      OpenedOnce     = "An account is opened once"
+      HasOwner       = "An account has an owner"
+      AccountExists  = "A command changes only an account that was opened"
+      NotClosed      = "A closed account takes no deposit and no withdrawal"
+      PositiveAmount = "An amount is more than 0"
+      EnoughFunds    = "A withdrawal is at most the available balance: the balance minus the holds"
+      ClosedOnce     = "An account is closed once"
+      HoldExists     = "The account captures only a hold that it placed and did not release"
+    }
+
+    slice "Open Account" {
+      description = "A client opens an account for an owner"
+
+      trigger "POST /accounts" {
+        description = "The client sends the owner, and gets the new account ID"
+        actor       = Client
+      }
+
+      command "OpenAccount" {
+        description = "Ask to open an account for an owner. The API makes the account ID"
+
+        fields {
+          accountId = required(uuid)
+          owner     = required(string)
+        }
+      }
+
+      event "AccountOpened" {
+        description = "An account was opened for an owner"
+
+        fields {
+          accountId = required(uuid)
+          owner     = required(string)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    OpenAccount -> AccountOpened
+        command -> rejected: OpenAccount -> OpenedOnce
+        command -> rejected: OpenAccount -> HasOwner
+      FLOW
+
+      spec "opens an account for an owner" {
+        when = OpenAccount({ owner = "alice" })
+        then = [AccountOpened({ owner = "alice" })]
+      }
+
+      spec "refuses to open an account again" {
+        given = [AccountOpened]
+        when  = OpenAccount({ owner = "alice" })
+        then  = rejected(OpenedOnce)
+      }
+
+      spec "refuses an account with no owner" {
+        when = OpenAccount({ owner = "" })
+        then = rejected(HasOwner)
+      }
+    }
+
+    slice "Grant Welcome Bonus" {
+      description = "Each new account gets a bonus of 1000 once"
+
+      command "GrantWelcomeBonus" {
+        description = "Ask to give the welcome bonus to a new account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "WelcomeBonusGranted" {
+        description = "A new account got the welcome bonus"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      automation "WelcomeBonusReaction" {
+        description = "Sends the bonus command for each account that opens. It starts at the end of the store"
+        on          = AccountOpened
+        command     = GrantWelcomeBonus
+      }
+
+      flow = <<-FLOW
+        command -> event:    GrantWelcomeBonus -> WelcomeBonusGranted
+        command -> rejected: GrantWelcomeBonus -> AccountExists
+        command -> rejected: GrantWelcomeBonus -> PositiveAmount
+      FLOW
+
+      spec "asks for the bonus when an account opens" {
+        when = AccountOpened
+        then = command(GrantWelcomeBonus)
+      }
+
+      spec "grants the bonus to a new account" {
+        given = [AccountOpened]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = [WelcomeBonusGranted({ amount = 1000 })]
+      }
+
+      spec "records nothing for an account that has the bonus" {
+        given = [AccountOpened, WelcomeBonusGranted]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = []
+      }
+
+      spec "records nothing for a closed account" {
+        given = [AccountOpened, AccountClosed]
+        when  = GrantWelcomeBonus({ amount = 1000 })
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = GrantWelcomeBonus({ amount = 1000 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a bonus that is not more than 0" {
+        given = [AccountOpened]
+        when  = GrantWelcomeBonus({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+    }
+
+    slice "Deposit" {
+      description = "A client puts money into an account"
+
+      trigger "POST /accounts/{id}/deposits" {
+        description = "The client sends the amount"
+        actor       = Client
+        reads       = AccountBalanceView
+      }
+
+      command "Deposit" {
+        description = "Ask to put money into an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "MoneyDeposited" {
+        description = "Money went into an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    Deposit -> MoneyDeposited
+        command -> rejected: Deposit -> AccountExists
+        command -> rejected: Deposit -> NotClosed
+        command -> rejected: Deposit -> PositiveAmount
+      FLOW
+
+      spec "puts money into an open account" {
+        given = [AccountOpened]
+        when  = Deposit({ amount = 500 })
+        then  = [MoneyDeposited({ amount = 500 })]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = Deposit({ amount = 500 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a closed account" {
+        given = [AccountOpened, AccountClosed]
+        when  = Deposit({ amount = 500 })
+        then  = rejected(NotClosed)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        given = [AccountOpened]
+        when  = Deposit({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+    }
+
+    slice "Withdraw" {
+      description = "A client takes money out of an account"
+
+      trigger "POST /accounts/{id}/withdrawals" {
+        description = "The client sends the amount"
+        actor       = Client
+        reads       = AccountBalanceView
+      }
+
+      command "Withdraw" {
+        description = "Ask to take money out of an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "MoneyWithdrawn" {
+        description = "Money went out of an account"
+
+        fields {
+          accountId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    Withdraw -> MoneyWithdrawn
+        command -> rejected: Withdraw -> AccountExists
+        command -> rejected: Withdraw -> NotClosed
+        command -> rejected: Withdraw -> PositiveAmount
+        command -> rejected: Withdraw -> EnoughFunds
+      FLOW
+
+      spec "takes money out of an account that has enough" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 200 })
+        then  = [MoneyWithdrawn({ amount = 200 })]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = Withdraw({ amount = 200 })
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a closed account" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), AccountClosed]
+        when  = Withdraw({ amount = 200 })
+        then  = rejected(NotClosed)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 0 })
+        then  = rejected(PositiveAmount)
+      }
+
+      spec "refuses an amount more than the balance" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = Withdraw({ amount = 600 })
+        then  = rejected(EnoughFunds)
+      }
+
+      spec "refuses a withdrawal of held money" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), HoldPlaced({ amount = 400 })]
+        when  = Withdraw({ amount = 200 })
+        then  = rejected(EnoughFunds)
+      }
+    }
+
+    slice "Close Account" {
+      description = "A client closes an account"
+
+      trigger "POST /accounts/{id}/close" {
+        actor = Client
+        reads = AccountBalanceView
+      }
+
+      command "CloseAccount" {
+        description = "Ask to close an account"
+
+        fields {
+          accountId = required(uuid)
+        }
+      }
+
+      event "AccountClosed" {
+        description = "An account was closed"
+
+        fields {
+          accountId = required(uuid)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    CloseAccount -> AccountClosed
+        command -> rejected: CloseAccount -> AccountExists
+        command -> rejected: CloseAccount -> ClosedOnce
+      FLOW
+
+      spec "closes an open account" {
+        given = [AccountOpened]
+        when  = CloseAccount
+        then  = [AccountClosed]
+      }
+
+      spec "refuses an account that was not opened" {
+        when = CloseAccount
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses to close an account again" {
+        given = [AccountOpened, AccountClosed]
+        when  = CloseAccount
+        then  = rejected(ClosedOnce)
+      }
+    }
+
+    slice "Place Hold" {
+      description = "The account holds the amount of a payment, or records why it cannot"
+
+      command "PlaceHold" {
+        description = "Ask the account to hold the amount of a payment"
+
+        fields {
+          accountId = required(uuid)
+          paymentId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "HoldPlaced" {
+        description = "The account holds the amount of a payment. The amount stays in the balance, but it is not available"
+
+        fields {
+          accountId = required(uuid)
+          paymentId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      event "HoldRejected" {
+        description = "The account cannot hold the amount of a payment, and the reason tells why"
+
+        fields {
+          accountId = required(uuid)
+          paymentId = required(uuid)
+          amount    = required(int)
+          reason    = required(string)
+        }
+      }
+
+      automation "PaymentFundingReaction" {
+        description = "Asks the account of a new payment to hold the amount"
+        on          = PaymentRequested
+        command     = PlaceHold
+      }
+
+      flow = <<-FLOW
+        command -> event:    PlaceHold -> HoldPlaced
+        command -> event:    PlaceHold -> HoldRejected
+        command -> rejected: PlaceHold -> AccountExists
+      FLOW
+
+      spec "asks for the hold when a payment is requested" {
+        when = PaymentRequested
+        then = command(PlaceHold)
+      }
+
+      spec "holds an amount that the available balance covers" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = PlaceHold({ amount = 300 })
+        then  = [HoldPlaced({ amount = 300 })]
+      }
+
+      spec "records a hold that the available balance does not cover" {
+        given = [AccountOpened, MoneyDeposited({ amount = 200 })]
+        when  = PlaceHold({ amount = 300 })
+        then  = [HoldRejected({ amount = 300, reason = "balance is less than the amount" })]
+      }
+
+      spec "records a hold on a closed account" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), AccountClosed]
+        when  = PlaceHold({ amount = 300 })
+        then  = [HoldRejected({ amount = 300, reason = "account is closed" })]
+      }
+
+      spec "records nothing for a payment that the account decided" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), HoldPlaced({ amount = 300 })]
+        when  = PlaceHold({ amount = 300 })
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = PlaceHold({ amount = 300 })
+        then = rejected(AccountExists)
+      }
+    }
+
+    slice "Release Hold" {
+      description = "The account makes the held amount of a payment available again"
+
+      command "ReleaseHold" {
+        description = "Ask the account to release the hold of a payment"
+
+        fields {
+          accountId = required(uuid)
+          paymentId = required(uuid)
+        }
+      }
+
+      event "HoldReleased" {
+        description = "The held amount of a payment is available again"
+
+        fields {
+          accountId = required(uuid)
+          paymentId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      automation "PaymentHoldsReaction" {
+        description = "Releases the hold of a payment that the bank refused"
+        on          = PaymentRefused
+        command     = ReleaseHold
+      }
+
+      automation "PaymentHoldsReaction" {
+        description = "Releases the hold of a payment that failed. A payment that failed because the account rejected the hold has no hold to release"
+        on          = PaymentFailed
+        command     = ReleaseHold
+      }
+
+      automation "PaymentHoldsReaction" {
+        description = "Releases the hold of a payment that the other bank returned"
+        on          = PaymentReturned
+        command     = ReleaseHold
+      }
+
+      flow = <<-FLOW
+        command -> event:    ReleaseHold -> HoldReleased
+        command -> rejected: ReleaseHold -> AccountExists
+      FLOW
+
+      spec "asks for the release when the bank refuses a payment" {
+        when = PaymentRefused
+        then = command(ReleaseHold)
+      }
+
+      spec "asks for the release when a payment fails" {
+        when = PaymentFailed
+        then = command(ReleaseHold)
+      }
+
+      spec "asks for the release when the other bank returns a payment" {
+        when = PaymentReturned
+        then = command(ReleaseHold)
+      }
+
+      spec "releases the held amount" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), HoldPlaced({ amount = 300 })]
+        when  = ReleaseHold
+        then  = [HoldReleased({ amount = 300 })]
+      }
+
+      spec "records nothing for a hold that the account rejected" {
+        given = [AccountOpened, MoneyDeposited({ amount = 200 }), HoldRejected({ amount = 300 })]
+        when  = ReleaseHold
+        then  = []
+      }
+
+      spec "records nothing for a hold that the account released" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), HoldPlaced({ amount = 300 }), HoldReleased({ amount = 300 })]
+        when  = ReleaseHold
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = ReleaseHold
+        then = rejected(AccountExists)
+      }
+    }
+
+    slice "Capture Hold" {
+      description = "The held amount of a settled payment leaves the account"
+
+      command "CaptureHold" {
+        description = "Ask the account to take the held amount of a payment out of the balance"
+
+        fields {
+          accountId = required(uuid)
+          paymentId = required(uuid)
+        }
+      }
+
+      event "HoldCaptured" {
+        description = "The held amount of a payment left the account"
+
+        fields {
+          accountId = required(uuid)
+          paymentId = required(uuid)
+          amount    = required(int)
+        }
+      }
+
+      automation "PaymentHoldsReaction" {
+        description = "Captures the hold of a payment that the payment network settled"
+        on          = PaymentSettled
+        command     = CaptureHold
+      }
+
+      flow = <<-FLOW
+        command -> event:    CaptureHold -> HoldCaptured
+        command -> rejected: CaptureHold -> AccountExists
+        command -> rejected: CaptureHold -> HoldExists
+      FLOW
+
+      spec "asks for the capture when the network settles a payment" {
+        when = PaymentSettled
+        then = command(CaptureHold)
+      }
+
+      spec "captures the held amount" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), HoldPlaced({ amount = 300 })]
+        when  = CaptureHold
+        then  = [HoldCaptured({ amount = 300 })]
+      }
+
+      spec "records nothing for a hold that the account captured" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), HoldPlaced({ amount = 300 }), HoldCaptured({ amount = 300 })]
+        when  = CaptureHold
+        then  = []
+      }
+
+      spec "refuses an account that was not opened" {
+        when = CaptureHold
+        then = rejected(AccountExists)
+      }
+
+      spec "refuses a payment with no hold" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 })]
+        when  = CaptureHold
+        then  = rejected(HoldExists)
+      }
+
+      spec "refuses a hold that the account released" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), HoldPlaced({ amount = 300 }), HoldReleased({ amount = 300 })]
+        when  = CaptureHold
+        then  = rejected(HoldExists)
+      }
+    }
+
+    slice "View Account Balance" {
+      description = "The account-balances projection keeps the account_balances table. GET /accounts/{id} reads it. A hold changes the balance only when the account captures it"
+
+      view "AccountBalanceView" {
+        description = "One account with its owner, balance and status"
+        subscribes  = [AccountOpened, MoneyDeposited, MoneyWithdrawn, WelcomeBonusGranted, AccountClosed, HoldCaptured]
+
+        fields {
+          id      = required(uuid)
+          owner   = required(string)
+          balance = required(int)
+          status  = required(string)
+          version = required(int)
+        }
+      }
+
+      spec "shows the bonus and each change in the balance" {
+        given = [AccountOpened, WelcomeBonusGranted({ amount = 1000 }), MoneyDeposited({ amount = 500 }), MoneyWithdrawn({ amount = 200 })]
+        then  = view(AccountBalanceView)
+      }
+
+      spec "shows a closed account" {
+        given = [AccountOpened, AccountClosed]
+        then  = view(AccountBalanceView)
+      }
+
+      spec "takes a captured hold off the balance" {
+        given = [AccountOpened, MoneyDeposited({ amount = 500 }), HoldPlaced({ amount = 300 }), HoldCaptured({ amount = 300 })]
+        then  = view(AccountBalanceView)
+      }
+    }
+  }
+}
+
+context "Payments" {
+  description = "The payments to accounts at other banks. The payment aggregate, with its reactions and gateways, is the process manager of each payment"
+
+  aggregate "Payment" {
+    description = "One payment, in the stream payment-<id>. It holds the state of the payment and decides each step"
+
+    invariants {
+      RequestedOnce  = "A payment is requested once"
+      PositiveAmount = "An amount is more than 0"
+      HasCreditor    = "A payment has a creditor IBAN"
+      AccountExists  = "The account of a payment was opened"
+      PaymentExists  = "A command changes only a payment that was requested"
+    }
+
+    slice "Request Payment" {
+      description = "A client asks to pay an amount from an account to an account at another bank"
+
+      trigger "POST /payments" {
+        description = "The client sends the account ID, the creditor IBAN and the amount, and gets the new payment ID"
+        actor       = Client
+      }
+
+      command "RequestPayment" {
+        description = "Ask to pay an amount from an account to an account at another bank. The API makes the payment ID"
+
+        fields {
+          paymentId    = required(uuid)
+          accountId    = required(uuid)
+          creditorIban = required(string)
+          amount       = required(int)
+        }
+      }
+
+      event "PaymentRequested" {
+        description = "A client asked to pay an amount from an account to an account at another bank"
+
+        fields {
+          paymentId    = required(uuid)
+          accountId    = required(uuid)
+          creditorIban = required(string)
+          amount       = required(int)
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    RequestPayment -> PaymentRequested
+        command -> rejected: RequestPayment -> RequestedOnce
+        command -> rejected: RequestPayment -> PositiveAmount
+        command -> rejected: RequestPayment -> HasCreditor
+        command -> rejected: RequestPayment -> AccountExists
+      FLOW
+
+      spec "requests a payment from an open account" {
+        when = RequestPayment({ amount = 300 })
+        then = [PaymentRequested({ amount = 300 })]
+      }
+
+      spec "refuses to request a payment again" {
+        given = [PaymentRequested]
+        when  = RequestPayment({ amount = 300 })
+        then  = rejected(RequestedOnce)
+      }
+
+      spec "refuses an amount that is not more than 0" {
+        when = RequestPayment({ amount = 0 })
+        then = rejected(PositiveAmount)
+      }
+
+      spec "refuses a payment with no creditor IBAN" {
+        when = RequestPayment({ creditorIban = "", amount = 300 })
+        then = rejected(HasCreditor)
+      }
+
+      spec "refuses an account that was not opened" {
+        when = RequestPayment({ amount = 300 })
+        then = rejected(AccountExists)
+      }
+    }
+
+    slice "Record Funding" {
+      description = "The payment records whether its account holds the amount"
+
+      command "RecordFunding" {
+        description = "Tell the payment whether its account holds the amount"
+
+        fields {
+          paymentId = required(uuid)
+          held      = required(bool)
+          reason    = optional(string)
+        }
+      }
+
+      event "PaymentFunded" {
+        description = "The account holds the amount of the payment. The checks start, and they have a deadline"
+
+        fields {
+          paymentId      = required(uuid)
+          checksDeadline = required(timestamp)
+        }
+      }
+
+      event "PaymentFailed" {
+        description = "The payment ended before the payment network got it, and the reason tells why"
+
+        fields {
+          paymentId = required(uuid)
+          accountId = required(uuid)
+          reason    = required(string)
+        }
+      }
+
+      automation "PaymentFundingReaction" {
+        description = "Tells the payment that the account holds the amount"
+        on          = HoldPlaced
+        command     = RecordFunding
+      }
+
+      automation "PaymentFundingReaction" {
+        description = "Tells the payment that the account cannot hold the amount, with the reason of the account"
+        on          = HoldRejected
+        command     = RecordFunding
+      }
+
+      flow = <<-FLOW
+        command -> event:    RecordFunding -> PaymentFunded
+        command -> event:    RecordFunding -> PaymentFailed
+        command -> rejected: RecordFunding -> PaymentExists
+      FLOW
+
+      spec "asks to record the funding when the account holds the amount" {
+        when = HoldPlaced
+        then = command(RecordFunding)
+      }
+
+      spec "asks to record the funding when the account cannot hold the amount" {
+        when = HoldRejected
+        then = command(RecordFunding)
+      }
+
+      spec "funds the payment and sets the deadline of the checks" {
+        given = [PaymentRequested]
+        when  = RecordFunding({ held = true })
+        then  = [PaymentFunded]
+      }
+
+      spec "fails the payment with the reason of the account" {
+        given = [PaymentRequested]
+        when  = RecordFunding({ held = false, reason = "balance is less than the amount" })
+        then  = [PaymentFailed({ reason = "balance is less than the amount" })]
+      }
+
+      spec "records nothing when the funding arrives again" {
+        given = [PaymentRequested, PaymentFunded]
+        when  = RecordFunding({ held = true })
+        then  = []
+      }
+
+      spec "refuses the funding of a payment that was not requested" {
+        when = RecordFunding({ held = true })
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "Ask for Checks" {
+      description = "The payment-checks gateway sends a funded payment to the fraud service and to the sanctions service. The answers come back through the webhook routes"
+
+      automation "PaymentChecksGateway" {
+        description = "Calls POST /checks of the fraud service and POST /screenings of the sanctions service. Each attempt has a new Idempotency-Key. The code has no command for these calls"
+        on          = PaymentFunded
+      }
+
+      automation "PaymentChecksGateway" {
+        description = "Calls the fraud service and the sanctions service again after the deadline of the checks passed"
+        on          = PaymentChecksRetried
+      }
+    }
+
+    slice "Record Fraud Result" {
+      description = "The fraud service sends the result of its check. The payment clears when both checks passed, and the bank refuses it at the first check that fails"
+
+      command "RecordFraudResult" {
+        description = "Tell the payment the result of the fraud check"
+
+        fields {
+          paymentId = required(uuid)
+          passed    = required(bool)
+          reason    = optional(string)
+        }
+      }
+
+      event "PaymentCleared" {
+        description = "Both checks passed. The payment goes to the payment network, and the submission has a deadline"
+
+        fields {
+          paymentId          = required(uuid)
+          submissionDeadline = required(timestamp)
+        }
+      }
+
+      event "PaymentRefused" {
+        description = "A check failed, so the bank refuses the payment, and the reason tells why"
+
+        fields {
+          paymentId = required(uuid)
+          accountId = required(uuid)
+          reason    = required(string)
+        }
+      }
+
+      translation "POST /webhooks/fraud-checks" {
+        description     = "The fraud service sends a check that passed"
+        external_system = "Fraud service"
+        command         = RecordFraudResult
+
+        event "FraudCheckPassed" {
+          description = "The fraud service found no risk of fraud in the payment"
+
+          fields {
+            paymentId = required(uuid)
+          }
+        }
+      }
+
+      translation "POST /webhooks/fraud-checks" {
+        description     = "The fraud service sends a check that failed, with the reason"
+        external_system = "Fraud service"
+        command         = RecordFraudResult
+
+        event "FraudCheckFailed" {
+          description = "The fraud service found a risk of fraud in the payment, and the reason tells why"
+
+          fields {
+            paymentId = required(uuid)
+            reason    = required(string)
+          }
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    RecordFraudResult -> PaymentCleared
+        command -> event:    RecordFraudResult -> PaymentRefused
+        command -> rejected: RecordFraudResult -> PaymentExists
+      FLOW
+
+      spec "records the pass and waits for the screening" {
+        given = [PaymentRequested, PaymentFunded]
+        when  = RecordFraudResult({ passed = true })
+        then  = [FraudCheckPassed]
+      }
+
+      spec "clears the payment when the screening passed" {
+        given = [PaymentRequested, PaymentFunded, SanctionsScreeningPassed]
+        when  = RecordFraudResult({ passed = true })
+        then  = [FraudCheckPassed, PaymentCleared]
+      }
+
+      spec "refuses the payment when the fraud check fails" {
+        given = [PaymentRequested, PaymentFunded]
+        when  = RecordFraudResult({ passed = false, reason = "amount above the limit of the fraud check" })
+        then  = [FraudCheckFailed({ reason = "amount above the limit of the fraud check" }), PaymentRefused({ reason = "amount above the limit of the fraud check" })]
+      }
+
+      spec "records nothing when the result arrives again" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed]
+        when  = RecordFraudResult({ passed = true })
+        then  = []
+      }
+
+      spec "records nothing when the result arrives before the funding" {
+        given = [PaymentRequested]
+        when  = RecordFraudResult({ passed = true })
+        then  = []
+      }
+
+      spec "records nothing after the payment ended" {
+        given = [PaymentRequested, PaymentFunded, SanctionsScreeningFailed, PaymentRefused]
+        when  = RecordFraudResult({ passed = true })
+        then  = []
+      }
+
+      spec "refuses the result of a payment that was not requested" {
+        when = RecordFraudResult({ passed = true })
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "Record Screening Result" {
+      description = "The sanctions service sends the result of its screening. The payment clears when both checks passed, and the bank refuses it at the first check that fails"
+
+      command "RecordScreeningResult" {
+        description = "Tell the payment the result of the sanctions screening"
+
+        fields {
+          paymentId = required(uuid)
+          passed    = required(bool)
+          reason    = optional(string)
+        }
+      }
+
+      translation "POST /webhooks/sanctions-screenings" {
+        description     = "The sanctions service sends a screening that passed"
+        external_system = "Sanctions service"
+        command         = RecordScreeningResult
+
+        event "SanctionsScreeningPassed" {
+          description = "The sanctions service found the creditor on no sanctions list"
+
+          fields {
+            paymentId = required(uuid)
+          }
+        }
+      }
+
+      translation "POST /webhooks/sanctions-screenings" {
+        description     = "The sanctions service sends a screening that failed, with the reason"
+        external_system = "Sanctions service"
+        command         = RecordScreeningResult
+
+        event "SanctionsScreeningFailed" {
+          description = "The sanctions service found the creditor on a sanctions list, and the reason tells why"
+
+          fields {
+            paymentId = required(uuid)
+            reason    = required(string)
+          }
+        }
+      }
+
+      flow = <<-FLOW
+        command -> event:    RecordScreeningResult -> PaymentCleared
+        command -> event:    RecordScreeningResult -> PaymentRefused
+        command -> rejected: RecordScreeningResult -> PaymentExists
+      FLOW
+
+      spec "records the pass and waits for the fraud check" {
+        given = [PaymentRequested, PaymentFunded]
+        when  = RecordScreeningResult({ passed = true })
+        then  = [SanctionsScreeningPassed]
+      }
+
+      spec "clears the payment when the fraud check passed" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed]
+        when  = RecordScreeningResult({ passed = true })
+        then  = [SanctionsScreeningPassed, PaymentCleared]
+      }
+
+      spec "refuses the payment when the screening fails, also after the fraud check passed" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed]
+        when  = RecordScreeningResult({ passed = false, reason = "creditor on the sanctions list" })
+        then  = [SanctionsScreeningFailed({ reason = "creditor on the sanctions list" }), PaymentRefused({ reason = "creditor on the sanctions list" })]
+      }
+
+      spec "records nothing when the result arrives again" {
+        given = [PaymentRequested, PaymentFunded, SanctionsScreeningPassed]
+        when  = RecordScreeningResult({ passed = true })
+        then  = []
+      }
+
+      spec "refuses the result of a payment that was not requested" {
+        when = RecordScreeningResult({ passed = true })
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "Time Out Checks" {
+      description = "The deadline of the checks passed. The payment asks for the checks again, or fails after the last attempt"
+
+      command "TimeOutChecks" {
+        description = "Tell the payment that the deadline of an attempt of the checks passed"
+
+        fields {
+          paymentId = required(uuid)
+          attempt   = required(int)
+        }
+      }
+
+      event "PaymentChecksRetried" {
+        description = "The payment asks for the checks again, with a new attempt and a new deadline"
+
+        fields {
+          paymentId      = required(uuid)
+          attempt        = required(int)
+          checksDeadline = required(timestamp)
+        }
+      }
+
+      automation "PaymentTimeoutsScheduler" {
+        description = "Each second, reads the passed deadlines, and sends TimeOutChecks for each payment that waits for its checks"
+        every       = "1s"
+        reads       = PaymentDeadlinesView
+        command     = TimeOutChecks
+      }
+
+      flow = <<-FLOW
+        command -> event:    TimeOutChecks -> PaymentChecksRetried
+        command -> event:    TimeOutChecks -> PaymentFailed
+        command -> rejected: TimeOutChecks -> PaymentExists
+      FLOW
+
+      spec "reports a passed deadline of the checks" {
+        given = [PaymentRequested, PaymentFunded]
+        then  = command(TimeOutChecks)
+      }
+
+      spec "asks for the checks again with a new deadline" {
+        given = [PaymentRequested, PaymentFunded]
+        when  = TimeOutChecks({ attempt = 1 })
+        then  = [PaymentChecksRetried({ attempt = 2 })]
+      }
+
+      spec "fails the payment after the last attempt" {
+        given = [PaymentRequested, PaymentFunded, PaymentChecksRetried({ attempt = 2 }), PaymentChecksRetried({ attempt = 3 })]
+        when  = TimeOutChecks({ attempt = 3 })
+        then  = [PaymentFailed({ reason = "the checks did not answer" })]
+      }
+
+      spec "records nothing for an attempt that is not the current one" {
+        given = [PaymentRequested, PaymentFunded, PaymentChecksRetried({ attempt = 2 })]
+        when  = TimeOutChecks({ attempt = 1 })
+        then  = []
+      }
+
+      spec "records nothing after the payment cleared" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared]
+        when  = TimeOutChecks({ attempt = 1 })
+        then  = []
+      }
+
+      spec "refuses the timeout of a payment that was not requested" {
+        when = TimeOutChecks({ attempt = 1 })
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "Record Submission" {
+      description = "The payment-submission gateway sends a cleared payment to the payment network, and the payment records the reference of the network"
+
+      command "RecordSubmission" {
+        description = "Tell the payment that the payment network took it, with the reference of the network"
+
+        fields {
+          paymentId        = required(uuid)
+          networkReference = required(string)
+        }
+      }
+
+      event "PaymentSubmitted" {
+        description = "The payment network took the payment. The settlement has a deadline"
+
+        fields {
+          paymentId          = required(uuid)
+          networkReference   = required(string)
+          settlementDeadline = required(timestamp)
+        }
+      }
+
+      automation "PaymentSubmissionGateway" {
+        description = "Calls POST /payments of the payment network, then records the reference of the network. All attempts have one Idempotency-Key, so the network takes the payment once"
+        on          = PaymentCleared
+        command     = RecordSubmission
+      }
+
+      automation "PaymentSubmissionGateway" {
+        description = "Calls the payment network again after the deadline of the submission passed"
+        on          = PaymentSubmissionRetried
+        command     = RecordSubmission
+      }
+
+      flow = <<-FLOW
+        command -> event:    RecordSubmission -> PaymentSubmitted
+        command -> rejected: RecordSubmission -> PaymentExists
+      FLOW
+
+      spec "sends a cleared payment to the network" {
+        when = PaymentCleared
+        then = command(RecordSubmission)
+      }
+
+      spec "sends the payment to the network again when the payment asks again" {
+        when = PaymentSubmissionRetried
+        then = command(RecordSubmission)
+      }
+
+      spec "records the reference of the network and sets the deadline of the settlement" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared]
+        when  = RecordSubmission({ networkReference = "N-8812" })
+        then  = [PaymentSubmitted({ networkReference = "N-8812" })]
+      }
+
+      spec "records nothing when the submission arrives again" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted]
+        when  = RecordSubmission({ networkReference = "N-8812" })
+        then  = []
+      }
+
+      spec "records nothing when the payment is not cleared" {
+        given = [PaymentRequested, PaymentFunded]
+        when  = RecordSubmission({ networkReference = "N-8812" })
+        then  = []
+      }
+
+      spec "refuses the submission of a payment that was not requested" {
+        when = RecordSubmission({ networkReference = "N-8812" })
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "Time Out Submission" {
+      description = "The deadline of the submission passed. The payment asks to send it again, or escalates it to a person after the last attempt. It does not fail, because the network can have the payment"
+
+      command "TimeOutSubmission" {
+        description = "Tell the payment that the deadline of an attempt of the submission passed"
+
+        fields {
+          paymentId = required(uuid)
+          attempt   = required(int)
+        }
+      }
+
+      event "PaymentSubmissionRetried" {
+        description = "The payment asks to send it to the payment network again, with a new attempt and a new deadline"
+
+        fields {
+          paymentId          = required(uuid)
+          attempt            = required(int)
+          submissionDeadline = required(timestamp)
+        }
+      }
+
+      event "PaymentEscalated" {
+        description = "The payment network did not answer after the last attempt, so a person must check the payment. The hold stays, and a later settlement or return ends the payment"
+
+        fields {
+          paymentId = required(uuid)
+          reason    = required(string)
+        }
+      }
+
+      automation "PaymentTimeoutsScheduler" {
+        description = "Each second, reads the passed deadlines, and sends TimeOutSubmission for each payment that waits for the payment network to take it"
+        every       = "1s"
+        reads       = PaymentDeadlinesView
+        command     = TimeOutSubmission
+      }
+
+      flow = <<-FLOW
+        command -> event:    TimeOutSubmission -> PaymentSubmissionRetried
+        command -> event:    TimeOutSubmission -> PaymentEscalated
+        command -> rejected: TimeOutSubmission -> PaymentExists
+      FLOW
+
+      spec "reports a passed deadline of the submission" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared]
+        then  = command(TimeOutSubmission)
+      }
+
+      spec "asks to send the payment again with a new deadline" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared]
+        when  = TimeOutSubmission({ attempt = 1 })
+        then  = [PaymentSubmissionRetried({ attempt = 2 })]
+      }
+
+      spec "escalates the payment after the last attempt, and does not fail it" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmissionRetried({ attempt = 2 }), PaymentSubmissionRetried({ attempt = 3 })]
+        when  = TimeOutSubmission({ attempt = 3 })
+        then  = [PaymentEscalated({ reason = "the payment network did not take the payment" })]
+      }
+
+      spec "records nothing after the network took the payment" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted]
+        when  = TimeOutSubmission({ attempt = 1 })
+        then  = []
+      }
+
+      spec "refuses the timeout of a payment that was not requested" {
+        when = TimeOutSubmission({ attempt = 1 })
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "Time Out Settlement" {
+      description = "The deadline of the settlement passed. The payment asks the payment network for its status, or escalates it to a person after the last attempt"
+
+      command "TimeOutSettlement" {
+        description = "Tell the payment that the deadline of an attempt of the settlement passed"
+
+        fields {
+          paymentId = required(uuid)
+          attempt   = required(int)
+        }
+      }
+
+      event "PaymentStatusQueried" {
+        description = "The payment asks the payment network for its status, with a new attempt and a new deadline"
+
+        fields {
+          paymentId          = required(uuid)
+          attempt            = required(int)
+          settlementDeadline = required(timestamp)
+        }
+      }
+
+      automation "PaymentTimeoutsScheduler" {
+        description = "Each second, reads the passed deadlines, and sends TimeOutSettlement for each payment that waits for the payment network to settle it"
+        every       = "1s"
+        reads       = PaymentDeadlinesView
+        command     = TimeOutSettlement
+      }
+
+      flow = <<-FLOW
+        command -> event:    TimeOutSettlement -> PaymentStatusQueried
+        command -> event:    TimeOutSettlement -> PaymentEscalated
+        command -> rejected: TimeOutSettlement -> PaymentExists
+      FLOW
+
+      spec "reports a passed deadline of the settlement" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted]
+        then  = command(TimeOutSettlement)
+      }
+
+      spec "asks the network for the status with a new deadline" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted]
+        when  = TimeOutSettlement({ attempt = 1 })
+        then  = [PaymentStatusQueried({ attempt = 2 })]
+      }
+
+      spec "escalates the payment after the last attempt" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted, PaymentStatusQueried({ attempt = 2 }), PaymentStatusQueried({ attempt = 3 })]
+        when  = TimeOutSettlement({ attempt = 3 })
+        then  = [PaymentEscalated({ reason = "the payment network did not settle the payment" })]
+      }
+
+      spec "records nothing for an escalated payment" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted, PaymentEscalated]
+        when  = TimeOutSettlement({ attempt = 3 })
+        then  = []
+      }
+
+      spec "refuses the timeout of a payment that was not requested" {
+        when = TimeOutSettlement({ attempt = 1 })
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "Record Settlement" {
+      description = "The payment network settles the payment. The money left the bank, and the account captures the hold"
+
+      command "RecordSettlement" {
+        description = "Tell the payment that the payment network settled it"
+
+        fields {
+          paymentId = required(uuid)
+        }
+      }
+
+      event "PaymentSettled" {
+        description = "The payment network settled the payment, so the money left the bank"
+
+        fields {
+          paymentId = required(uuid)
+          accountId = required(uuid)
+        }
+      }
+
+      automation "PaymentStatusGateway" {
+        description = "Calls GET /payments/{reference} of the payment network, and records the settlement when the network answers settled"
+        on          = PaymentStatusQueried
+        command     = RecordSettlement
+      }
+
+      translation "POST /webhooks/payment-network" {
+        description     = "The payment network sends the status settled"
+        external_system = "Payment network"
+        command         = RecordSettlement
+      }
+
+      flow = <<-FLOW
+        command -> event:    RecordSettlement -> PaymentSettled
+        command -> rejected: RecordSettlement -> PaymentExists
+      FLOW
+
+      spec "asks to record the settlement when the network answers settled" {
+        when = PaymentStatusQueried
+        then = command(RecordSettlement)
+      }
+
+      spec "settles a submitted payment" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted]
+        when  = RecordSettlement
+        then  = [PaymentSettled]
+      }
+
+      spec "settles a cleared payment when the settlement arrives before the submission" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared]
+        when  = RecordSettlement
+        then  = [PaymentSettled]
+      }
+
+      spec "settles an escalated payment" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted, PaymentEscalated]
+        when  = RecordSettlement
+        then  = [PaymentSettled]
+      }
+
+      spec "records nothing when the payment settled" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted, PaymentSettled]
+        when  = RecordSettlement
+        then  = []
+      }
+
+      spec "records nothing when the payment is not cleared" {
+        given = [PaymentRequested, PaymentFunded]
+        when  = RecordSettlement
+        then  = []
+      }
+
+      spec "refuses the settlement of a payment that was not requested" {
+        when = RecordSettlement
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "Record Return" {
+      description = "The other bank sends the payment back. The money stays in the bank, and the account releases the hold"
+
+      command "RecordReturn" {
+        description = "Tell the payment that the other bank returned it, with the reason of the other bank"
+
+        fields {
+          paymentId = required(uuid)
+          reason    = required(string)
+        }
+      }
+
+      event "PaymentReturned" {
+        description = "The other bank returned the payment, and the reason tells why"
+
+        fields {
+          paymentId = required(uuid)
+          accountId = required(uuid)
+          reason    = required(string)
+        }
+      }
+
+      automation "PaymentStatusGateway" {
+        description = "Records the return when the payment network answers returned"
+        on          = PaymentStatusQueried
+        command     = RecordReturn
+      }
+
+      translation "POST /webhooks/payment-network" {
+        description     = "The payment network sends the status returned, with the reason of the other bank"
+        external_system = "Payment network"
+        command         = RecordReturn
+      }
+
+      flow = <<-FLOW
+        command -> event:    RecordReturn -> PaymentReturned
+        command -> rejected: RecordReturn -> PaymentExists
+      FLOW
+
+      spec "asks to record the return when the network answers returned" {
+        when = PaymentStatusQueried
+        then = command(RecordReturn)
+      }
+
+      spec "records the return with the reason of the other bank" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted]
+        when  = RecordReturn({ reason = "account closed at the other bank" })
+        then  = [PaymentReturned({ reason = "account closed at the other bank" })]
+      }
+
+      spec "records the return of an escalated payment" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted, PaymentEscalated]
+        when  = RecordReturn({ reason = "account closed at the other bank" })
+        then  = [PaymentReturned({ reason = "account closed at the other bank" })]
+      }
+
+      spec "records nothing when the payment settled" {
+        given = [PaymentRequested, PaymentFunded, FraudCheckPassed, SanctionsScreeningPassed, PaymentCleared, PaymentSubmitted, PaymentSettled]
+        when  = RecordReturn({ reason = "account closed at the other bank" })
+        then  = []
+      }
+
+      spec "refuses the return of a payment that was not requested" {
+        when = RecordReturn({ reason = "account closed at the other bank" })
+        then = rejected(PaymentExists)
+      }
+    }
+
+    slice "View Payment Summary" {
+      description = "The payments projection keeps the payments table. GET /payments/{id} reads it"
+
+      trigger "GET /payments/{id}" {
+        description = "The client reads the status of a payment, and the reason when the payment did not settle"
+        actor       = Client
+        reads       = PaymentSummaryView
+      }
+
+      view "PaymentSummaryView" {
+        description = "One payment with its account, creditor IBAN, amount, status, reason and network reference"
+        subscribes  = [PaymentRequested, PaymentFunded, PaymentFailed, PaymentCleared, PaymentRefused, PaymentSubmitted, PaymentEscalated, PaymentSettled, PaymentReturned]
+
+        fields {
+          id               = required(uuid)
+          accountId        = required(uuid)
+          creditorIban     = required(string)
+          amount           = required(int)
+          status           = required(string)
+          reason           = optional(string)
+          networkReference = optional(string)
+          version          = required(int)
+        }
+      }
+
+      spec "shows a payment that settled" {
+        given = [PaymentRequested, PaymentFunded, PaymentCleared, PaymentSubmitted, PaymentSettled]
+        then  = view(PaymentSummaryView)
+      }
+
+      spec "shows the reason of a payment that the bank refused" {
+        given = [PaymentRequested, PaymentFunded, PaymentRefused]
+        then  = view(PaymentSummaryView)
+      }
+
+      spec "shows an escalated payment with its reason" {
+        given = [PaymentRequested, PaymentFunded, PaymentCleared, PaymentSubmitted, PaymentEscalated]
+        then  = view(PaymentSummaryView)
+      }
+    }
+
+    slice "View Payment Deadlines" {
+      description = "The payment-deadlines projection keeps the payment_deadlines table: the todo list of the payment-timeouts scheduler"
+
+      view "PaymentDeadlinesView" {
+        description = "Each open payment with the stage that waits, the attempt and the deadline"
+        subscribes  = [PaymentFunded, PaymentChecksRetried, PaymentCleared, PaymentSubmissionRetried, PaymentSubmitted, PaymentStatusQueried, PaymentFailed, PaymentRefused, PaymentEscalated, PaymentSettled, PaymentReturned]
+
+        fields {
+          paymentId = required(uuid)
+          stage     = required(string)
+          attempt   = required(int)
+          deadline  = required(timestamp)
+          version   = required(int)
+        }
+      }
+
+      spec "lists a funded payment with the deadline of the checks" {
+        given = [PaymentFunded]
+        then  = view(PaymentDeadlinesView)
+      }
+
+      spec "moves a payment to the next attempt with a new deadline" {
+        given = [PaymentFunded, PaymentChecksRetried({ attempt = 2 })]
+        then  = view(PaymentDeadlinesView)
+      }
+
+      spec "moves a payment to the deadline of the next stage" {
+        given = [PaymentFunded, PaymentCleared, PaymentSubmitted]
+        then  = view(PaymentDeadlinesView)
+      }
+
+      spec "removes a payment that settled" {
+        given = [PaymentFunded, PaymentCleared, PaymentSubmitted, PaymentSettled]
+        then  = view(PaymentDeadlinesView)
+      }
+
+      spec "removes an escalated payment" {
+        given = [PaymentFunded, PaymentCleared, PaymentSubmitted, PaymentEscalated]
+        then  = view(PaymentDeadlinesView)
+      }
+    }
+  }
+}

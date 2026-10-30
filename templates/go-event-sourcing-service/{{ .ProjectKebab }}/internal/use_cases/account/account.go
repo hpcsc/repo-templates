@@ -30,9 +30,8 @@ type Account struct {
 	available           int64
 	welcomeBonusGranted bool
 	closed              bool
-	holds               map[uuid.UUID]hold
 {{- if .Scaffold.ProcessManager }}
-	transfers           transferLedger
+	holds               map[uuid.UUID]hold
 {{- end }}
 }
 
@@ -125,11 +124,9 @@ func (a *Account) Apply(e domain.Event) {
 		a.welcomeBonusGranted = true
 	case *event.AccountClosed:
 		a.closed = true
+{{- if .Scaffold.ProcessManager }}
 	case *event.HoldPlaced, *event.HoldRejected, *event.HoldReleased, *event.HoldCaptured:
 		a.applyHold(e)
-{{- if .Scaffold.ProcessManager }}
-	default:
-		a.applyTransfer(e)
 {{- end }}
 	}
 }

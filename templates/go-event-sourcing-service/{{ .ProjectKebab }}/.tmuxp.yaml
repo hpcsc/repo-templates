@@ -6,4 +6,6 @@ windows:
     panes:
       - task api:run
       - task catchup:run
+{{- if .Scaffold.ProcessManager }}
       - task fakeservices:run
+{{- end }}

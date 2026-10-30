@@ -66,15 +66,15 @@ tasks:
 
 [[- if .Scaffold.ProcessManager ]]
 
-  transfer:
-    desc: "usage: FROM=<account-id> TO=<account-id> task api:transfer -- 300"
+  pay:
+    desc: "usage: ID=<account-id> [IBAN=<creditor IBAN>] task api:pay -- 300"
     cmds:
       - |
-        curl -s -X POST "{{.API}}/transfers" -H "{{.AUTH}}" \
-          -d "{\"from\": \"${FROM}\", \"to\": \"${TO}\", \"amount\": {{default "300" .CLI_ARGS}}}" | jq
+        curl -s -X POST "{{.API}}/payments" -H "{{.AUTH}}" \
+          -d "{\"accountId\": \"${ID}\", \"creditorIban\": \"${IBAN:-DE89370400440532013000}\", \"amount\": {{default "300" .CLI_ARGS}}}" | jq
 
-  get-transfer:
-    desc: "usage: TRANSFER=<transfer-id> task api:get-transfer"
+  get-payment:
+    desc: "usage: PAYMENT=<payment-id> task api:get-payment"
     cmds:
-      - curl -s "{{.API}}/transfers/${TRANSFER}" -H "{{.AUTH}}" | jq
+      - curl -s "{{.API}}/payments/${PAYMENT}" -H "{{.AUTH}}" | jq
 [[- end ]]

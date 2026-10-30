@@ -1,57 +1,37 @@
 package use_cases
 
 import (
+{{- if .Scaffold.ProcessManager }}
 	"time"
-
+{{ end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/command"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/registry"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/closeaccount"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/deposit"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/holds"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/open"
 {{- if .Scaffold.ProcessManager }}
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/transfers"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/holds"
 {{- end }}
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/open"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/welcomebonus"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/withdraw"
+{{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/record"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/request"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/timeout"
-{{- if .Scaffold.ProcessManager }}
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/start"
 {{- end }}
 )
 
 func RegisterEvents(reg *registry.OfEvents) {
 	account.RegisterEvents(reg)
-	payment.RegisterEvents(reg)
 {{- if .Scaffold.ProcessManager }}
-	transfer.RegisterEvents(reg)
+	payment.RegisterEvents(reg)
 {{- end }}
 }
 
-type Option func(*options)
-
-type options struct {
-	paymentTimeouts payment.Timeouts
-}
-
-func WithPaymentTimeouts(timeouts payment.Timeouts) Option {
-	return func(o *options) {
-		o.paymentTimeouts = timeouts
-	}
-}
-
-func RegisterHandlers(bus *command.Bus, stream event.Stream, opts ...Option) {
-	o := options{paymentTimeouts: payment.DefaultTimeouts}
-	for _, opt := range opts {
-		opt(&o)
-	}
-
+func RegisterHandlers(bus *command.Bus, stream event.Stream) {
 	accounts := account.NewRepository(stream)
 
 	open.Register(bus, accounts)
@@ -59,14 +39,12 @@ func RegisterHandlers(bus *command.Bus, stream event.Stream, opts ...Option) {
 	withdraw.Register(bus, accounts)
 	welcomebonus.Register(bus, accounts)
 	closeaccount.Register(bus, accounts)
+{{- if .Scaffold.ProcessManager }}
 	holds.Register(bus, accounts)
 
 	payments := payment.NewRepository(stream)
 	request.Register(bus, payments, accounts)
-	record.Register(bus, payments, o.paymentTimeouts, time.Now)
-	timeout.Register(bus, payments, o.paymentTimeouts, time.Now)
-{{- if .Scaffold.ProcessManager }}
-	transfers.Register(bus, accounts)
-	start.Register(bus, transfer.NewRepository(stream), accounts)
+	record.Register(bus, payments, payment.DefaultTimeouts, time.Now)
+	timeout.Register(bus, payments, payment.DefaultTimeouts, time.Now)
 {{- end }}
 }

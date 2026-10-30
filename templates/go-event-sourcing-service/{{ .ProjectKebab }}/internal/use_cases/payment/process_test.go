@@ -36,7 +36,10 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/balance"
 	accountCommand "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/command"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/deposit"
 	accountEvent "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/event"
+	accountHolds "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/holds"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/open"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/checks"
 	paymentCommand "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/command"
@@ -45,9 +48,12 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/funding"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/holds"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/outside"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/record"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/request"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/status"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/submission"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/summary"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/timeout"
 	"github.com/stretchr/testify/require"
 )
 
@@ -166,7 +172,15 @@ func startSystem(t *testing.T) *system {
 	use_cases.RegisterEvents(reg)
 	eventStream := stream.NewPostgres(pool, reg)
 	bus := command.NewBus(command.WithHistory(eventStream))
-	use_cases.RegisterHandlers(bus, eventStream, use_cases.WithPaymentTimeouts(payment.Timeouts{Checks: 300 * time.Millisecond, Submission: 300 * time.Millisecond, Settlement: 300 * time.Millisecond}))
+	accounts := account.NewRepository(eventStream)
+	open.Register(bus, accounts)
+	deposit.Register(bus, accounts)
+	accountHolds.Register(bus, accounts)
+	payments := payment.NewRepository(eventStream)
+	shortTimeouts := payment.Timeouts{Checks: 300 * time.Millisecond, Submission: 300 * time.Millisecond, Settlement: 300 * time.Millisecond}
+	request.Register(bus, payments, accounts)
+	record.Register(bus, payments, shortTimeouts, time.Now)
+	timeout.Register(bus, payments, shortTimeouts, time.Now)
 
 	tokenPath := filepath.Join(t.TempDir(), "token")
 	require.NoError(t, os.WriteFile(tokenPath, []byte("valid-token"), 0o600))
@@ -183,7 +197,6 @@ func startSystem(t *testing.T) *system {
 		WebhookURL:          apiServer.URL + "/webhooks",
 	}
 
-	payments := payment.NewRepository(eventStream)
 	client := outside.NewClient(outside.WithRetries(3, 10*time.Millisecond))
 	checkpointStore := store.NewPostgres(pool)
 	sub := subscription.NewPostgres(pool, reg, test.DiscardLogger())

@@ -52,7 +52,7 @@ The balance comes from the `account_balances` read model, so it can show the cha
 the command.
 
 A client that retries a `POST` sends the same `Idempotency-Key` header as the first request. The API
-then makes the same command, with the same account ID or transfer ID, and the store records the
+then makes the same command, with the same account ID or payment ID, and the store records the
 command once. The retry gets the same answer as the first request, also when the first request
 succeeded and the client did not get the answer. Use a new key for each new request: the API does not
 compare the body of a retry with the body of the first request. A request with no key is a new command
@@ -163,21 +163,26 @@ with `dispatch.CommandFor`.
 - **A projection:** implement `projection.Interface`. Write to the read model through the `pgx.Tx` that
   `Handle` gets. For a time in the read model, use `evt.RecordedAt`, not `NOW()`, so that a rebuild
   writes the same times. Add the table in a migration. Add `projection.NewProjector(...)` to the
-  consumers in `cmd/catchup/main.go`.
-- **A process manager:** a projection that keeps its state, and appends the requests it decides as
-  events in the same transaction, plus a reaction with `reaction.StartAtBeginning()` that sends each
-  request.
+  workers in `cmd/catchup/main.go`.
+- **A process manager:** an aggregate that holds the state of a process and decides each step, plus
+  reactions that carry its messages. Each input reaches the aggregate as a command, and each decision
+  leaves it as an event. [docs/event-subscription.md](docs/event-subscription.md#a-process-manager)
+  tells when a process needs one.
 - **A reaction:** implement `reaction.Interface`, or use `external.NewHttpReaction`. Make the effect
   safe to repeat. A message to another service is a contract, not an event, as
   [docs/event-subscription.md](docs/event-subscription.md) tells. A reaction that sends a command builds
   it with `dispatch.CommandFor`, as `welcomebonus.Reaction` does: the command gets a fixed ID, and the
-  correlation ID of the event. Add `reaction.NewReactor(...)` to the consumers in `cmd/catchup/main.go`.
+  correlation ID of the event. Add `reaction.NewReactor(...)` to the workers in `cmd/catchup/main.go`.
+- **A scheduler:** implement `scheduler.Interface`. Its `Tick` reads a todo list, a projection, and
+  sends a command with a fixed ID for each item that is due. Add `scheduler.New(...)` to the workers in
+  `cmd/catchup/main.go`.
 
 The name of each consumer is the key of its checkpoint. Do not rename a consumer after it runs in
 production: a projection with a new name rebuilds from the beginning, and a reaction with a new name
 starts again at the end of the store.
 
-The name is also the key of a lock. Each consumer runs in one `catchup` process at a time. A second
+The name is also the key of a lock. Each consumer and each scheduler runs in one `catchup` process at a
+time. A second
 process, for example during a rolling deploy, waits until the first process stops.
 [docs/event-subscription.md](docs/event-subscription.md#one-process-for-each-consumer) tells how.
 
@@ -185,24 +190,42 @@ process, for example during a rolling deploy, waits until the first process stop
 
 ## Process Manager Example
 
-A money transfer between two accounts runs as a process manager. A failed credit refunds the debit.
-[docs/process-manager-example.md](docs/process-manager-example.md) explains the design.
+A payment to another bank runs as a process manager. The payment aggregate holds the state of each
+payment and decides each step. Reactions and gateways carry the messages between the payment, the
+account, and three outside systems: a fraud service, a sanctions service and a payment network.
+[docs/process-manager-example.md](docs/process-manager-example.md) explains the design, and
+[docs/event-model-payment.md](docs/event-model-payment.md) gives the event model.
+
+`task run` also starts `cmd/fakeservices`, which fakes the three outside systems.
 
 ```sh
-export FROM=<an account ID with money> TO=<another account ID>
-task api:transfer -- 300                # returns the new transfer ID
-export TRANSFER=<the transfer ID>
-task api:get-transfer                   # completed, or failed with the reason
+export ID=<an account ID with money>
+task api:pay -- 300                     # returns the new payment ID
+export PAYMENT=<the payment ID>
+task api:get-payment                    # settled after about a second
 ```
 
-A transfer to a closed account fails, and the process refunds the source account.
+The amount and the end of the creditor IBAN select the path that the fakes take:
+
+| Input | Path |
+| --- | --- |
+| Amount above 10000 | The fraud check fails, and the account releases the hold |
+| IBAN that ends in `0000` | The sanctions screening fails, and the account releases the hold |
+| IBAN that ends in `1111` | The sanctions service never answers, and the payment fails after its third deadline |
+| IBAN that ends in `2222` | The other bank returns the payment, and the account releases the hold |
+| IBAN that ends in `3333` | No settlement webhook arrives, and the status request finds the payment settled |
+| IBAN that ends in `4444` | The network never settles the payment. After about 30 seconds, the payment escalates to a person and keeps its hold |
+| Any other input | The payment settles, and the account captures the hold |
+
+For example: `IBAN=DE89370400440532014444 task api:pay -- 300`.
 
 To replace it with your own process, change these:
 
-- `internal/use_cases/transfer`: the aggregate that starts a transfer, its events, its commands, the start
-  use case and the process manager
-- `internal/use_cases/account/transfers`, and the `transfer` files in `internal/use_cases/account`: the account
-  side of a transfer
-- `internal/api/use_cases/transfer`: the HTTP handler
-- the migration of the `transfer_processes` table
+- `internal/use_cases/payment`: the aggregate, its events and commands, the command handlers, the
+  reactions, the gateways, the todo list with its scheduler, and the read model
+- `internal/use_cases/account/holds`, and the `hold` files in `internal/use_cases/account`: the account
+  side of a payment
+- `internal/api/use_cases/payment` and `internal/api/use_cases/webhook`: the HTTP handlers
+- `cmd/fakeservices` and `internal/fakeservices`: the fake outside systems
+- the migrations of the `payments` and `payment_deadlines` tables
 {{- end }}

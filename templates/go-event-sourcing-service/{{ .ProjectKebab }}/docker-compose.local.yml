@@ -29,3 +29,15 @@ services:
       dockerfile: Dockerfile.catchup
     environment:
       <<: *x-db-config
+{{- if .Scaffold.ProcessManager }}
+      FRAUD_SERVICE_URL: http://fakeservices:4444/fraud
+      SANCTIONS_SERVICE_URL: http://fakeservices:4444/sanctions
+      PAYMENT_NETWORK_URL: http://fakeservices:4444/network
+      WEBHOOK_URL: http://api:3333/webhooks
+
+  fakeservices:
+    build:
+      dockerfile: Dockerfile.fakeservices
+    volumes:
+      - ./local/api:/var/run
+{{- end }}

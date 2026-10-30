@@ -5,7 +5,9 @@ includes:
   test: Taskfile.test.yml
   api: Taskfile.api.yml
   catchup: Taskfile.catchup.yml
+[[- if .Scaffold.ProcessManager ]]
   fakeservices: Taskfile.fakeservices.yml
+[[- end ]]
 
 tasks:
   test:shellcheck:
