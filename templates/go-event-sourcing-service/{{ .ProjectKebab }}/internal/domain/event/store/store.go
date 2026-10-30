@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 
-	"github.com/google/uuid"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event"
 )
@@ -36,11 +35,10 @@ func (s *OfEvents) Load[T any, A interface {
 	return aggregate, nil
 }
 
-func (s *OfEvents) Save(ctx context.Context, streamID string, aggregate domain.Aggregate, causeID uuid.UUID) error {
+func (s *OfEvents) Save(ctx context.Context, streamID string, aggregate domain.Aggregate, cause domain.Cause) error {
 	events := aggregate.Recorded()
 	for i := range events {
-		events[i] = events[i].CorrelateWithCommandID(causeID)
-		events[i].CommandID = causeID
+		events[i] = events[i].CausedBy(cause)
 	}
 
 	if err := s.stream.Save(ctx, streamID, events, aggregate.Version()); err != nil {

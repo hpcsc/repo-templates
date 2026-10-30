@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/store"
 )
@@ -22,6 +23,6 @@ func (r *Repository) Load(ctx context.Context, id uuid.UUID) (*Transfer, error) 
 	return r.events.Load[Transfer](ctx, StreamID(id))
 }
 
-func (r *Repository) Save(ctx context.Context, t *Transfer, causeID uuid.UUID) error {
-	return r.events.Save(ctx, StreamID(t.ID()), t, causeID)
+func (r *Repository) Save(ctx context.Context, t *Transfer, cause domain.Cause) error {
+	return r.events.Save(ctx, StreamID(t.ID()), t, cause)
 }

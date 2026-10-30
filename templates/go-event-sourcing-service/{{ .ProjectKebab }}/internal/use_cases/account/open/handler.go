@@ -25,5 +25,5 @@ func (h handler) Handle(ctx context.Context, cmd domain.Command[accountCommand.O
 	if err := a.Open(cmd.Payload.AccountID, cmd.Payload.Owner); err != nil {
 		return err
 	}
-	return h.accounts.Save(ctx, a, cmd.ID)
+	return h.accounts.Save(ctx, a, cmd.Cause())
 }

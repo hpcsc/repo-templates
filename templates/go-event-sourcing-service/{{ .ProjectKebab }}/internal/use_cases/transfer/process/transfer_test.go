@@ -23,6 +23,7 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account"
 	accountCommand "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/command"
 	accountEvent "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/event"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer"
 	transferCommand "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/command"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/process"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -65,6 +66,22 @@ func TestTransferProcess(t *testing.T) {
 			require.Contains(t, fromPayloads, any(&accountEvent.TransferDebited{AccountID: from, TransferID: id, Amount: 300}))
 			require.Contains(t, fromPayloads, any(&accountEvent.TransferRefunded{AccountID: from, TransferID: id, Amount: 300}))
 			require.Contains(t, sys.payloads(t, to), any(&accountEvent.TransferCreditRejected{AccountID: to, TransferID: id, Amount: 300, Reason: account.ErrClosed.Error()}))
+		})
+
+		t.Run("gives each event of the transfer the correlation ID of the request that started it", func(t *testing.T) {
+			sys := startSystem(t)
+			from, to := sys.openAccount(t, 500), sys.openAccount(t, 0)
+			id := uuid.New()
+			start := domain.NewCommand(transferCommand.Start{TransferID: id, From: from, To: to, Amount: 300})
+
+			require.NoError(t, sys.bus.Dispatch(context.Background(), start))
+
+			sys.requireState(t, id, string(process.Completed), "")
+			fromStream := sys.correlationIDs(t, account.StreamID(from))
+			toStream := sys.correlationIDs(t, account.StreamID(to))
+			require.Equal(t, []uuid.UUID{start.ID, start.ID, start.ID, start.ID}, sys.correlationIDs(t, transfer.StreamID(id)))
+			require.Equal(t, start.ID, fromStream[len(fromStream)-1])
+			require.Equal(t, start.ID, toStream[len(toStream)-1])
 		})
 	})
 }
@@ -139,6 +156,16 @@ func (s *system) payloads(t *testing.T, accountID uuid.UUID) []any {
 	result := make([]any, 0, len(events))
 	for _, e := range events {
 		result = append(result, e.Payload)
+	}
+	return result
+}
+
+func (s *system) correlationIDs(t *testing.T, streamID string) []uuid.UUID {
+	events, err := s.stream.EventsForStream(context.Background(), streamID)
+	require.NoError(t, err)
+	result := make([]uuid.UUID, 0, len(events))
+	for _, e := range events {
+		result = append(result, e.Metadata.CorrelationID)
 	}
 	return result
 }

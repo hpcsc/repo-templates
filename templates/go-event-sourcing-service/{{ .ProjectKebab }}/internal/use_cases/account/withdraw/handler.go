@@ -25,5 +25,5 @@ func (h handler) Handle(ctx context.Context, cmd domain.Command[accountCommand.W
 	if err := a.Withdraw(cmd.Payload.Amount); err != nil {
 		return err
 	}
-	return h.accounts.Save(ctx, a, cmd.ID)
+	return h.accounts.Save(ctx, a, cmd.Cause())
 }

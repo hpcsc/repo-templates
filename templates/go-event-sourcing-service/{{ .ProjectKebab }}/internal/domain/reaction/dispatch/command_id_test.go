@@ -5,6 +5,7 @@ package dispatch_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/reaction/dispatch"
 	"github.com/stretchr/testify/require"
@@ -30,5 +31,21 @@ func TestCommandIDFor(t *testing.T) {
 		other := dispatch.CommandIDFor("loyalty-points", &domain.Event{ID: "event-1"})
 
 		require.NotEqual(t, first, other)
+	})
+}
+
+func TestCommandFor(t *testing.T) {
+	t.Run("gives the command the correlation ID of the event, and the event as its cause", func(t *testing.T) {
+		id, correlationID := uuid.New(), uuid.New()
+		evt := &domain.Event{ID: id.String(), Metadata: &domain.EventMetadata{CorrelationID: correlationID}}
+
+		cmd := dispatch.CommandFor("welcome-bonus", evt, "payload")
+
+		require.Equal(t, domain.Command[string]{
+			ID:            dispatch.CommandIDFor("welcome-bonus", evt),
+			CorrelationID: correlationID,
+			CausationID:   id,
+			Payload:       "payload",
+		}, cmd)
 	})
 }

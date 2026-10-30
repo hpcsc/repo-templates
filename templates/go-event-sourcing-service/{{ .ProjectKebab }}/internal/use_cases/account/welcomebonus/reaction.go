@@ -40,11 +40,8 @@ func (r *Reaction) Handle(ctx context.Context, evt *domain.Event) error {
 		return fmt.Errorf("received unexpected payload type: %T", evt.Payload)
 	}
 
-	return r.bus.Dispatch(ctx, domain.Command[accountCommand.GrantWelcomeBonus]{
-		ID: dispatch.CommandIDFor(r.Name(), evt),
-		Payload: accountCommand.GrantWelcomeBonus{
-			AccountID: opened.AccountID,
-			Amount:    Amount,
-		},
-	})
+	return r.bus.Dispatch(ctx, dispatch.CommandFor(r.Name(), evt, accountCommand.GrantWelcomeBonus{
+		AccountID: opened.AccountID,
+		Amount:    Amount,
+	}))
 }

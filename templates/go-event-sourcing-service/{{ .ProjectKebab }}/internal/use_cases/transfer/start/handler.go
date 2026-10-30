@@ -35,7 +35,7 @@ func (h handler) Handle(ctx context.Context, cmd domain.Command[transferCommand.
 	if err := t.Start(cmd.Payload.TransferID, cmd.Payload.From, cmd.Payload.To, cmd.Payload.Amount); err != nil {
 		return err
 	}
-	return h.transfers.Save(ctx, t, cmd.ID)
+	return h.transfers.Save(ctx, t, cmd.Cause())
 }
 
 func (h handler) checkExists(ctx context.Context, accountID uuid.UUID) error {

@@ -155,8 +155,8 @@ deploy, and does not write wrong data to a read model. The `catchup` of the new 
 Send the command with `bus.Dispatch(ctx, domain.NewCommand(Deposit{...}))`. The bus finds the handler from
 the payload type, and calls it again on a concurrency conflict. The bus skips a command whose ID the
 store already has, so a command that arrives twice appends its events once. Give a repeated request the
-same command ID: an HTTP handler takes it from `idempotency.IDFor`, and a reaction takes it from
-`dispatch.CommandIDFor`.
+same command ID: an HTTP handler takes it from `idempotency.IDFor`, and a reaction builds its command
+with `dispatch.CommandFor`.
 
 ## Add a Consumer
 
@@ -168,8 +168,9 @@ same command ID: an HTTP handler takes it from `idempotency.IDFor`, and a reacti
   request.
 - **A reaction:** implement `reaction.Interface`, or use `external.NewHttpReaction`. Make the effect
   safe to repeat. A message to another service is a contract, not an event, as
-  [docs/event-subscription.md](docs/event-subscription.md) tells. A reaction that sends a command takes the command ID from `dispatch.CommandIDFor`, as
-  `welcomebonus.Reaction` does. Add `reaction.NewReactor(...)` to the consumers in `cmd/catchup/main.go`.
+  [docs/event-subscription.md](docs/event-subscription.md) tells. A reaction that sends a command builds
+  it with `dispatch.CommandFor`, as `welcomebonus.Reaction` does: the command gets a fixed ID, and the
+  correlation ID of the event. Add `reaction.NewReactor(...)` to the consumers in `cmd/catchup/main.go`.
 
 The name of each consumer is the key of its checkpoint. Do not rename a consumer after it runs in
 production: a projection with a new name rebuilds from the beginning, and a reaction with a new name

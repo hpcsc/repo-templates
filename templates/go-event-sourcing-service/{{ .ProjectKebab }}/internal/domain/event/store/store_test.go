@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/store"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/stream"
@@ -30,7 +31,7 @@ func TestOfEvents(t *testing.T) {
 			s := store.New(stream.NewMemory())
 			saved := &fake.Aggregate{}
 			saved.DoSomething("1", "first", "second")
-			require.NoError(t, s.Save(context.Background(), "stream-1", saved, uuid.New()))
+			require.NoError(t, s.Save(context.Background(), "stream-1", saved, domain.Cause{CommandID: uuid.New()}))
 
 			loaded, err := s.Load[fake.Aggregate](context.Background(), "stream-1")
 
@@ -46,26 +47,28 @@ func TestOfEvents(t *testing.T) {
 			aggregate := &fake.Aggregate{}
 			aggregate.DoSomething("1", "first", "second")
 
-			require.NoError(t, s.Save(context.Background(), "stream-1", aggregate, uuid.New()))
+			require.NoError(t, s.Save(context.Background(), "stream-1", aggregate, domain.Cause{CommandID: uuid.New()}))
 
 			require.Empty(t, aggregate.Recorded())
 			require.Equal(t, uint64(2), aggregate.Version())
 		})
 
-		t.Run("stamps the ID of the cause on each saved event", func(t *testing.T) {
+		t.Run("stamps the command and the chain of the cause on each saved event", func(t *testing.T) {
 			memory := stream.NewMemory()
 			s := store.New(memory)
-			causeID := uuid.New()
+			cause := domain.Cause{CommandID: uuid.New(), CorrelationID: uuid.New(), CausationID: uuid.New()}
 			aggregate := &fake.Aggregate{}
-			aggregate.DoSomething("1", "value")
+			aggregate.DoSomething("1", "first", "second")
 
-			require.NoError(t, s.Save(context.Background(), "stream-1", aggregate, causeID))
+			require.NoError(t, s.Save(context.Background(), "stream-1", aggregate, cause))
 
 			events, err := memory.EventsForStream(context.Background(), "stream-1")
 			require.NoError(t, err)
-			require.Equal(t, causeID, events[0].CommandID)
-			require.Equal(t, causeID, events[0].Metadata.CausationID)
-			require.Equal(t, causeID, events[0].Metadata.CorrelationID)
+			chain := &domain.EventMetadata{CorrelationID: cause.CorrelationID, CausationID: cause.CausationID}
+			require.Equal(t, []domain.Event{
+				{ID: events[0].ID, StreamID: "stream-1", Version: 1, CommandID: cause.CommandID, Payload: events[0].Payload, Metadata: chain},
+				{ID: events[1].ID, StreamID: "stream-1", Version: 2, CommandID: cause.CommandID, Payload: events[1].Payload, Metadata: chain},
+			}, events)
 		})
 
 		t.Run("returns a concurrency conflict when the stream changed after the load", func(t *testing.T) {
@@ -76,9 +79,9 @@ func TestOfEvents(t *testing.T) {
 			require.NoError(t, err)
 			first.DoSomething("1", "first")
 			second.DoSomething("1", "second")
-			require.NoError(t, s.Save(context.Background(), "stream-1", first, uuid.New()))
+			require.NoError(t, s.Save(context.Background(), "stream-1", first, domain.Cause{CommandID: uuid.New()}))
 
-			err = s.Save(context.Background(), "stream-1", second, uuid.New())
+			err = s.Save(context.Background(), "stream-1", second, domain.Cause{CommandID: uuid.New()})
 
 			require.ErrorIs(t, err, event.ErrConcurrencyConflict)
 			require.NotEmpty(t, second.Recorded())

@@ -27,7 +27,7 @@ func (h debitHandler) Handle(ctx context.Context, cmd domain.Command[accountComm
 	if err := a.DebitForTransfer(cmd.Payload.TransferID, cmd.Payload.Amount); err != nil {
 		return err
 	}
-	return h.accounts.Save(ctx, a, cmd.ID)
+	return h.accounts.Save(ctx, a, cmd.Cause())
 }
 
 type creditHandler struct {
@@ -42,7 +42,7 @@ func (h creditHandler) Handle(ctx context.Context, cmd domain.Command[accountCom
 	if err := a.CreditForTransfer(cmd.Payload.TransferID, cmd.Payload.Amount); err != nil {
 		return err
 	}
-	return h.accounts.Save(ctx, a, cmd.ID)
+	return h.accounts.Save(ctx, a, cmd.Cause())
 }
 
 type refundHandler struct {
@@ -57,5 +57,5 @@ func (h refundHandler) Handle(ctx context.Context, cmd domain.Command[accountCom
 	if err := a.RefundTransfer(cmd.Payload.TransferID, cmd.Payload.Amount); err != nil {
 		return err
 	}
-	return h.accounts.Save(ctx, a, cmd.ID)
+	return h.accounts.Save(ctx, a, cmd.Cause())
 }

@@ -37,24 +37,16 @@ func (d *Dispatcher) EventTypes() []string {
 }
 
 func (d *Dispatcher) Handle(ctx context.Context, evt *domain.Event) error {
-	id := dispatch.CommandIDFor(d.Name(), evt)
-
 	switch e := evt.Payload.(type) {
 	case *transferEvent.TransferDebitRequested:
-		return d.bus.Dispatch(ctx, domain.Command[accountCommand.DebitForTransfer]{
-			ID:      id,
-			Payload: accountCommand.DebitForTransfer{AccountID: e.AccountID, TransferID: e.TransferID, Amount: e.Amount},
-		})
+		return d.bus.Dispatch(ctx, dispatch.CommandFor(d.Name(), evt,
+			accountCommand.DebitForTransfer{AccountID: e.AccountID, TransferID: e.TransferID, Amount: e.Amount}))
 	case *transferEvent.TransferCreditRequested:
-		return d.bus.Dispatch(ctx, domain.Command[accountCommand.CreditForTransfer]{
-			ID:      id,
-			Payload: accountCommand.CreditForTransfer{AccountID: e.AccountID, TransferID: e.TransferID, Amount: e.Amount},
-		})
+		return d.bus.Dispatch(ctx, dispatch.CommandFor(d.Name(), evt,
+			accountCommand.CreditForTransfer{AccountID: e.AccountID, TransferID: e.TransferID, Amount: e.Amount}))
 	case *transferEvent.TransferRefundRequested:
-		return d.bus.Dispatch(ctx, domain.Command[accountCommand.RefundTransfer]{
-			ID:      id,
-			Payload: accountCommand.RefundTransfer{AccountID: e.AccountID, TransferID: e.TransferID, Amount: e.Amount},
-		})
+		return d.bus.Dispatch(ctx, dispatch.CommandFor(d.Name(), evt,
+			accountCommand.RefundTransfer{AccountID: e.AccountID, TransferID: e.TransferID, Amount: e.Amount}))
 	default:
 		return fmt.Errorf("received unexpected payload type: %T", evt.Payload)
 	}

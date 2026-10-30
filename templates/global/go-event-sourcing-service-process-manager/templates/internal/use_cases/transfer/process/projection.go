@@ -44,7 +44,7 @@ func (p *Projection) EventTypes() []string {
 
 func (p *Projection) Handle(ctx context.Context, tx pgx.Tx, evt *domain.Event) error {
 	if started, ok := evt.Payload.(*transferEvent.TransferStarted); ok {
-		return p.start(ctx, tx, started, evt.Version)
+		return p.start(ctx, tx, evt, started)
 	}
 
 	transferID, err := transferIDOf(evt)
@@ -60,17 +60,25 @@ func (p *Projection) Handle(ctx context.Context, tx pgx.Tx, evt *domain.Event) e
 		return fmt.Errorf("no process for transfer %s", transferID)
 	}
 
-	return p.save(ctx, tx, process, process.Advance(*evt))
+	return p.save(ctx, tx, process, causedBy(evt, process.Advance(*evt)))
 }
 
-func (p *Projection) start(ctx context.Context, tx pgx.Tx, started *transferEvent.TransferStarted, version uint64) error {
+func (p *Projection) start(ctx context.Context, tx pgx.Tx, evt *domain.Event, started *transferEvent.TransferStarted) error {
 	existing, err := p.load(ctx, tx, started.TransferID)
 	if err != nil || existing != nil {
 		return err
 	}
 
-	process, requests := Start(started, version)
-	return p.save(ctx, tx, process, requests)
+	process, requests := Start(started, evt.Version)
+	return p.save(ctx, tx, process, causedBy(evt, requests))
+}
+
+func causedBy(evt *domain.Event, requests []domain.Event) []domain.Event {
+	caused := evt.CausedMetadata()
+	for i := range requests {
+		requests[i].Metadata = &caused
+	}
+	return requests
 }
 
 func (p *Projection) save(ctx context.Context, tx pgx.Tx, process *Process, requests []domain.Event) error {

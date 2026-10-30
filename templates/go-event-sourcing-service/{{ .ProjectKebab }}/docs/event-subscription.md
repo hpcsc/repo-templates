@@ -44,7 +44,8 @@ database. The welcome bonus reactor sends a command, so the `catchup` process al
 | `sequence` | A number from a sequence. It orders the events inside one transaction. |
 | `transaction_id` | The ID of the transaction that wrote the event (`XID8`, default `pg_current_xact_id()`). |
 | `stream_id`, `version` | The stream of the aggregate, and the place of the event in that stream. The pair is unique. |
-| `id`, `type`, `data`, `metadata` | The event itself. |
+| `id`, `type`, `data` | The event itself. |
+| `metadata` | The correlation ID and the causation ID of the event. [The Chain of a Request](#the-chain-of-a-request) tells what they mean. |
 | `schema_version` | The version of the shape of `data` for the event type. |
 | `command_id` | The ID of the command that recorded the event. An event that a process manager appends has none. |
 
@@ -247,10 +248,25 @@ step from each event. Here it is two consumers:
 
 A reaction that sends a command has an outside effect: the aggregate appends events in its own
 transaction, not in the transaction of the consumer. So the command can arrive more than once.
-`dispatch.CommandIDFor` makes the command ID from the reaction name and the event ID, so a repeated
+`dispatch.CommandFor` makes the command ID from the reaction name and the event ID, so a repeated
 event gives the same command ID, and the store records that command once. The aggregate must still
 accept a command with the same meaning and another ID, for example from a second reaction.
 `Account.GrantWelcomeBonus` does nothing when the account already has its bonus.
+
+### The Chain of a Request
+
+Each event carries two IDs in its metadata, so that a reader can find all the work that one request
+caused:
+
+- **Correlation ID:** the ID of the command that started the work. A command from the API starts a
+  chain with its own ID. Each event, and each command that follows from it, keeps the same ID.
+- **Causation ID:** the ID of the event that caused the command. A command from the API has no such
+  event, so its own ID is the causation ID.
+
+`dispatch.CommandFor` gives a command the correlation ID of the event that the reaction handles, and
+that event ID as the causation ID. A process manager gives the requests that it appends the same IDs.
+Thus all the events that follow from one request have the same correlation ID, also in other streams.
+For example, `WelcomeBonusGranted` has the ID of the command that opened the account.
 
 ### A Reaction Sends a Contract, Not an Event
 

@@ -37,12 +37,22 @@ func (e Event) Type() string {
 	return e.Payload.EventType()
 }
 
-func (e Event) CorrelateWithCommandID(commandID uuid.UUID) Event {
+func (e Event) CausedBy(cause Cause) Event {
+	e.CommandID = cause.CommandID
 	e.Metadata = &EventMetadata{
-		CorrelationID: commandID,
-		CausationID:   commandID,
+		CorrelationID: cause.CorrelationID,
+		CausationID:   cause.CausationID,
 	}
 	return e
+}
+
+func (e Event) CausedMetadata() EventMetadata {
+	id, _ := uuid.Parse(e.ID)
+	correlationID := id
+	if e.Metadata != nil && e.Metadata.CorrelationID != uuid.Nil {
+		correlationID = e.Metadata.CorrelationID
+	}
+	return EventMetadata{CorrelationID: correlationID, CausationID: id}
 }
 
 func NewEvent(payload EventPayload) Event {
