@@ -23,8 +23,12 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/balance"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/welcomebonus"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/checks"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/funding"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/holds"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/outside"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/submission"
 {{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/process"
 {{- end }}
@@ -32,7 +36,8 @@ import (
 )
 
 type Config struct {
-	DB config.DB
+	DB      config.DB
+	Outside outside.Config
 }
 
 func main() {
@@ -51,7 +56,7 @@ func main() {
 	}
 
 	ctx := runShutdownSignalHandler(context.Background(), logger)
-	failed := run(ctx, consumers(pool, logger), lock.NewPostgres(pool), logger)
+	failed := run(ctx, consumers(pool, cfg.Outside, logger), lock.NewPostgres(pool), logger)
 
 	pool.Close()
 	if failed {
@@ -59,7 +64,7 @@ func main() {
 	}
 }
 
-func consumers(pool *pgxpool.Pool, logger *slog.Logger) []*consumer.Consumer {
+func consumers(pool *pgxpool.Pool, outsideCfg outside.Config, logger *slog.Logger) []*consumer.Consumer {
 	reg := registry.New()
 	use_cases.RegisterEvents(reg)
 
@@ -69,12 +74,16 @@ func consumers(pool *pgxpool.Pool, logger *slog.Logger) []*consumer.Consumer {
 
 	checkpointStore := store.NewPostgres(pool)
 	eventSubscription := subscription.NewPostgres(pool, reg, logger)
+	payments := payment.NewRepository(eventStream)
+	outsideClient := outside.NewClient()
 
 	return []*consumer.Consumer{
 		projection.NewProjector(balance.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(welcomebonus.NewReaction(bus), checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(funding.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 		reaction.NewReactor(holds.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(checks.NewGateway(payments, outsideClient, outsideCfg, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(submission.NewGateway(bus, payments, outsideClient, outsideCfg, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 {{- if .Scaffold.ProcessManager }}
 		projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(process.NewDispatcher(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),

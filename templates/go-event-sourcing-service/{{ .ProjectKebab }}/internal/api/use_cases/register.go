@@ -13,6 +13,7 @@ import (
 {{- if .Scaffold.ProcessManager }}
 	apiTransfer "github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/transfer"
 {{- end }}
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/webhook"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/command"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/registry"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/stream"
@@ -67,6 +68,7 @@ func allRoutes(pool *pgxpool.Pool) []*route.Route {
 	routables := []route.Routable{
 		root.NewHandler(),
 		apiAccount.NewHandler(bus, balance.NewQuery(pool)),
+		webhook.NewHandler(bus),
 {{- if .Scaffold.ProcessManager }}
 		apiTransfer.NewHandler(bus, process.NewQuery(pool)),
 {{- end }}

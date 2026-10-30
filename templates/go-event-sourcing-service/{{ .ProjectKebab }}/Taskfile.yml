@@ -5,6 +5,7 @@ includes:
   test: Taskfile.test.yml
   api: Taskfile.api.yml
   catchup: Taskfile.catchup.yml
+  fakeservices: Taskfile.fakeservices.yml
 
 tasks:
   test:shellcheck:
