@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type EventMetadata struct {
 	CorrelationID uuid.UUID
@@ -24,13 +28,14 @@ type EventPayload interface {
 }
 
 type Event struct {
-	ID        string
-	StreamID  string
-	Version   uint64
-	Position  Position
-	CommandID uuid.UUID
-	Payload   EventPayload
-	Metadata  *EventMetadata
+	ID         string
+	StreamID   string
+	Version    uint64
+	Position   Position
+	RecordedAt time.Time
+	CommandID  uuid.UUID
+	Payload    EventPayload
+	Metadata   *EventMetadata
 }
 
 func (e Event) Type() string {

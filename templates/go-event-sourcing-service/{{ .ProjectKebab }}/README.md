@@ -161,8 +161,9 @@ with `dispatch.CommandFor`.
 ## Add a Consumer
 
 - **A projection:** implement `projection.Interface`. Write to the read model through the `pgx.Tx` that
-  `Handle` gets. Add the table in a migration. Add `projection.NewProjector(...)` to the consumers in
-  `cmd/catchup/main.go`.
+  `Handle` gets. For a time in the read model, use `evt.RecordedAt`, not `NOW()`, so that a rebuild
+  writes the same times. Add the table in a migration. Add `projection.NewProjector(...)` to the
+  consumers in `cmd/catchup/main.go`.
 - **A process manager:** a projection that keeps its state, and appends the requests it decides as
   events in the same transaction, plus a reaction with `reaction.StartAtBeginning()` that sends each
   request.

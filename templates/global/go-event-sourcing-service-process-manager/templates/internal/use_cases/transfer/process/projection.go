@@ -60,7 +60,7 @@ func (p *Projection) Handle(ctx context.Context, tx pgx.Tx, evt *domain.Event) e
 		return fmt.Errorf("no process for transfer %s", transferID)
 	}
 
-	return p.save(ctx, tx, process, causedBy(evt, process.Advance(*evt)))
+	return p.save(ctx, tx, evt, process, process.Advance(*evt))
 }
 
 func (p *Projection) start(ctx context.Context, tx pgx.Tx, evt *domain.Event, started *transferEvent.TransferStarted) error {
@@ -70,28 +70,25 @@ func (p *Projection) start(ctx context.Context, tx pgx.Tx, evt *domain.Event, st
 	}
 
 	process, requests := Start(started, evt.Version)
-	return p.save(ctx, tx, process, causedBy(evt, requests))
+	return p.save(ctx, tx, evt, process, requests)
 }
 
-func causedBy(evt *domain.Event, requests []domain.Event) []domain.Event {
+func (p *Projection) save(ctx context.Context, tx pgx.Tx, evt *domain.Event, process *Process, requests []domain.Event) error {
 	caused := evt.CausedMetadata()
 	for i := range requests {
 		requests[i].Metadata = &caused
 	}
-	return requests
-}
 
-func (p *Projection) save(ctx context.Context, tx pgx.Tx, process *Process, requests []domain.Event) error {
 	if err := p.stream.SaveInTx(ctx, tx, transfer.StreamID(process.transferID), requests, process.streamVersion); err != nil {
 		return err
 	}
 	process.streamVersion += uint64(len(requests))
 
 	_, err := tx.Exec(ctx,
-		`INSERT INTO transfer_processes (id, from_account, to_account, amount, state, reason, stream_version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		ON CONFLICT (id) DO UPDATE SET state = $5, reason = $6, stream_version = $7, updated_at = NOW()`,
-		process.transferID, process.from, process.to, process.amount, process.state, process.reason, process.streamVersion,
+		`INSERT INTO transfer_processes (id, from_account, to_account, amount, state, reason, stream_version, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		ON CONFLICT (id) DO UPDATE SET state = $5, reason = $6, stream_version = $7, updated_at = $8`,
+		process.transferID, process.from, process.to, process.amount, process.state, process.reason, process.streamVersion, evt.RecordedAt,
 	)
 	return err
 }

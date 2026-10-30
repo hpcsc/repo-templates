@@ -66,8 +66,8 @@ func TestOfEvents(t *testing.T) {
 			require.NoError(t, err)
 			chain := &domain.EventMetadata{CorrelationID: cause.CorrelationID, CausationID: cause.CausationID}
 			require.Equal(t, []domain.Event{
-				{ID: events[0].ID, StreamID: "stream-1", Version: 1, CommandID: cause.CommandID, Payload: events[0].Payload, Metadata: chain},
-				{ID: events[1].ID, StreamID: "stream-1", Version: 2, CommandID: cause.CommandID, Payload: events[1].Payload, Metadata: chain},
+				{ID: events[0].ID, StreamID: "stream-1", Version: 1, RecordedAt: events[0].RecordedAt, CommandID: cause.CommandID, Payload: events[0].Payload, Metadata: chain},
+				{ID: events[1].ID, StreamID: "stream-1", Version: 2, RecordedAt: events[1].RecordedAt, CommandID: cause.CommandID, Payload: events[1].Payload, Metadata: chain},
 			}, events)
 		})
 

@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/common/test"
@@ -238,6 +239,18 @@ func TestPostgresStream(t *testing.T) {
 			require.Equal(t, "second", events[1].Payload.(*fake.SomethingHappened).Value)
 			require.NotZero(t, events[0].Position.TransactionID)
 			require.Less(t, events[0].Position.Sequence, events[1].Position.Sequence)
+		})
+
+		t.Run("gives each event the time that the store recorded it", func(t *testing.T) {
+			s := newStream(t)
+			streamID := newStreamID(t)
+			ctx := context.Background()
+			require.NoError(t, s.Save(ctx, streamID, []domain.Event{fake.NewSomethingHappenedEvent("1", "first")}, 0))
+
+			events, err := s.EventsForStream(ctx, streamID)
+
+			require.NoError(t, err)
+			require.WithinDuration(t, time.Now(), events[0].RecordedAt, time.Minute)
 		})
 
 		t.Run("upcasts an event that has an older schema version", func(t *testing.T) {

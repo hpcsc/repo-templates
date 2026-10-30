@@ -187,7 +187,7 @@ file=internal/use_cases/account/balance/projection.go
 add $file "event.TransferDebited{}.EventType()" "$(after_last_element method_declaration EventTypes 'event.TransferDebited{}.EventType(),
 event.TransferCredited{}.EventType(),
 event.TransferRefunded{}.EventType()')"
-add $file "case *event.TransferDebited:" "$(before_default method_declaration Handle $'case *event.TransferDebited:\n\treturn p.change(ctx, tx, payload.AccountID, -payload.Amount, evt.Version)\ncase *event.TransferCredited:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)\ncase *event.TransferRefunded:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)')"
+add $file "case *event.TransferDebited:" "$(before_default method_declaration Handle $'case *event.TransferDebited:\n\treturn p.change(ctx, tx, payload.AccountID, -payload.Amount, evt)\ncase *event.TransferCredited:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt)\ncase *event.TransferRefunded:\n\treturn p.change(ctx, tx, payload.AccountID, payload.Amount, evt)')"
 
 file=internal/use_cases/register.go
 for pkg in internal/use_cases/account/transfers internal/use_cases/transfer internal/use_cases/transfer/start; do

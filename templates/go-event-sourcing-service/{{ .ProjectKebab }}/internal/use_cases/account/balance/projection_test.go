@@ -18,6 +18,7 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/projection"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/reaction"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/balance"
 	accountCommand "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/command"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/welcomebonus"
@@ -64,6 +65,14 @@ func TestBalance(t *testing.T) {
 				b, err := query.ByID(ctx, id.String())
 				return err == nil && b != nil && b.Status == "closed" && b.Balance == 500-200+welcomebonus.Amount
 			}, 5*time.Second, 50*time.Millisecond)
+
+			var updatedAtLastEvent bool
+			require.NoError(t, pool.QueryRow(ctx,
+				`SELECT b.updated_at = (SELECT created_at FROM events WHERE stream_id = $2 ORDER BY version DESC LIMIT 1)
+				FROM account_balances b WHERE b.id = $1`,
+				id, account.StreamID(id),
+			).Scan(&updatedAtLastEvent))
+			require.True(t, updatedAtLastEvent, "updated_at is not the time of the last event of the account")
 		})
 	})
 }

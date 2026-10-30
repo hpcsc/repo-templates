@@ -42,42 +42,42 @@ func (p *Projection) Handle(ctx context.Context, tx pgx.Tx, evt *domain.Event) e
 	switch payload := evt.Payload.(type) {
 	case *event.AccountOpened:
 		_, err := tx.Exec(ctx,
-			`INSERT INTO account_balances (id, owner, balance, version) VALUES ($1, $2, 0, $3)
+			`INSERT INTO account_balances (id, owner, balance, version, updated_at) VALUES ($1, $2, 0, $3, $4)
 			ON CONFLICT (id) DO NOTHING`,
-			payload.AccountID, payload.Owner, evt.Version,
+			payload.AccountID, payload.Owner, evt.Version, evt.RecordedAt,
 		)
 		return err
 	case *event.MoneyDeposited:
-		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)
+		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt)
 	case *event.MoneyWithdrawn:
-		return p.change(ctx, tx, payload.AccountID, -payload.Amount, evt.Version)
+		return p.change(ctx, tx, payload.AccountID, -payload.Amount, evt)
 	case *event.WelcomeBonusGranted:
-		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)
+		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt)
 	case *event.AccountClosed:
 		_, err := tx.Exec(ctx,
-			`UPDATE account_balances SET status = 'closed', version = $2, updated_at = NOW()
+			`UPDATE account_balances SET status = 'closed', version = $2, updated_at = $3
 			WHERE id = $1 AND version < $2`,
-			payload.AccountID, evt.Version,
+			payload.AccountID, evt.Version, evt.RecordedAt,
 		)
 		return err
 {{- if .Scaffold.ProcessManager }}
 	case *event.TransferDebited:
-		return p.change(ctx, tx, payload.AccountID, -payload.Amount, evt.Version)
+		return p.change(ctx, tx, payload.AccountID, -payload.Amount, evt)
 	case *event.TransferCredited:
-		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)
+		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt)
 	case *event.TransferRefunded:
-		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt.Version)
+		return p.change(ctx, tx, payload.AccountID, payload.Amount, evt)
 {{- end }}
 	default:
 		return fmt.Errorf("received unexpected payload type: %T", evt.Payload)
 	}
 }
 
-func (p *Projection) change(ctx context.Context, tx pgx.Tx, accountID uuid.UUID, amount int64, version uint64) error {
+func (p *Projection) change(ctx context.Context, tx pgx.Tx, accountID uuid.UUID, amount int64, evt *domain.Event) error {
 	_, err := tx.Exec(ctx,
-		`UPDATE account_balances SET balance = balance + $2, version = $3, updated_at = NOW()
+		`UPDATE account_balances SET balance = balance + $2, version = $3, updated_at = $4
 		WHERE id = $1 AND version < $3`,
-		accountID, amount, version,
+		accountID, amount, evt.Version, evt.RecordedAt,
 	)
 	return err
 }

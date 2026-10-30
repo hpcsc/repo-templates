@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
@@ -47,6 +48,7 @@ func (s *memory) Save(_ context.Context, streamID string, events []domain.Event,
 		}
 		evt.StreamID = streamID
 		evt.Version = expectedVersion + uint64(i) + 1
+		evt.RecordedAt = time.Now()
 		s.streamsByID[streamID] = append(s.streamsByID[streamID], evt)
 	}
 

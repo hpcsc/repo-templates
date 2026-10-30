@@ -37,12 +37,13 @@ func TestHandler(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, []domain.Event{
 				{
-					ID:        events[0].ID,
-					StreamID:  transfer.StreamID(id),
-					Version:   1,
-					CommandID: start.ID,
-					Payload:   &transferEvent.TransferStarted{TransferID: id, From: from, To: to, Amount: 300},
-					Metadata:  events[0].Metadata,
+					ID:         events[0].ID,
+					StreamID:   transfer.StreamID(id),
+					Version:    1,
+					RecordedAt: events[0].RecordedAt,
+					CommandID:  start.ID,
+					Payload:    &transferEvent.TransferStarted{TransferID: id, From: from, To: to, Amount: 300},
+					Metadata:   events[0].Metadata,
 				},
 			}, events)
 		})

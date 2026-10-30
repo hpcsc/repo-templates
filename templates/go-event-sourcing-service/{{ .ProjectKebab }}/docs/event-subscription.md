@@ -48,6 +48,7 @@ database. The welcome bonus reactor sends a command, so the `catchup` process al
 | `metadata` | The correlation ID and the causation ID of the event. [The Chain of a Request](#the-chain-of-a-request) tells what they mean. |
 | `schema_version` | The version of the shape of `data` for the event type. |
 | `command_id` | The ID of the command that recorded the event. An event that a process manager appends has none. |
+| `created_at` | The time when the store recorded the event: the start of the transaction that wrote it. A consumer gets it as `domain.Event.RecordedAt`. |
 
 The position of an event in the store is the pair (`transaction_id`, `sequence`). A checkpoint saves
 this pair.
