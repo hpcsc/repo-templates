@@ -11,6 +11,10 @@ func RegisterEvents(reg *registry.OfEvents) {
 	reg.Register[event.MoneyWithdrawn]()
 	reg.Register[event.WelcomeBonusGranted]()
 	reg.Register[event.AccountClosed]()
+	reg.Register[event.HoldPlaced]()
+	reg.Register[event.HoldRejected]()
+	reg.Register[event.HoldReleased]()
+	reg.Register[event.HoldCaptured]()
 {{- if .Scaffold.ProcessManager }}
 	reg.Register[event.TransferDebited]()
 	reg.Register[event.TransferDebitRejected]()

@@ -83,17 +83,17 @@ func (a *Account) RefundTransfer(transferID uuid.UUID, amount int64) error {
 func (a *Account) applyTransfer(e domain.Event) {
 	switch p := e.Payload.(type) {
 	case *event.TransferDebited:
-		a.balance -= p.Amount
+		a.available -= p.Amount
 		a.transfers.debited = marked(a.transfers.debited, p.TransferID)
 	case *event.TransferDebitRejected:
 		a.transfers.debited = marked(a.transfers.debited, p.TransferID)
 	case *event.TransferCredited:
-		a.balance += p.Amount
+		a.available += p.Amount
 		a.transfers.credited = marked(a.transfers.credited, p.TransferID)
 	case *event.TransferCreditRejected:
 		a.transfers.credited = marked(a.transfers.credited, p.TransferID)
 	case *event.TransferRefunded:
-		a.balance += p.Amount
+		a.available += p.Amount
 		a.transfers.refunded = marked(a.transfers.refunded, p.TransferID)
 	}
 }
@@ -102,7 +102,7 @@ func (a *Account) checkDebit(amount int64) error {
 	if err := a.checkChange(amount); err != nil {
 		return err
 	}
-	if amount > a.balance {
+	if amount > a.available {
 		return ErrInsufficientFunds
 	}
 	return nil

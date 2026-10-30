@@ -23,6 +23,8 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/balance"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/welcomebonus"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/funding"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/holds"
 {{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/process"
 {{- end }}
@@ -71,6 +73,8 @@ func consumers(pool *pgxpool.Pool, logger *slog.Logger) []*consumer.Consumer {
 	return []*consumer.Consumer{
 		projection.NewProjector(balance.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(welcomebonus.NewReaction(bus), checkpointStore, eventSubscription, logger),
+		reaction.NewReactor(funding.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(holds.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 {{- if .Scaffold.ProcessManager }}
 		projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(process.NewDispatcher(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),

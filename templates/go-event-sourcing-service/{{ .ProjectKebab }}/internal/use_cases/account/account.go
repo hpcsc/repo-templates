@@ -27,9 +27,10 @@ type Account struct {
 	domain.AggregateBase
 
 	id                  uuid.UUID
-	balance             int64
+	available           int64
 	welcomeBonusGranted bool
 	closed              bool
+	holds               map[uuid.UUID]hold
 {{- if .Scaffold.ProcessManager }}
 	transfers           transferLedger
 {{- end }}
@@ -70,8 +71,8 @@ func (a *Account) Withdraw(amount int64) error {
 	if err := a.checkChange(amount); err != nil {
 		return err
 	}
-	if amount > a.balance {
-		return fmt.Errorf("%w: balance %d, amount %d", ErrInsufficientFunds, a.balance, amount)
+	if amount > a.available {
+		return fmt.Errorf("%w: available %d, amount %d", ErrInsufficientFunds, a.available, amount)
 	}
 
 	a.record(domain.NewEvent(&event.MoneyWithdrawn{
@@ -116,14 +117,16 @@ func (a *Account) Apply(e domain.Event) {
 	case *event.AccountOpened:
 		a.id = p.AccountID
 	case *event.MoneyDeposited:
-		a.balance += p.Amount
+		a.available += p.Amount
 	case *event.MoneyWithdrawn:
-		a.balance -= p.Amount
+		a.available -= p.Amount
 	case *event.WelcomeBonusGranted:
-		a.balance += p.Amount
+		a.available += p.Amount
 		a.welcomeBonusGranted = true
 	case *event.AccountClosed:
 		a.closed = true
+	case *event.HoldPlaced, *event.HoldRejected, *event.HoldReleased, *event.HoldCaptured:
+		a.applyHold(e)
 {{- if .Scaffold.ProcessManager }}
 	default:
 		a.applyTransfer(e)
