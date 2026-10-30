@@ -46,6 +46,7 @@ database. The welcome bonus reactor sends a command, so the `catchup` process al
 | `stream_id`, `version` | The stream of the aggregate, and the place of the event in that stream. The pair is unique. |
 | `id`, `type`, `data`, `metadata` | The event itself. |
 | `schema_version` | The version of the shape of `data` for the event type. |
+| `command_id` | The ID of the command that recorded the event. An event that a process manager appends has none. |
 
 The position of an event in the store is the pair (`transaction_id`, `sequence`). A checkpoint saves
 this pair.
@@ -70,6 +71,11 @@ not the code, keeps each event as it was written.
    notification only if the transaction commits.
 6. **Schema version:** each insert writes the schema version that the registry has for the event type.
    The write fails for an event type that the registry does not know.
+7. **One command once:** each event keeps the ID of the command that recorded it. When the store already
+   has an event of the command, the append returns `event.ErrDuplicateCommand`, and the command bus
+   treats the command as done. The bus also looks for the command before it calls the handler. Thus a
+   repeated command does not decide again on the new state, which can refuse it, for example a second
+   withdrawal of the whole balance.
 
 A command handler loads the aggregate from its repository, calls one method of the aggregate, and saves.
 The aggregate records its new events, and the repository appends them at the version that the aggregate
@@ -242,8 +248,9 @@ step from each event. Here it is two consumers:
 A reaction that sends a command has an outside effect: the aggregate appends events in its own
 transaction, not in the transaction of the consumer. So the command can arrive more than once.
 `dispatch.CommandIDFor` makes the command ID from the reaction name and the event ID, so a repeated
-event gives the same command ID. The aggregate must also accept a repeated command. For
-example, `Account.GrantWelcomeBonus` does nothing when the account already has its bonus.
+event gives the same command ID, and the store records that command once. The aggregate must still
+accept a command with the same meaning and another ID, for example from a second reaction.
+`Account.GrantWelcomeBonus` does nothing when the account already has its bonus.
 
 ### A Reaction Sends a Contract, Not an Event
 
@@ -299,7 +306,8 @@ subscription. `pg_stat_activity` shows the lock connection with the application 
 | The command ID for a reaction that sends a command | `internal/domain/reaction/dispatch` |
 | Reaction that sends an HTTP request with an `Idempotency-Key` header | `internal/domain/reaction/external` |
 | Aggregate base: the version and the recorded events | `internal/domain` |
-| Typed commands, the command bus, and its retry on a concurrency conflict | `internal/domain/command` |
+| Typed commands, the command bus, its retry on a concurrency conflict, and its check for a repeated command | `internal/domain/command` |
+| The command ID of an HTTP request, from its `Idempotency-Key` header | `internal/api/idempotency` |
 | Load and save of an aggregate | `internal/domain/event/store` |
 | Write path | `internal/domain/event/stream` |
 | Read loop and listener | `internal/domain/event/subscription` |

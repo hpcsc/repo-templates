@@ -63,6 +63,7 @@ func TestOfEvents(t *testing.T) {
 
 			events, err := memory.EventsForStream(context.Background(), "stream-1")
 			require.NoError(t, err)
+			require.Equal(t, causeID, events[0].CommandID)
 			require.Equal(t, causeID, events[0].Metadata.CausationID)
 			require.Equal(t, causeID, events[0].Metadata.CorrelationID)
 		})

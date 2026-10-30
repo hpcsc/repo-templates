@@ -28,18 +28,21 @@ func TestHandler(t *testing.T) {
 			openAccount(t, s, from)
 			openAccount(t, s, to)
 
-			err := bus.Dispatch(context.Background(), domain.NewCommand(transferCommand.Start{TransferID: id, From: from, To: to, Amount: 300}))
+			start := domain.NewCommand(transferCommand.Start{TransferID: id, From: from, To: to, Amount: 300})
+
+			err := bus.Dispatch(context.Background(), start)
 
 			require.NoError(t, err)
 			events, err := s.EventsForStream(context.Background(), transfer.StreamID(id))
 			require.NoError(t, err)
 			require.Equal(t, []domain.Event{
 				{
-					ID:       events[0].ID,
-					StreamID: transfer.StreamID(id),
-					Version:  1,
-					Payload:  &transferEvent.TransferStarted{TransferID: id, From: from, To: to, Amount: 300},
-					Metadata: events[0].Metadata,
+					ID:        events[0].ID,
+					StreamID:  transfer.StreamID(id),
+					Version:   1,
+					CommandID: start.ID,
+					Payload:   &transferEvent.TransferStarted{TransferID: id, From: from, To: to, Amount: 300},
+					Metadata:  events[0].Metadata,
 				},
 			}, events)
 		})

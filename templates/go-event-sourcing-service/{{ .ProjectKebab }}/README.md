@@ -51,6 +51,13 @@ task api:close-account                  # a closed account rejects deposits and 
 The balance comes from the `account_balances` read model, so it can show the change a short time after
 the command.
 
+A client that retries a `POST` sends the same `Idempotency-Key` header as the first request. The API
+then makes the same command, with the same account ID or transfer ID, and the store records the
+command once. The retry gets the same answer as the first request, also when the first request
+succeeded and the client did not get the answer. Use a new key for each new request: the API does not
+compare the body of a retry with the body of the first request. A request with no key is a new command
+each time.
+
 Other tasks:
 
 | Task | What it does |
@@ -146,7 +153,10 @@ deploy, and does not write wrong data to a read model. The `catchup` of the new 
    from `internal/use_cases/register.go`.
 
 Send the command with `bus.Dispatch(ctx, domain.NewCommand(Deposit{...}))`. The bus finds the handler from
-the payload type, and calls it again on a concurrency conflict.
+the payload type, and calls it again on a concurrency conflict. The bus skips a command whose ID the
+store already has, so a command that arrives twice appends its events once. Give a repeated request the
+same command ID: an HTTP handler takes it from `idempotency.IDFor`, and a reaction takes it from
+`dispatch.CommandIDFor`.
 
 ## Add a Consumer
 

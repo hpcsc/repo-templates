@@ -67,6 +67,16 @@ func (s *postgres) SaveInTx(ctx context.Context, tx pgx.Tx, streamID string, eve
 		return fmt.Errorf("%w: stream %s is at version %d, not %d", event.ErrConcurrencyConflict, streamID, current, expectedVersion)
 	}
 
+	if commandID := events[0].CommandID; commandID != uuid.Nil {
+		handled, err := hasCommand(ctx, tx, commandID)
+		if err != nil {
+			return err
+		}
+		if handled {
+			return fmt.Errorf("%w: command %s", event.ErrDuplicateCommand, commandID)
+		}
+	}
+
 	for i, evt := range events {
 		if err := s.insert(ctx, tx, streamID, expectedVersion+uint64(i)+1, evt); err != nil {
 			return err
@@ -102,9 +112,14 @@ func (s *postgres) insert(ctx context.Context, tx pgx.Tx, streamID string, versi
 		}
 	}
 
+	var commandID any
+	if evt.CommandID != uuid.Nil {
+		commandID = evt.CommandID
+	}
+
 	_, err = tx.Exec(ctx,
-		"INSERT INTO events (id, stream_id, version, type, schema_version, data, metadata) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-		id, streamID, version, evt.Type(), schemaVersion, data, metadata,
+		"INSERT INTO events (id, stream_id, version, type, schema_version, data, metadata, command_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+		id, streamID, version, evt.Type(), schemaVersion, data, metadata, commandID,
 	)
 
 	var pgErr *pgconn.PgError
@@ -115,6 +130,22 @@ func (s *postgres) insert(ctx context.Context, tx pgx.Tx, streamID string, versi
 		return fmt.Errorf("failed to append version %d to stream %s: %w", version, streamID, err)
 	}
 	return nil
+}
+
+func (s *postgres) HasCommand(ctx context.Context, commandID uuid.UUID) (bool, error) {
+	return hasCommand(ctx, s.pool, commandID)
+}
+
+type queryer interface {
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
+func hasCommand(ctx context.Context, db queryer, commandID uuid.UUID) (bool, error) {
+	var handled bool
+	if err := db.QueryRow(ctx, "SELECT EXISTS (SELECT 1 FROM events WHERE command_id = $1)", commandID).Scan(&handled); err != nil {
+		return false, fmt.Errorf("failed to look for the events of command %s: %w", commandID, err)
+	}
+	return handled, nil
 }
 
 func (s *postgres) EventsForStream(ctx context.Context, streamID string) ([]domain.Event, error) {

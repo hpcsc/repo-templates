@@ -62,7 +62,7 @@ func consumers(pool *pgxpool.Pool, logger *slog.Logger) []*consumer.Consumer {
 	use_cases.RegisterEvents(reg)
 
 	eventStream := stream.NewPostgres(pool, reg)
-	bus := command.NewBus()
+	bus := command.NewBus(command.WithHistory(eventStream))
 	use_cases.RegisterHandlers(bus, eventStream)
 
 	checkpointStore := store.NewPostgres(pool)

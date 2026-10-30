@@ -40,6 +40,7 @@ func (s *OfEvents) Save(ctx context.Context, streamID string, aggregate domain.A
 	events := aggregate.Recorded()
 	for i := range events {
 		events[i] = events[i].CorrelateWithCommandID(causeID)
+		events[i].CommandID = causeID
 	}
 
 	if err := s.stream.Save(ctx, streamID, events, aggregate.Version()); err != nil {

@@ -60,8 +60,9 @@ func allRoutes(pool *pgxpool.Pool) []*route.Route {
 	reg := registry.New()
 	coreUseCases.RegisterEvents(reg)
 
-	bus := command.NewBus()
-	coreUseCases.RegisterHandlers(bus, stream.NewPostgres(pool, reg))
+	eventStream := stream.NewPostgres(pool, reg)
+	bus := command.NewBus(command.WithHistory(eventStream))
+	coreUseCases.RegisterHandlers(bus, eventStream)
 
 	routables := []route.Routable{
 		root.NewHandler(),

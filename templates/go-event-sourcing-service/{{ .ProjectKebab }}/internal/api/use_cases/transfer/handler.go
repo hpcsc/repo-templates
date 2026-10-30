@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/gookit/validate"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/idempotency"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/response"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/route"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
@@ -67,13 +68,16 @@ func (h *handler) start(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	transferID := uuid.New()
-	err := h.bus.Dispatch(req.Context(), domain.NewCommand(transferCommand.Start{
-		TransferID: transferID,
-		From:       from,
-		To:         to,
-		Amount:     body.Amount,
-	}))
+	transferID := idempotency.IDFor(req, "transfer")
+	err := h.bus.Dispatch(req.Context(), domain.Command[transferCommand.Start]{
+		ID: idempotency.IDFor(req, "command"),
+		Payload: transferCommand.Start{
+			TransferID: transferID,
+			From:       from,
+			To:         to,
+			Amount:     body.Amount,
+		},
+	})
 	if errors.Is(err, event.ErrConcurrencyConflict) {
 		_ = h.renderer.JSON(w, http.StatusConflict, response.Fail(fmt.Sprintf("%v, retry the request", err)))
 		return

@@ -103,6 +103,59 @@ func TestPostgresStream(t *testing.T) {
 			require.NoError(t, err)
 			require.Empty(t, events)
 		})
+
+		t.Run("keeps the command ID of each event", func(t *testing.T) {
+			s := newStream(t)
+			streamID := newStreamID(t)
+			evt := fake.NewSomethingHappenedEvent("1", "first")
+			evt.CommandID = uuid.New()
+
+			require.NoError(t, s.Save(context.Background(), streamID, []domain.Event{evt}, 0))
+
+			events, err := s.EventsForStream(context.Background(), streamID)
+			require.NoError(t, err)
+			require.Equal(t, evt.CommandID, events[0].CommandID)
+		})
+
+		t.Run("saves nothing and returns a duplicate command error for a command that the store has", func(t *testing.T) {
+			s := newStream(t)
+			streamID := newStreamID(t)
+			ctx := context.Background()
+			commandID := uuid.New()
+			first := fake.NewSomethingHappenedEvent("1", "first")
+			first.CommandID = commandID
+			repeat := fake.NewSomethingHappenedEvent("1", "repeat")
+			repeat.CommandID = commandID
+			require.NoError(t, s.Save(ctx, streamID, []domain.Event{first}, 0))
+
+			err := s.Save(ctx, streamID, []domain.Event{repeat}, 1)
+
+			require.ErrorIs(t, err, event.ErrDuplicateCommand)
+			events, err := s.EventsForStream(ctx, streamID)
+			require.NoError(t, err)
+			require.Len(t, events, 1)
+		})
+	})
+
+	t.Run("has command", func(t *testing.T) {
+		t.Run("finds a command after its events are saved", func(t *testing.T) {
+			s := newStream(t)
+			evt := fake.NewSomethingHappenedEvent("1", "first")
+			evt.CommandID = uuid.New()
+			require.NoError(t, s.Save(context.Background(), newStreamID(t), []domain.Event{evt}, 0))
+
+			handled, err := s.HasCommand(context.Background(), evt.CommandID)
+
+			require.NoError(t, err)
+			require.True(t, handled)
+		})
+
+		t.Run("does not find a command with no saved events", func(t *testing.T) {
+			handled, err := newStream(t).HasCommand(context.Background(), uuid.New())
+
+			require.NoError(t, err)
+			require.False(t, handled)
+		})
 	})
 
 	t.Run("save in transaction", func(t *testing.T) {

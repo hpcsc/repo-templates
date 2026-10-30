@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/idempotency"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/response"
 	apiTest "github.com/hpcsc/{{ .ProjectKebab }}/internal/api/test"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/account"
@@ -38,6 +39,20 @@ func TestHandler(t *testing.T) {
 			require.Equal(t, "alice", payload.Owner)
 			body := commonTest.UnmarshalJson[response.Response](t, w.Body.Bytes())
 			require.Equal(t, payload.AccountID.String(), body.Data.(map[string]any)["id"])
+		})
+
+		t.Run("gives a retry with the same idempotency key the same command and the same account ID", func(t *testing.T) {
+			handler := fake.NewHandler[accountCommand.Open]()
+			bus := command.NewBus()
+			bus.Register[accountCommand.Open](handler)
+			router := newRouter(bus, nil)
+
+			first := sendWithKey(router, "POST", "/accounts", `{"owner": "alice"}`, "key-1")
+			firstCommand := *handler.TriggeredWithCommand()
+			retry := sendWithKey(router, "POST", "/accounts", `{"owner": "alice"}`, "key-1")
+
+			require.Equal(t, firstCommand, *handler.TriggeredWithCommand())
+			require.Equal(t, first.Body.String(), retry.Body.String())
 		})
 
 		t.Run("rejects a body without an owner", func(t *testing.T) {
@@ -139,5 +154,13 @@ func newRouter(bus *command.Bus, b *balance.Balance) http.Handler {
 func send(router http.Handler, method string, path string, body string) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, httptest.NewRequest(method, path, strings.NewReader(body)))
+	return w
+}
+
+func sendWithKey(router http.Handler, method string, path string, body string, key string) *httptest.ResponseRecorder {
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(method, path, strings.NewReader(body))
+	req.Header.Set(idempotency.Header, key)
+	router.ServeHTTP(w, req)
 	return w
 }

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS events (
     type           TEXT NOT NULL,
     data           JSONB NOT NULL,
     metadata       JSONB,
+    command_id     UUID,
     created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT events_stream_version UNIQUE (stream_id, version)
@@ -14,3 +15,4 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE INDEX IF NOT EXISTS events_position ON events (transaction_id, sequence);
 CREATE INDEX IF NOT EXISTS events_type_position ON events (type, transaction_id, sequence);
+CREATE INDEX IF NOT EXISTS events_command_id ON events (command_id) WHERE command_id IS NOT NULL;

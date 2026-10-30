@@ -24,12 +24,13 @@ type EventPayload interface {
 }
 
 type Event struct {
-	ID       string
-	StreamID string
-	Version  uint64
-	Position Position
-	Payload  EventPayload
-	Metadata *EventMetadata
+	ID        string
+	StreamID  string
+	Version   uint64
+	Position  Position
+	CommandID uuid.UUID
+	Payload   EventPayload
+	Metadata  *EventMetadata
 }
 
 func (e Event) Type() string {

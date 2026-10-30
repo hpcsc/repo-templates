@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/gookit/validate"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/idempotency"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/response"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/route"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
@@ -56,7 +57,7 @@ func (h *handler) open(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	accountID := uuid.New()
+	accountID := idempotency.IDFor(req, "account")
 	if !h.dispatch(w, req, accountCommand.Open{AccountID: accountID, Owner: body.Owner}) {
 		return
 	}
@@ -138,7 +139,7 @@ func (h *handler) decode(w http.ResponseWriter, req *http.Request, body any) boo
 }
 
 func (h *handler) dispatch[P any](w http.ResponseWriter, req *http.Request, payload P) bool {
-	err := h.bus.Dispatch(req.Context(), domain.NewCommand(payload))
+	err := h.bus.Dispatch(req.Context(), domain.Command[P]{ID: idempotency.IDFor(req, "command"), Payload: payload})
 	if errors.Is(err, event.ErrConcurrencyConflict) {
 		_ = h.renderer.JSON(w, http.StatusConflict, response.Fail(fmt.Sprintf("%v, retry the request", err)))
 		return false

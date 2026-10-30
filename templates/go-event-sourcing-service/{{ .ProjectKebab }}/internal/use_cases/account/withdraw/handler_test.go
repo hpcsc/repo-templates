@@ -43,6 +43,19 @@ func TestHandler(t *testing.T) {
 			require.ErrorIs(t, err, account.ErrInsufficientFunds)
 			require.Len(t, eventsOf(t, s, id), 2)
 		})
+
+		t.Run("withdraws once and succeeds again for a command that arrives twice", func(t *testing.T) {
+			bus, s := newBus()
+			id := uuid.New()
+			given(t, s, id, opened(id), deposited(id, 500))
+			cmd := domain.NewCommand(accountCommand.Withdraw{AccountID: id, Amount: 500})
+			require.NoError(t, bus.Dispatch(context.Background(), cmd))
+
+			err := bus.Dispatch(context.Background(), cmd)
+
+			require.NoError(t, err)
+			require.Len(t, eventsOf(t, s, id), 3)
+		})
 	})
 }
 
@@ -52,7 +65,7 @@ func deposited(id uuid.UUID, amount int64) domain.Event {
 
 func newBus() (*command.Bus, event.Stream) {
 	s := stream.NewMemory()
-	bus := command.NewBus()
+	bus := command.NewBus(command.WithHistory(s))
 	withdraw.Register(bus, account.NewRepository(s))
 	return bus, s
 }
