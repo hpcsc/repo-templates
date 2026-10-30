@@ -53,16 +53,20 @@ func (p *postgres) SetInTx(ctx context.Context, tx pgx.Tx, name string, position
 }
 
 func (p *postgres) set(ctx context.Context, db executor, name string, position domain.Position) error {
-	_, err := db.Exec(ctx,
+	tag, err := db.Exec(ctx,
 		`INSERT INTO checkpoints (name, transaction_id, sequence)
 		VALUES ($1, $2, $3)
-		ON CONFLICT (name) DO UPDATE SET transaction_id = $2, sequence = $3, updated_at = NOW()`,
+		ON CONFLICT (name) DO UPDATE SET transaction_id = $2, sequence = $3, updated_at = NOW()
+		WHERE (checkpoints.transaction_id, checkpoints.sequence) <= ($2, $3)`,
 		name,
 		position.TransactionID,
 		position.Sequence,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to set the checkpoint of %s: %w", name, err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("%w: %s, position %+v", checkpoint.ErrMovedBack, name, position)
 	}
 	return nil
 }

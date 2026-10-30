@@ -270,6 +270,25 @@ goes back to the service that sent it. A new inbound source gets a new event typ
 it out until someone adds that type on purpose. The cost is that a projection which shows only the
 result, for example "closed", lists each event type that closes the item.
 
+## One Process for Each Consumer
+
+Each consumer runs in one process at a time. When two processes run one consumer, for example during a
+rolling deploy, a projection applies each event twice, and a reaction repeats each effect.
+
+- **Lock:** before the `catchup` process starts a consumer, it takes a Postgres advisory lock on the
+  name of the consumer. The lock is on a connection of its own, outside the pool. A second process waits
+  for each lock, and starts the consumer when the first process stops. The lock is general, in
+  `internal/common/lock`, and the consumer and the checkpoint store do not use it.
+- **Lost lock:** the lock ends when its connection ends. The lock checks the connection each second.
+  When a check fails, the context of the consumer ends, `lock.Postgres.Hold` returns `lock.ErrLost`,
+  and the `catchup` process exits with code 1.
+- **No move back:** the checkpoint store refuses a position before the saved checkpoint. After a lock
+  ends and before the next check, two processes can run one consumer for a short time. The refusal then
+  rolls back the batch of the slower projection.
+
+Each consumer uses one connection for its lock, in addition to the listener connection of its
+subscription. `pg_stat_activity` shows the lock connection with the application name `lock <consumer>`.
+
 ## Where Each Part Lives
 
 | Part | Package |
@@ -285,6 +304,7 @@ result, for example "closed", lists each event type that closes the item.
 | Write path | `internal/domain/event/stream` |
 | Read loop and listener | `internal/domain/event/subscription` |
 | Checkpoints | `internal/domain/checkpoint/store` |
+| A named lock that one process at a time can hold. `catchup` holds one for each consumer | `internal/common/lock` |
 | The account example: the aggregate, its events, its commands and its repository | `internal/use_cases/account` |
 | One package for each account use case: its command handler, and its projection or reaction | `internal/use_cases/account/open`, `deposit`, `withdraw`, `welcomebonus`, `balance` |
 | The registration of every event type and every command handler | `internal/use_cases/register.go` |

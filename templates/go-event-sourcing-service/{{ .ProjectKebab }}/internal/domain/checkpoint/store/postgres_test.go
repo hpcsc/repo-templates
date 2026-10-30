@@ -8,6 +8,7 @@ import (
 
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/common/test"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/checkpoint"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/checkpoint/store"
 	"github.com/stretchr/testify/require"
 )
@@ -33,6 +34,20 @@ func TestPostgresStore(t *testing.T) {
 			require.NoError(t, s.Set(ctx, name, domain.Position{TransactionID: 750, Sequence: 12}))
 			require.NoError(t, s.Set(ctx, name, domain.Position{TransactionID: 760, Sequence: 30}))
 
+			position, err := s.Get(ctx, name)
+			require.NoError(t, err)
+			require.Equal(t, &domain.Position{TransactionID: 760, Sequence: 30}, position)
+		})
+
+		t.Run("refuses a position before the saved one and keeps the saved one", func(t *testing.T) {
+			s := store.NewPostgres(test.NewDBPool(t))
+			name := "test-" + test.NewStringID(t)
+			ctx := context.Background()
+			require.NoError(t, s.Set(ctx, name, domain.Position{TransactionID: 760, Sequence: 30}))
+
+			err := s.Set(ctx, name, domain.Position{TransactionID: 750, Sequence: 40})
+
+			require.ErrorIs(t, err, checkpoint.ErrMovedBack)
 			position, err := s.Get(ctx, name)
 			require.NoError(t, err)
 			require.Equal(t, &domain.Position{TransactionID: 760, Sequence: 30}, position)

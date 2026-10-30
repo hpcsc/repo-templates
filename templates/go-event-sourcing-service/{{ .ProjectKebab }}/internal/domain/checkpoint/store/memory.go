@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
@@ -41,6 +42,9 @@ func (m *memory) Set(_ context.Context, name string, position domain.Position) e
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
+	if saved, exist := m.positionByName[name]; exist && position.Before(saved) {
+		return fmt.Errorf("%w: %s, position %+v", checkpoint.ErrMovedBack, name, position)
+	}
 	m.positionByName[name] = position
 	return nil
 }

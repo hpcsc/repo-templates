@@ -165,6 +165,10 @@ The name of each consumer is the key of its checkpoint. Do not rename a consumer
 production: a projection with a new name rebuilds from the beginning, and a reaction with a new name
 starts again at the end of the store.
 
+The name is also the key of a lock. Each consumer runs in one `catchup` process at a time. A second
+process, for example during a rolling deploy, waits until the first process stops.
+[docs/event-subscription.md](docs/event-subscription.md#one-process-for-each-consumer) tells how.
+
 {{- if .Scaffold.ProcessManager }}
 
 ## Process Manager Example

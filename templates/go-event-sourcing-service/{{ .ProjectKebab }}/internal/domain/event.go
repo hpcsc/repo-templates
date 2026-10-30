@@ -12,6 +12,13 @@ type Position struct {
 	Sequence      uint64
 }
 
+func (p Position) Before(other Position) bool {
+	if p.TransactionID != other.TransactionID {
+		return p.TransactionID < other.TransactionID
+	}
+	return p.Sequence < other.Sequence
+}
+
 type EventPayload interface {
 	EventType() string
 }

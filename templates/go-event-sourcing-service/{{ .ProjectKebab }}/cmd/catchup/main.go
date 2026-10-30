@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/common/config"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/common/lock"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/checkpoint/store"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/command"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/consumer"
@@ -48,7 +49,7 @@ func main() {
 	}
 
 	ctx := runShutdownSignalHandler(context.Background(), logger)
-	failed := run(ctx, consumers(pool, logger), logger)
+	failed := run(ctx, consumers(pool, logger), lock.NewPostgres(pool), logger)
 
 	pool.Close()
 	if failed {
@@ -77,7 +78,7 @@ func consumers(pool *pgxpool.Pool, logger *slog.Logger) []*consumer.Consumer {
 	}
 }
 
-func run(parentCtx context.Context, consumers []*consumer.Consumer, logger *slog.Logger) bool {
+func run(parentCtx context.Context, consumers []*consumer.Consumer, locks *lock.Postgres, logger *slog.Logger) bool {
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
@@ -95,7 +96,8 @@ func run(parentCtx context.Context, consumers []*consumer.Consumer, logger *slog
 				}
 			}()
 
-			if err := c.Start(ctx); err != nil {
+			logger.Info(fmt.Sprintf("consumer %s takes its lock", c.Name()))
+			if err := locks.Hold(ctx, c.Name(), c.Start); err != nil {
 				logger.Error(fmt.Sprintf("consumer %s failed: %v", c.Name(), err))
 				failed.Store(true)
 				cancel()
