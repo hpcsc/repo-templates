@@ -18,4 +18,8 @@ func RegisterEvents(reg *registry.OfEvents) {
 	reg.Register[event.PaymentSubmitted]()
 	reg.Register[event.PaymentSettled]()
 	reg.Register[event.PaymentReturned]()
+	reg.Register[event.PaymentChecksRetried]()
+	reg.Register[event.PaymentSubmissionRetried]()
+	reg.Register[event.PaymentStatusQueried]()
+	reg.Register[event.PaymentEscalated]()
 }

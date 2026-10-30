@@ -35,9 +35,21 @@ func TestGateway(t *testing.T) {
 
 			require.NoError(t, err)
 			require.ElementsMatch(t, []request{
-				{path: "/fraud/checks", key: outside.KeyFor(paymentID, "fraud-check", 1), body: checks.CheckRequest{PaymentID: paymentID, Amount: 300, CreditorIBAN: "DE89370400440532013000", WebhookURL: "http://api/webhooks/fraud-checks"}},
-				{path: "/sanctions/screenings", key: outside.KeyFor(paymentID, "sanctions-screening", 1), body: checks.CheckRequest{PaymentID: paymentID, Amount: 300, CreditorIBAN: "DE89370400440532013000", WebhookURL: "http://api/webhooks/sanctions-screenings"}},
+				{path: "/fraud/checks", key: outside.KeyFor(paymentID, "fraud-check/1"), body: checks.CheckRequest{PaymentID: paymentID, Amount: 300, CreditorIBAN: "DE89370400440532013000", WebhookURL: "http://api/webhooks/fraud-checks"}},
+				{path: "/sanctions/screenings", key: outside.KeyFor(paymentID, "sanctions-screening/1"), body: checks.CheckRequest{PaymentID: paymentID, Amount: 300, CreditorIBAN: "DE89370400440532013000", WebhookURL: "http://api/webhooks/sanctions-screenings"}},
 			}, services.requests())
+		})
+
+		t.Run("asks again with a new key for each attempt", func(t *testing.T) {
+			services := newServices(http.StatusAccepted)
+			defer services.Close()
+			paymentID := uuid.New()
+			gateway := newGateway(t, services.URL, paymentID, test.DiscardLogger())
+
+			err := gateway.Handle(context.Background(), &domain.Event{ID: "event-2", Payload: &paymentEvent.PaymentChecksRetried{PaymentID: paymentID, Attempt: 2, ChecksDeadline: time.Now()}})
+
+			require.NoError(t, err)
+			require.ElementsMatch(t, []string{outside.KeyFor(paymentID, "fraud-check/2"), outside.KeyFor(paymentID, "sanctions-screening/2")}, services.keys())
 		})
 
 		t.Run("logs a refused request and returns no error, so the consumer goes on", func(t *testing.T) {
@@ -100,4 +112,12 @@ func (s *services) requests() []request {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return append([]request(nil), s.received...)
+}
+
+func (s *services) keys() []string {
+	var keys []string
+	for _, r := range s.requests() {
+		keys = append(keys, r.key)
+	}
+	return keys
 }

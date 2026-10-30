@@ -36,4 +36,32 @@ func TestRepository(t *testing.T) {
 			require.ErrorIs(t, err, payment.ErrNotRequested)
 		})
 	})
+
+	t.Run("submitted", func(t *testing.T) {
+		t.Run("returns the submission with the reference of the network", func(t *testing.T) {
+			s := stream.NewMemory()
+			id := uuid.New()
+			require.NoError(t, s.Save(context.Background(), payment.StreamID(id), []domain.Event{
+				domain.NewEvent(&event.PaymentRequested{PaymentID: id, AccountID: uuid.New(), CreditorIBAN: "DE89370400440532013000", Amount: 300}),
+				domain.NewEvent(&event.PaymentSubmitted{PaymentID: id, NetworkReference: "N-8812", SettlementDeadline: deadline}),
+			}, 0))
+
+			submitted, err := payment.NewRepository(s).Submitted(context.Background(), id)
+
+			require.NoError(t, err)
+			require.Equal(t, &event.PaymentSubmitted{PaymentID: id, NetworkReference: "N-8812", SettlementDeadline: deadline}, submitted)
+		})
+
+		t.Run("returns the error for a payment that is not submitted", func(t *testing.T) {
+			s := stream.NewMemory()
+			id := uuid.New()
+			require.NoError(t, s.Save(context.Background(), payment.StreamID(id), []domain.Event{
+				domain.NewEvent(&event.PaymentRequested{PaymentID: id, AccountID: uuid.New(), CreditorIBAN: "DE89370400440532013000", Amount: 300}),
+			}, 0))
+
+			_, err := payment.NewRepository(s).Submitted(context.Background(), id)
+
+			require.ErrorIs(t, err, payment.ErrNotSubmitted)
+		})
+	})
 }

@@ -16,6 +16,21 @@ import (
 )
 
 func TestClient(t *testing.T) {
+	t.Run("get", func(t *testing.T) {
+		t.Run("reads the answer after a 5xx answer", func(t *testing.T) {
+			server := newServer(http.StatusServiceUnavailable, http.StatusOK)
+			defer server.Close()
+			var answer struct {
+				Reference string `json:"reference"`
+			}
+
+			err := newClient().Get(context.Background(), server.URL, &answer)
+
+			require.NoError(t, err)
+			require.Equal(t, "N-1", answer.Reference)
+		})
+	})
+
 	t.Run("post", func(t *testing.T) {
 		t.Run("sends the body as JSON with the key, and reads the answer", func(t *testing.T) {
 			server := newServer(http.StatusAccepted)

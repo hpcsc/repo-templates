@@ -51,17 +51,19 @@ type SubmitAnswer struct {
 
 func NewHandler(token string, delay time.Duration, logger *slog.Logger) http.Handler {
 	f := &fakes{
-		token:   token,
-		delay:   delay,
-		client:  &http.Client{Timeout: 5 * time.Second},
-		logger:  logger,
-		answers: make(map[string]any),
+		token:    token,
+		delay:    delay,
+		client:   &http.Client{Timeout: 5 * time.Second},
+		logger:   logger,
+		answers:  make(map[string]any),
+		statuses: make(map[string]NetworkStatus),
 	}
 
 	r := chi.NewRouter()
 	r.Post("/fraud/checks", f.fraudCheck)
 	r.Post("/sanctions/screenings", f.sanctionsScreening)
 	r.Post("/network/payments", f.networkPayment)
+	r.Get("/network/payments/{reference}", f.networkStatus)
 	return r
 }
 
@@ -71,8 +73,9 @@ type fakes struct {
 	client *http.Client
 	logger *slog.Logger
 
-	mutex   sync.Mutex
-	answers map[string]any
+	mutex    sync.Mutex
+	answers  map[string]any
+	statuses map[string]NetworkStatus
 }
 
 func (f *fakes) fraudCheck(w http.ResponseWriter, r *http.Request) {
@@ -102,20 +105,38 @@ func (f *fakes) sanctionsScreening(w http.ResponseWriter, r *http.Request) {
 
 func (f *fakes) networkPayment(w http.ResponseWriter, r *http.Request) {
 	f.answerOnce(w, r, func(p PaymentRequest, key string) any {
+		reference := "N-" + strings.ToUpper(uuid.NewSHA1(uuid.NameSpaceOID, []byte(key)).String()[:8])
 		switch {
-		case strings.HasSuffix(p.CreditorIBAN, unsettledSuffix), strings.HasSuffix(p.CreditorIBAN, unansweredSuffix):
-			// The network never calls the webhook for these payments.
+		case strings.HasSuffix(p.CreditorIBAN, unsettledSuffix):
+			f.statuses[reference] = NetworkStatus{PaymentID: p.PaymentID, Status: "settled"}
+		case strings.HasSuffix(p.CreditorIBAN, unansweredSuffix):
+			f.statuses[reference] = NetworkStatus{PaymentID: p.PaymentID, Status: "pending"}
 		case strings.HasSuffix(p.CreditorIBAN, returnedSuffix):
-			f.callLater(p.WebhookURL, key, NetworkStatus{PaymentID: p.PaymentID, Status: "returned", Reason: "account closed at the other bank"})
+			f.statuses[reference] = NetworkStatus{PaymentID: p.PaymentID, Status: "returned", Reason: "account closed at the other bank"}
+			f.callLater(p.WebhookURL, key, f.statuses[reference])
 		default:
-			f.callLater(p.WebhookURL, key, NetworkStatus{PaymentID: p.PaymentID, Status: "settled"})
+			f.statuses[reference] = NetworkStatus{PaymentID: p.PaymentID, Status: "settled"}
+			f.callLater(p.WebhookURL, key, f.statuses[reference])
 		}
-		return SubmitAnswer{Reference: "N-" + strings.ToUpper(uuid.NewSHA1(uuid.NameSpaceOID, []byte(key)).String()[:8])}
+		return SubmitAnswer{Reference: reference}
 	})
 }
 
+func (f *fakes) networkStatus(w http.ResponseWriter, r *http.Request) {
+	f.mutex.Lock()
+	status, ok := f.statuses[chi.URLParam(r, "reference")]
+	f.mutex.Unlock()
+	if !ok {
+		http.Error(w, "no payment has the reference", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(status)
+}
+
 // answerOnce decides once for each Idempotency-Key, and gives a repeated request the same answer
-// and no second webhook.
+// and no second webhook. It holds the mutex while decide runs.
 func (f *fakes) answerOnce(w http.ResponseWriter, r *http.Request, decide func(p PaymentRequest, key string) any) {
 	key := r.Header.Get("Idempotency-Key")
 	if key == "" {

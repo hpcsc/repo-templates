@@ -14,21 +14,24 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/common/lock"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/checkpoint/store"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/command"
-	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/consumer"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/registry"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/stream"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/subscription"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/projection"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/reaction"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/scheduler"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/balance"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/account/welcomebonus"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/checks"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/deadlines"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/funding"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/holds"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/outside"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/status"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/submission"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/summary"
 {{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/process"
 {{- end }}
@@ -56,7 +59,7 @@ func main() {
 	}
 
 	ctx := runShutdownSignalHandler(context.Background(), logger)
-	failed := run(ctx, consumers(pool, cfg.Outside, logger), lock.NewPostgres(pool), logger)
+	failed := run(ctx, workers(pool, cfg.Outside, logger), lock.NewPostgres(pool), logger)
 
 	pool.Close()
 	if failed {
@@ -64,7 +67,13 @@ func main() {
 	}
 }
 
-func consumers(pool *pgxpool.Pool, outsideCfg outside.Config, logger *slog.Logger) []*consumer.Consumer {
+// worker is a consumer or a scheduler. catchup runs each one under the lock of its name.
+type worker interface {
+	Name() string
+	Start(ctx context.Context) error
+}
+
+func workers(pool *pgxpool.Pool, outsideCfg outside.Config, logger *slog.Logger) []worker {
 	reg := registry.New()
 	use_cases.RegisterEvents(reg)
 
@@ -77,13 +86,17 @@ func consumers(pool *pgxpool.Pool, outsideCfg outside.Config, logger *slog.Logge
 	payments := payment.NewRepository(eventStream)
 	outsideClient := outside.NewClient()
 
-	return []*consumer.Consumer{
+	return []worker{
 		projection.NewProjector(balance.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(welcomebonus.NewReaction(bus), checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(funding.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 		reaction.NewReactor(holds.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 		reaction.NewReactor(checks.NewGateway(payments, outsideClient, outsideCfg, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 		reaction.NewReactor(submission.NewGateway(bus, payments, outsideClient, outsideCfg, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(status.NewGateway(bus, payments, outsideClient, outsideCfg, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		projection.NewProjector(summary.NewProjection(), pool, checkpointStore, eventSubscription, logger),
+		projection.NewProjector(deadlines.NewProjection(), pool, checkpointStore, eventSubscription, logger),
+		scheduler.New(deadlines.NewReporter(pool, bus), logger),
 {{- if .Scaffold.ProcessManager }}
 		projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(process.NewDispatcher(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
@@ -91,32 +104,32 @@ func consumers(pool *pgxpool.Pool, outsideCfg outside.Config, logger *slog.Logge
 	}
 }
 
-func run(parentCtx context.Context, consumers []*consumer.Consumer, locks *lock.Postgres, logger *slog.Logger) bool {
+func run(parentCtx context.Context, workers []worker, locks *lock.Postgres, logger *slog.Logger) bool {
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
 	var failed atomic.Bool
 	var wg sync.WaitGroup
-	for _, c := range consumers {
+	for _, w := range workers {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			defer func() {
 				if err := recover(); err != nil {
-					logger.Error(fmt.Sprintf("consumer %s received unhandled error: %v", c.Name(), err))
+					logger.Error(fmt.Sprintf("%s received unhandled error: %v", w.Name(), err))
 					failed.Store(true)
 					cancel()
 				}
 			}()
 
-			logger.Info(fmt.Sprintf("consumer %s takes its lock", c.Name()))
-			if err := locks.Hold(ctx, c.Name(), c.Start); err != nil {
-				logger.Error(fmt.Sprintf("consumer %s failed: %v", c.Name(), err))
+			logger.Info(fmt.Sprintf("%s takes its lock", w.Name()))
+			if err := locks.Hold(ctx, w.Name(), w.Start); err != nil {
+				logger.Error(fmt.Sprintf("%s failed: %v", w.Name(), err))
 				failed.Store(true)
 				cancel()
 				return
 			}
-			logger.Info(fmt.Sprintf("consumer %s stopped", c.Name()))
+			logger.Info(fmt.Sprintf("%s stopped", w.Name()))
 		}()
 	}
 

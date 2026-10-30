@@ -253,6 +253,103 @@ func TestPayment(t *testing.T) {
 			require.Empty(t, recorded(p))
 		})
 	})
+	t.Run("time out checks", func(t *testing.T) {
+		t.Run("asks for the checks again with a new deadline", func(t *testing.T) {
+			p := given(requested(), funded())
+
+			require.NoError(t, p.TimeOutChecks(1, deadline))
+
+			require.Equal(t, []any{&event.PaymentChecksRetried{PaymentID: paymentID, Attempt: 2, ChecksDeadline: deadline}}, recorded(p))
+		})
+
+		t.Run("fails the payment after the last attempt", func(t *testing.T) {
+			p := given(requested(), funded(), checksRetried(2), checksRetried(3))
+
+			require.NoError(t, p.TimeOutChecks(3, deadline))
+
+			require.Equal(t, []any{&event.PaymentFailed{PaymentID: paymentID, AccountID: accountID, Reason: "the checks did not answer"}}, recorded(p))
+		})
+
+		t.Run("records nothing for an attempt that is not the last one asked", func(t *testing.T) {
+			p := given(requested(), funded(), checksRetried(2))
+
+			require.NoError(t, p.TimeOutChecks(1, deadline))
+
+			require.Empty(t, recorded(p))
+		})
+
+		t.Run("records nothing after the payment cleared", func(t *testing.T) {
+			p := given(requested(), funded(), cleared())
+
+			require.NoError(t, p.TimeOutChecks(1, deadline))
+
+			require.Empty(t, recorded(p))
+		})
+	})
+
+	t.Run("time out submission", func(t *testing.T) {
+		t.Run("asks to send the payment again with a new deadline", func(t *testing.T) {
+			p := given(requested(), funded(), cleared())
+
+			require.NoError(t, p.TimeOutSubmission(1, deadline))
+
+			require.Equal(t, []any{&event.PaymentSubmissionRetried{PaymentID: paymentID, Attempt: 2, SubmissionDeadline: deadline}}, recorded(p))
+		})
+
+		t.Run("escalates the payment after the last attempt, and does not fail it", func(t *testing.T) {
+			p := given(requested(), funded(), cleared(),
+				domain.NewEvent(&event.PaymentSubmissionRetried{PaymentID: paymentID, Attempt: 2, SubmissionDeadline: deadline}),
+				domain.NewEvent(&event.PaymentSubmissionRetried{PaymentID: paymentID, Attempt: 3, SubmissionDeadline: deadline}))
+
+			require.NoError(t, p.TimeOutSubmission(3, deadline))
+
+			require.Equal(t, []any{&event.PaymentEscalated{PaymentID: paymentID, Reason: "the payment network did not take the payment"}}, recorded(p))
+		})
+	})
+
+	t.Run("time out settlement", func(t *testing.T) {
+		t.Run("asks the network for the status with a new deadline", func(t *testing.T) {
+			p := given(requested(), funded(), cleared(), submitted())
+
+			require.NoError(t, p.TimeOutSettlement(1, deadline))
+
+			require.Equal(t, []any{&event.PaymentStatusQueried{PaymentID: paymentID, Attempt: 2, SettlementDeadline: deadline}}, recorded(p))
+		})
+
+		t.Run("escalates the payment after the last attempt", func(t *testing.T) {
+			p := given(requested(), funded(), cleared(), submitted(), statusQueried(2), statusQueried(3))
+
+			require.NoError(t, p.TimeOutSettlement(3, deadline))
+
+			require.Equal(t, []any{&event.PaymentEscalated{PaymentID: paymentID, Reason: "the payment network did not settle the payment"}}, recorded(p))
+		})
+	})
+
+	t.Run("escalated payment", func(t *testing.T) {
+		t.Run("settles when the settlement arrives after the escalation", func(t *testing.T) {
+			p := given(requested(), funded(), cleared(), submitted(), escalated())
+
+			require.NoError(t, p.RecordSettlement())
+
+			require.Equal(t, []any{&event.PaymentSettled{PaymentID: paymentID, AccountID: accountID}}, recorded(p))
+		})
+
+		t.Run("records the return when the return arrives after the escalation", func(t *testing.T) {
+			p := given(requested(), funded(), cleared(), submitted(), escalated())
+
+			require.NoError(t, p.RecordReturn("account closed at the other bank"))
+
+			require.Equal(t, []any{&event.PaymentReturned{PaymentID: paymentID, AccountID: accountID, Reason: "account closed at the other bank"}}, recorded(p))
+		})
+
+		t.Run("records nothing for a later timeout", func(t *testing.T) {
+			p := given(requested(), funded(), cleared(), submitted(), statusQueried(2), statusQueried(3), escalated())
+
+			require.NoError(t, p.TimeOutSettlement(3, deadline))
+
+			require.Empty(t, recorded(p))
+		})
+	})
 }
 
 func given(history ...domain.Event) *payment.Payment {
@@ -286,4 +383,16 @@ func recorded(p *payment.Payment) []any {
 		payloads = append(payloads, e.Payload)
 	}
 	return payloads
+}
+
+func checksRetried(attempt int) domain.Event {
+	return domain.NewEvent(&event.PaymentChecksRetried{PaymentID: paymentID, Attempt: attempt, ChecksDeadline: deadline})
+}
+
+func statusQueried(attempt int) domain.Event {
+	return domain.NewEvent(&event.PaymentStatusQueried{PaymentID: paymentID, Attempt: attempt, SettlementDeadline: deadline})
+}
+
+func escalated() domain.Event {
+	return domain.NewEvent(&event.PaymentEscalated{PaymentID: paymentID, Reason: "the payment network did not settle the payment"})
 }

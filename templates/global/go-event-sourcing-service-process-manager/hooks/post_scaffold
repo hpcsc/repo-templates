@@ -199,7 +199,7 @@ start.Register(bus, transfer.NewRepository(stream), accounts)')"
 
 file=cmd/catchup/main.go
 add $file "\"$module/internal/use_cases/transfer/process\"" "$(after_last_import "\"$module/internal/use_cases/transfer/process\"")"
-add $file "process.NewProjection(" "$(after_last_element function_declaration consumers 'projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
+add $file "process.NewProjection(" "$(after_last_element function_declaration workers 'projection.NewProjector(process.NewProjection(eventStream), pool, checkpointStore, eventSubscription, logger),
 reaction.NewReactor(process.NewDispatcher(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning())')"
 
 file=internal/api/use_cases/register.go

@@ -46,10 +46,10 @@ type Client struct {
 	wait     time.Duration
 }
 
-// KeyFor gives one key to all the requests of one call in one attempt of a payment, so an outside
-// system answers a repeated request once.
-func KeyFor(paymentID uuid.UUID, call string, attempt int) string {
-	return uuid.NewSHA1(uuid.NameSpaceOID, []byte(fmt.Sprintf("%s/%s/%d", paymentID, call, attempt))).String()
+// KeyFor gives one key to all the requests of one call of a payment, so an outside system answers a
+// repeated request once.
+func KeyFor(paymentID uuid.UUID, call string) string {
+	return uuid.NewSHA1(uuid.NameSpaceOID, []byte(paymentID.String()+"/"+call)).String()
 }
 
 // Post sends the body as JSON and decodes the answer into answer, when answer is not nil. It tries
@@ -59,7 +59,15 @@ func (c *Client) Post(ctx context.Context, url string, key string, body any, ans
 	if err != nil {
 		return err
 	}
+	return c.send(ctx, http.MethodPost, url, key, payload, answer)
+}
 
+// Get decodes the answer into answer. It tries again after a network error or a 5xx answer.
+func (c *Client) Get(ctx context.Context, url string, answer any) error {
+	return c.send(ctx, http.MethodGet, url, "", nil, answer)
+}
+
+func (c *Client) send(ctx context.Context, method string, url string, key string, payload []byte, answer any) error {
 	var lastErr error
 	for attempt := 1; attempt <= c.attempts; attempt++ {
 		if attempt > 1 {
@@ -70,7 +78,7 @@ func (c *Client) Post(ctx context.Context, url string, key string, body any, ans
 			}
 		}
 
-		retry, err := c.post(ctx, url, key, payload, answer)
+		retry, err := c.sendOnce(ctx, method, url, key, payload, answer)
 		if err == nil || !retry {
 			return err
 		}
@@ -79,29 +87,33 @@ func (c *Client) Post(ctx context.Context, url string, key string, body any, ans
 	return fmt.Errorf("%w, after %d attempts", lastErr, c.attempts)
 }
 
-func (c *Client) post(ctx context.Context, url string, key string, payload []byte, answer any) (bool, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
+func (c *Client) sendOnce(ctx context.Context, method string, url string, key string, payload []byte, answer any) (bool, error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewReader(payload))
 	if err != nil {
 		return false, err
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Idempotency-Key", key)
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if key != "" {
+		req.Header.Set("Idempotency-Key", key)
+	}
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return ctx.Err() == nil, fmt.Errorf("failed to send POST %s: %w", url, err)
+		return ctx.Err() == nil, fmt.Errorf("failed to send %s %s: %w", method, url, err)
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode >= 300 {
 		text, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return resp.StatusCode >= 500, fmt.Errorf("POST %s answered %d: %s", url, resp.StatusCode, bytes.TrimSpace(text))
+		return resp.StatusCode >= 500, fmt.Errorf("%s %s answered %d: %s", method, url, resp.StatusCode, bytes.TrimSpace(text))
 	}
 	if answer == nil {
 		return false, nil
 	}
 	if err := json.NewDecoder(resp.Body).Decode(answer); err != nil {
-		return false, fmt.Errorf("failed to read the answer of POST %s: %w", url, err)
+		return false, fmt.Errorf("failed to read the answer of %s %s: %w", method, url, err)
 	}
 	return false, nil
 }

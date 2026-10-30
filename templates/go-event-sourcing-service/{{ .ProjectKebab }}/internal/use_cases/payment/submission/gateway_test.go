@@ -42,8 +42,25 @@ func TestGateway(t *testing.T) {
 
 			require.NoError(t, gateway.Handle(context.Background(), cleared(paymentID)))
 
-			require.Equal(t, outside.KeyFor(paymentID, "submission", 1), key)
+			require.Equal(t, outside.KeyFor(paymentID, "submission"), key)
 			require.Equal(t, submission.SubmitRequest{PaymentID: paymentID, Amount: 300, CreditorIBAN: "DE89370400440532013000", WebhookURL: "http://api/webhooks/payment-network"}, body)
+		})
+
+		t.Run("sends a retried payment with the key of the first attempt", func(t *testing.T) {
+			var keys []string
+			network := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				keys = append(keys, r.Header.Get("Idempotency-Key"))
+				w.WriteHeader(http.StatusAccepted)
+				_, _ = w.Write([]byte(`{"reference": "N-8812"}`))
+			}))
+			defer network.Close()
+			paymentID := uuid.New()
+			gateway, _ := newGateway(t, network.URL, paymentID, test.DiscardLogger())
+
+			require.NoError(t, gateway.Handle(context.Background(), cleared(paymentID)))
+			require.NoError(t, gateway.Handle(context.Background(), &domain.Event{ID: "event-2", Payload: &paymentEvent.PaymentSubmissionRetried{PaymentID: paymentID, Attempt: 2, SubmissionDeadline: time.Now()}}))
+
+			require.Equal(t, []string{outside.KeyFor(paymentID, "submission"), outside.KeyFor(paymentID, "submission")}, keys)
 		})
 
 		t.Run("records the reference that the network gives", func(t *testing.T) {

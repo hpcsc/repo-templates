@@ -19,6 +19,7 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/record"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/request"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/timeout"
 {{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/transfer/start"
@@ -33,7 +34,24 @@ func RegisterEvents(reg *registry.OfEvents) {
 {{- end }}
 }
 
-func RegisterHandlers(bus *command.Bus, stream event.Stream) {
+type Option func(*options)
+
+type options struct {
+	paymentTimeouts payment.Timeouts
+}
+
+func WithPaymentTimeouts(timeouts payment.Timeouts) Option {
+	return func(o *options) {
+		o.paymentTimeouts = timeouts
+	}
+}
+
+func RegisterHandlers(bus *command.Bus, stream event.Stream, opts ...Option) {
+	o := options{paymentTimeouts: payment.DefaultTimeouts}
+	for _, opt := range opts {
+		opt(&o)
+	}
+
 	accounts := account.NewRepository(stream)
 
 	open.Register(bus, accounts)
@@ -45,7 +63,8 @@ func RegisterHandlers(bus *command.Bus, stream event.Stream) {
 
 	payments := payment.NewRepository(stream)
 	request.Register(bus, payments, accounts)
-	record.Register(bus, payments, payment.DefaultTimeouts, time.Now)
+	record.Register(bus, payments, o.paymentTimeouts, time.Now)
+	timeout.Register(bus, payments, o.paymentTimeouts, time.Now)
 {{- if .Scaffold.ProcessManager }}
 	transfers.Register(bus, accounts)
 	start.Register(bus, transfer.NewRepository(stream), accounts)

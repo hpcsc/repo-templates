@@ -13,6 +13,7 @@ import (
 var (
 	ErrAlreadyRequested = errors.New("payment is already requested")
 	ErrNotRequested     = errors.New("payment is not requested")
+	ErrNotSubmitted     = errors.New("payment is not submitted")
 	ErrInvalidAmount    = errors.New("amount must be more than 0")
 	ErrNoCreditor       = errors.New("creditor IBAN must not be empty")
 	ErrUnknownAccount   = errors.New("account does not exist")
@@ -30,10 +31,13 @@ type Timeouts struct {
 	Settlement time.Duration
 }
 
+// MaxAttempts is the number of times that a payment asks for one stage before it fails or escalates.
+const MaxAttempts = 3
+
 var DefaultTimeouts = Timeouts{
-	Checks:     30 * time.Second,
-	Submission: 30 * time.Second,
-	Settlement: time.Minute,
+	Checks:     10 * time.Second,
+	Submission: 10 * time.Second,
+	Settlement: 10 * time.Second,
 }
 
 type stage int
@@ -43,6 +47,7 @@ const (
 	funded
 	cleared
 	submitted
+	escalated
 	settled
 	returned
 	refused
@@ -57,6 +62,7 @@ type Payment struct {
 	stage           stage
 	fraudPassed     bool
 	screeningPassed bool
+	attempt         int
 }
 
 func (p *Payment) ID() uuid.UUID {
@@ -178,6 +184,58 @@ func (p *Payment) RecordReturn(reason string) error {
 	return nil
 }
 
+func (p *Payment) TimeOutChecks(attempt int, checksDeadline time.Time) error {
+	if p.id == uuid.Nil {
+		return ErrNotRequested
+	}
+	if p.stage != funded || attempt != p.attempt {
+		return nil
+	}
+
+	if attempt >= MaxAttempts {
+		p.record(domain.NewEvent(&event.PaymentFailed{PaymentID: p.id, AccountID: p.accountID, Reason: "the checks did not answer"}))
+		return nil
+	}
+
+	p.record(domain.NewEvent(&event.PaymentChecksRetried{PaymentID: p.id, Attempt: attempt + 1, ChecksDeadline: checksDeadline}))
+	return nil
+}
+
+// TimeOutSubmission escalates and never fails the payment, because the network can have it already.
+func (p *Payment) TimeOutSubmission(attempt int, submissionDeadline time.Time) error {
+	if p.id == uuid.Nil {
+		return ErrNotRequested
+	}
+	if p.stage != cleared || attempt != p.attempt {
+		return nil
+	}
+
+	if attempt >= MaxAttempts {
+		p.record(domain.NewEvent(&event.PaymentEscalated{PaymentID: p.id, Reason: "the payment network did not take the payment"}))
+		return nil
+	}
+
+	p.record(domain.NewEvent(&event.PaymentSubmissionRetried{PaymentID: p.id, Attempt: attempt + 1, SubmissionDeadline: submissionDeadline}))
+	return nil
+}
+
+func (p *Payment) TimeOutSettlement(attempt int, settlementDeadline time.Time) error {
+	if p.id == uuid.Nil {
+		return ErrNotRequested
+	}
+	if p.stage != submitted || attempt != p.attempt {
+		return nil
+	}
+
+	if attempt >= MaxAttempts {
+		p.record(domain.NewEvent(&event.PaymentEscalated{PaymentID: p.id, Reason: "the payment network did not settle the payment"}))
+		return nil
+	}
+
+	p.record(domain.NewEvent(&event.PaymentStatusQueried{PaymentID: p.id, Attempt: attempt + 1, SettlementDeadline: settlementDeadline}))
+	return nil
+}
+
 func (p *Payment) Apply(e domain.Event) {
 	switch payload := e.Payload.(type) {
 	case *event.PaymentRequested:
@@ -186,6 +244,9 @@ func (p *Payment) Apply(e domain.Event) {
 		p.stage = requested
 	case *event.PaymentFunded:
 		p.stage = funded
+		p.attempt = 1
+	case *event.PaymentChecksRetried:
+		p.attempt = payload.Attempt
 	case *event.PaymentFailed:
 		p.stage = failed
 	case *event.FraudCheckPassed:
@@ -194,10 +255,18 @@ func (p *Payment) Apply(e domain.Event) {
 		p.screeningPassed = true
 	case *event.PaymentCleared:
 		p.stage = cleared
+		p.attempt = 1
+	case *event.PaymentSubmissionRetried:
+		p.attempt = payload.Attempt
 	case *event.PaymentRefused:
 		p.stage = refused
 	case *event.PaymentSubmitted:
 		p.stage = submitted
+		p.attempt = 1
+	case *event.PaymentStatusQueried:
+		p.attempt = payload.Attempt
+	case *event.PaymentEscalated:
+		p.stage = escalated
 	case *event.PaymentSettled:
 		p.stage = settled
 	case *event.PaymentReturned:
@@ -216,9 +285,10 @@ func (p *Payment) refuse(reason string) {
 }
 
 // A payment waits for the network from the time it clears, because the network can settle it
-// before the submission gateway records its reference.
+// before the submission gateway records its reference. An escalated payment still waits, because
+// the network can settle it late.
 func (p *Payment) awaitsNetwork() bool {
-	return p.stage == cleared || p.stage == submitted
+	return p.stage == cleared || p.stage == submitted || p.stage == escalated
 }
 
 func (p *Payment) record(e domain.Event) {

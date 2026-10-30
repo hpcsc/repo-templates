@@ -31,16 +31,25 @@ func (r *Repository) Save(ctx context.Context, p *Payment, cause domain.Cause) e
 	return r.events.Save(ctx, StreamID(p.ID()), p, cause)
 }
 
-// Requested reads the request from the stream, because the aggregate keeps only what its rules read.
+// Requested and Submitted read the stream, because the aggregate keeps only what its rules read.
 func (r *Repository) Requested(ctx context.Context, id uuid.UUID) (*paymentEvent.PaymentRequested, error) {
-	events, err := r.stream.EventsForStream(ctx, StreamID(id))
+	return firstOf[*paymentEvent.PaymentRequested](ctx, r.stream, id, ErrNotRequested)
+}
+
+func (r *Repository) Submitted(ctx context.Context, id uuid.UUID) (*paymentEvent.PaymentSubmitted, error) {
+	return firstOf[*paymentEvent.PaymentSubmitted](ctx, r.stream, id, ErrNotSubmitted)
+}
+
+func firstOf[P domain.EventPayload](ctx context.Context, stream event.Stream, id uuid.UUID, missing error) (P, error) {
+	var none P
+	events, err := stream.EventsForStream(ctx, StreamID(id))
 	if err != nil {
-		return nil, err
+		return none, err
 	}
-	if len(events) > 0 {
-		if requested, ok := events[0].Payload.(*paymentEvent.PaymentRequested); ok {
-			return requested, nil
+	for _, e := range events {
+		if payload, ok := e.Payload.(P); ok {
+			return payload, nil
 		}
 	}
-	return nil, fmt.Errorf("%w: %s", ErrNotRequested, id)
+	return none, fmt.Errorf("%w: %s", missing, id)
 }

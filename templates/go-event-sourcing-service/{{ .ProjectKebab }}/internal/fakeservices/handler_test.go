@@ -82,6 +82,45 @@ func TestHandler(t *testing.T) {
 		})
 	})
 
+	t.Run("payment status", func(t *testing.T) {
+		for iban, expected := range map[string]string{
+			"DE89370400440532013000": `{"paymentId":"payment-1","status":"settled"}`,
+			"DE89370400440532012222": `{"paymentId":"payment-1","status":"returned","reason":"account closed at the other bank"}`,
+			"DE89370400440532013333": `{"paymentId":"payment-1","status":"settled"}`,
+			"DE89370400440532014444": `{"paymentId":"payment-1","status":"pending"}`,
+		} {
+			t.Run("answers the status by the reference for a creditor IBAN that ends in "+iban[len(iban)-4:], func(t *testing.T) {
+				handler := fakeservices.NewHandler("valid-token", time.Hour, test.DiscardLogger())
+				submitted := sendTo(handler, "/network/payments", "key-1", request("http://unused", 300, iban))
+				var answer fakeservices.SubmitAnswer
+				require.NoError(t, json.Unmarshal(submitted.Body.Bytes(), &answer))
+
+				w := httptest.NewRecorder()
+				handler.ServeHTTP(w, httptest.NewRequest("GET", "/network/payments/"+answer.Reference, nil))
+
+				require.Equal(t, http.StatusOK, w.Code)
+				require.JSONEq(t, expected, w.Body.String())
+			})
+		}
+
+		t.Run("sends no webhook for a creditor IBAN that ends in 3333", func(t *testing.T) {
+			webhooks := newWebhooks()
+			defer webhooks.Close()
+
+			send(t, "/network/payments", "key-1", request(webhooks.URL, 300, "DE89370400440532013333"))
+
+			require.Never(t, func() bool { return len(webhooks.bodies()) > 0 }, 200*time.Millisecond, 10*time.Millisecond)
+		})
+
+		t.Run("answers not found for an unknown reference", func(t *testing.T) {
+			w := httptest.NewRecorder()
+
+			fakeservices.NewHandler("valid-token", 0, test.DiscardLogger()).ServeHTTP(w, httptest.NewRequest("GET", "/network/payments/N-UNKNOWN", nil))
+
+			require.Equal(t, http.StatusNotFound, w.Code)
+		})
+	})
+
 	t.Run("repeated request", func(t *testing.T) {
 		t.Run("gives the same answer and calls the webhook once", func(t *testing.T) {
 			webhooks := newWebhooks()
