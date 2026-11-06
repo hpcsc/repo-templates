@@ -172,6 +172,24 @@ tasks:
         CGO_ENABLED=0 go build -o ./bin/go-cli-project-e2e ./cmd/go-cli-project
         cd e2e && EXECUTABLE=../bin/go-cli-project-e2e BUILD_TAG=v0.1.0 npx vitest run tests/auth.test.ts
 
+  test-go-cli-sub-command:
+    desc: add go-cli-sub-command to a go-cli project, add the new command to the root command as its post message says, then run the tests
+    preconditions:
+      - command -v scaffold
+      - command -v npx
+    cmds:
+      - rm -rf ./tmp/go-cli-sub-command
+      - scaffold --run-hooks=always new --output-dir=./tmp/go-cli-sub-command --no-prompt=true --preset=example ./templates/go-cli
+      - |
+        cd ./tmp/go-cli-sub-command/go-cli-project
+        scaffold --run-hooks=always new --output-dir=. --no-prompt=true --preset=example {{.TASKFILE_DIR}}/templates/global/go-cli-sub-command
+        perl -0pi -e 's/(\t\t\tnewUpdateCommand\(\),\n)/$1\t\t\tnewGreetSubcommand(),\n/' internal/cmd/root.go
+        grep -qF 'newGreetSubcommand()' internal/cmd/root.go
+        go vet -tags=unit ./...
+        go test -race -tags=unit ./...
+        CGO_ENABLED=0 go build -o ./bin/go-cli-project-e2e ./cmd/go-cli-project
+        cd e2e && EXECUTABLE=../bin/go-cli-project-e2e BUILD_TAG=v0.1.0 npx vitest run tests/greet.test.ts
+
   render-asdf-plugin:
     desc: render asdf-plugin template to a temporary folder for verification
     preconditions:
