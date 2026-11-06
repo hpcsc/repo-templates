@@ -1,0 +1,107 @@
+## Authentication
+
+`go-cli-project` sends {{ if .Computed.oauth }}an access token{{ else }}an API key{{ end }} to its API. It uses the first of these sources that gives one:
+
+1. The environment variable `GO_CLI_PROJECT_{{ .Computed.variable }}`
+{{- if .Computed.oauth }}
+2. The tokens that `go-cli-project auth login` stores
+{{- else if .Computed.stored }}
+2. The API key that `go-cli-project auth login` stores
+{{- end }}
+{{ if .Computed.stored }}3{{ else }}2{{ end }}. The output of `credentialCommand` in `$XDG_CONFIG_HOME/go-cli-project/config.yaml`, or in
+   `~/.config/go-cli-project/config.yaml` when `XDG_CONFIG_HOME` is not set
+
+`go-cli-project auth status` shows which source gives the {{ .Computed.label }}. It does not show the {{ .Computed.label }}.
+
+Use the environment variable in CI and in scripts.
+
+[docs/authentication.md](docs/authentication.md) tells how the code works, and why.
+{{- if .Computed.oauth }}
+
+### Log in
+
+`go-cli-project auth login` opens a browser, where you log in at the issuer. The CLI uses the OAuth
+authorization code flow with PKCE, and the issuer sends the login back to a server on `127.0.0.1`.
+
+If the machine has no browser, for example in an SSH session, `auth login` shows a URL and a code. Open
+the URL on any device and type the code. `auth login --device` does the same on a machine with a browser.
+If the environment variable `BROWSER` is set, `go-cli-project` opens the browser that it names.
+
+```shell
+go-cli-project auth login            # log in in a browser
+go-cli-project auth login --device   # log in with a code on another device
+go-cli-project auth status           # show the source, the account and the expiry time
+go-cli-project auth token            # print the access token, for scripts
+go-cli-project auth logout           # revoke the refresh token and remove the tokens
+```
+
+`auth login` keeps the tokens in the OS credential store: the macOS Keychain, the Windows Credential
+Manager, or the Linux Secret Service. If the machine has no credential store, it keeps them in
+`credentials.json`, in the same folder as `config.yaml`. Only you can read that file. When the access
+token expires, `go-cli-project` gets a new one with the refresh token.
+{{- else if .Computed.stored }}
+
+### Store the API key
+
+```shell
+go-cli-project auth login                        # paste the API key
+printf '%s' "$KEY" | go-cli-project auth login   # or send it on stdin
+go-cli-project auth logout                       # remove the stored API key
+```
+
+`auth login` keeps the API key in the OS credential store: the macOS Keychain, the Windows Credential
+Manager, or the Linux Secret Service. If the machine has no credential store, it keeps the key in
+`credentials.json`, in the same folder as `config.yaml`. Only you can read that file.
+{{- end }}
+{{- if .Computed.stored }}
+
+`GO_CLI_PROJECT_CREDENTIAL_STORE=file` makes `go-cli-project` use only `credentials.json`. The e2e tests
+use it, so that they do not change your keychain.
+{{- end }}
+
+### Read the {{ .Computed.label }} from a password manager
+
+`credentialCommand` runs through `sh`, and `go-cli-project` uses what the command prints. With it, the
+{{ .Computed.label }} stays in your password manager:
+
+```yaml
+credentialCommand: op read op://Private/go-cli-project/{{ if .Computed.oauth }}token{{ else }}api-key{{ end }}
+```
+
+`go-cli-project` reads `credentialCommand` only from your own config file, and never from a file in a
+repository.
+{{- if .Computed.oauth }}
+
+### Set up the OAuth client
+
+Before the first login, set these constants. Each environment variable replaces its constant, for example
+for a staging issuer:
+
+| Constant | File | Environment variable |
+| --- | --- | --- |
+| `issuerURL` | `internal/credential/issuer.go` | `GO_CLI_PROJECT_OAUTH_ISSUER_URL` |
+| `clientID` | `internal/credential/issuer.go` | `GO_CLI_PROJECT_OAUTH_CLIENT_ID` |
+| `apiURL` | `internal/credential/api_url.go` | `GO_CLI_PROJECT_API_URL` |
+
+`go-cli-project` finds the endpoints in the OIDC discovery document of the issuer, at
+`/.well-known/openid-configuration`. Register the client at the issuer with these settings:
+
+- A public client, with no client secret. A CLI cannot keep a secret (RFC 8252).
+- The redirect URL `http://127.0.0.1/callback`, with any port.
+- The authorization code grant, the refresh token grant, and the device authorization grant.
+
+`scopes` in `internal/credential/issuer.go` lists the scopes. At most issuers, `offline_access` gives
+the refresh token.
+
+The stored tokens belong to the host of the API URL. If `GO_CLI_PROJECT_API_URL` names another server,
+`go-cli-project` does not send the tokens to that server.
+{{- else if .Computed.stored }}
+
+### Set the API URL
+
+Before the first login, set `apiURL` in `internal/credential/api_url.go`. The environment variable
+`GO_CLI_PROJECT_API_URL` replaces it, for example for a staging server.
+
+The stored API key belongs to the host of the API URL. If `GO_CLI_PROJECT_API_URL` names another server,
+`go-cli-project` does not send the stored API key to that server.
+{{- end }}

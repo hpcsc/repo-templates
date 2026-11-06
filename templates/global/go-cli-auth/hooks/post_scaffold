@@ -1,0 +1,121 @@
+#!/bin/bash
+
+set -euo pipefail
+
+for tool in ast-grep jq go gofmt perl; do
+  if ! command -v "$tool" >/dev/null; then
+    echo "error: adding go-cli-auth needs $tool on PATH" >&2
+    exit 1
+  fi
+done
+
+parts=.go-cli-auth
+credential={{ .Scaffold.Credential }}
+module=$(go list -m)
+failed=0
+
+packages=$(
+  go list -json ./cmd/... |
+    jq -r 'select(.Name == "main") | .Dir as $dir | (.Imports // [])[] | "\($dir) \(.)"' |
+    while read -r main_dir import; do
+      [[ "$import" == "$module"/internal/* ]] || continue
+      go list -json "$import" |
+        jq -r --arg main "$main_dir" 'select((.Imports // []) | index("github.com/urfave/cli/v3")) | "\($main) \(.Dir) \(.Name)"'
+    done | sort -u
+)
+if [ "$(printf '%s' "$packages" | grep -c .)" != 1 ]; then
+  echo "error: want one package under internal that a main package under cmd imports and that builds urfave/cli commands, found:" >&2
+  echo "${packages:-none}" >&2
+  exit 1
+fi
+read -r main_dir command_dir command_package <<<"$packages"
+app=$(basename "$main_dir")
+prefix=$(printf '%s' "$app" | tr 'a-z-' 'A-Z_')
+
+FROM_MODULE=github.com/hpcsc/go-cli-project TO_MODULE=$module \
+  FROM_APP=go-cli-project TO_APP=$app \
+  FROM_PREFIX=GO_CLI_PROJECT TO_PREFIX=$prefix \
+  perl -pi -e '
+    BEGIN { %to = ($ENV{FROM_MODULE} => $ENV{TO_MODULE}, $ENV{FROM_APP} => $ENV{TO_APP}, $ENV{FROM_PREFIX} => $ENV{TO_PREFIX}) }
+    s/(\Q$ENV{FROM_MODULE}\E|\Q$ENV{FROM_APP}\E|\Q$ENV{FROM_PREFIX}\E)/$to{$1}/g
+  ' internal/credential/*.go docs/authentication.md "$parts"/*
+
+if [ -d e2e/tests ]; then
+  perl -0pi -e 's/\n<!-- \/?e2e -->\n/\n/g' docs/authentication.md
+else
+  perl -0pi -e 's/\n<!-- e2e -->\n.*<!-- \/e2e -->\n/\n/s' docs/authentication.md
+fi
+
+# scaffold adds files and never removes them, so a second run with another Credential leaves the files of the first
+if [ "$credential" = api-key ]; then
+  rm -f internal/credential/api_url.go internal/credential/store.go internal/credential/store_test.go
+fi
+if [ "$credential" != oauth ]; then
+  rm -f internal/credential/issuer.go internal/credential/login.go internal/credential/login_test.go \
+    internal/credential/tokens.go internal/credential/tokens_test.go internal/credential/fake_issuer_test.go
+fi
+
+sed "1s/^package cmd\$/package $command_package/" "$parts/auth.go" >"$command_dir/auth.go"
+
+rule=$(
+  cat <<'EOF'
+id: add
+language: go
+rule:
+  pattern: $LAST
+  kind: literal_element
+  nthChild: {position: 1, reverse: true}
+  inside:
+    kind: literal_value
+    inside:
+      kind: composite_literal
+      inside:
+        kind: literal_element
+        inside:
+          kind: keyed_element
+          has: {field: key, regex: ^Commands$}
+          inside:
+            kind: literal_value
+            has:
+              kind: keyed_element
+              has: {field: key, regex: ^Version$}
+fix: |-
+  $LAST,
+  newAuthCommand()
+EOF
+)
+root_files=$(ast-grep scan --inline-rules "$rule" --json "$command_dir" | jq -r '.[].file')
+if grep -lF --include='*.go' -r 'newAuthCommand()' "$command_dir" | grep -qv '/auth\.go$'; then
+  :
+elif [ "$(printf '%s' "$root_files" | grep -c .)" = 1 ]; then
+  ast-grep scan --inline-rules "$rule" --update-all "$root_files" >/dev/null
+  gofmt -w "$root_files"
+else
+  echo "error: cannot find the Commands list of the root command in $command_dir, add newAuthCommand() to it by hand" >&2
+  failed=1
+fi
+
+if [ -d e2e/tests ]; then
+  mv -f "$parts/auth.test.ts" e2e/tests/auth.test.ts
+fi
+if [ -f README.md ] && grep -qx '## Authentication' README.md; then
+  PART="$parts/README.md.part" perl -0pi -e '
+    open my $file, "<", $ENV{PART} or die "$ENV{PART}: $!";
+    my $part = do { local $/; <$file> };
+    s/^## Authentication\n.*?(?=^## |\z)/$part\n/ms;
+    s/\n+\z/\n/;
+  ' README.md
+elif [ -f README.md ]; then
+  printf '\n' >>README.md
+  cat "$parts/README.md.part" >>README.md
+fi
+rm -rf "$parts"
+
+go mod tidy
+gofmt -w internal/credential "$command_dir/auth.go"
+
+if [ "$failed" != 0 ]; then
+  exit 1
+fi
+
+go build ./...

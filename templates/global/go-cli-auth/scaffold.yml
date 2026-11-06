@@ -1,0 +1,67 @@
+questions:
+  - name: Credential
+    prompt:
+      message: "How does the CLI get its credential?"
+      description: |
+        api-key: from an environment variable or a credentialCommand. Nothing is stored.
+        api-key-stored: also from `auth login`, which stores the API key in the OS credential store.
+        oauth: from `auth login` with OAuth, which stores the tokens and refreshes them.
+      options:
+        - api-key
+        - api-key-stored
+        - oauth
+      default: api-key
+    validate:
+      required: true
+
+computed:
+  stored: '{{ ne .Scaffold.Credential "api-key" }}'
+  oauth: '{{ eq .Scaffold.Credential "oauth" }}'
+  label: '{{ if eq .Scaffold.Credential "oauth" }}token{{ else }}API key{{ end }}'
+  variable: '{{ if eq .Scaffold.Credential "oauth" }}TOKEN{{ else }}API_KEY{{ end }}'
+  heading: '{{ if eq .Scaffold.Credential "oauth" }}Token{{ else }}API Key{{ end }}'
+
+features:
+  - value: '{{ ne .Scaffold.Credential "api-key" }}'
+    globs:
+      - "**/internal/credential/api_url.go"
+      - "**/internal/credential/store.go"
+      - "**/internal/credential/store_test.go"
+  - value: '{{ eq .Scaffold.Credential "oauth" }}'
+    globs:
+      - "**/internal/credential/issuer.go"
+      - "**/internal/credential/login.go"
+      - "**/internal/credential/login_test.go"
+      - "**/internal/credential/tokens.go"
+      - "**/internal/credential/tokens_test.go"
+      - "**/internal/credential/fake_issuer_test.go"
+
+messages:
+  post: |
+    # Authentication added
+
+    The root command now has `auth`, and internal/credential gives the {{ .Computed.label }}:
+
+        found, err := credential.Resolve(ctx)
+    {{ if .Computed.oauth }}
+    Before the first login, set these constants. The section "Authentication" in README.md tells
+    how to register the OAuth client at the issuer.
+
+    - issuerURL and clientID in internal/credential/issuer.go
+    - apiURL in internal/credential/api_url.go
+    {{ else if .Computed.stored }}
+    Before the first login, set apiURL in internal/credential/api_url.go.
+    {{ end }}{{ if .Computed.stored }}
+    Give the API client its URL with credential.APIURL(). Then the client and the stored
+    {{ .Computed.label }} use the same host.
+    {{ end }}
+    The section "Authentication" in README.md tells a user how to give the CLI its {{ .Computed.label }}.
+    docs/authentication.md tells a developer how the code works, and why.
+
+presets:
+  api-key:
+    Credential: api-key
+  api-key-stored:
+    Credential: api-key-stored
+  oauth:
+    Credential: oauth
