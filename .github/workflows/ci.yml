@@ -148,6 +148,29 @@ jobs:
     - name: Add the process manager to a project and compare
       run: task test-go-event-sourcing-service-process-manager
 
+  test-go-cli-auth:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        preset: [api-key, api-key-stored, oauth]
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Mise install
+      uses: jdx/mise-action@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.27.1'
+
+    - name: Add go-cli-auth to a go-cli project and a go-event-sourcing-cli project, and run their tests
+      run: task test-go-cli-auth
+      env:
+        PRESETS: ${{ matrix.preset }}
+
   test-go-cli-sub-command:
     runs-on: ubuntu-latest
     steps:

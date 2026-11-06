@@ -141,17 +141,21 @@ tasks:
       - diff -r ./tmp/process-manager/at-start ./tmp/process-manager/later
 
   test-go-cli-auth:
-    desc: add go-cli-auth with each preset to a go-cli project and to a go-event-sourcing-cli project, then run their unit tests and the auth e2e tests
+    desc: add go-cli-auth with each preset in PRESETS (default all) to a go-cli project and to a go-event-sourcing-cli project, then run their unit tests and the auth e2e tests
     preconditions:
       - command -v scaffold
       - command -v ast-grep
       - command -v jq
       - command -v npx
+    vars:
+      PRESETS:
+        sh: echo ${PRESETS:-api-key api-key-stored oauth}
     cmds:
       - rm -rf ./tmp/go-cli-auth
       - scaffold --run-hooks=always new --output-dir=./tmp/go-cli-auth/base --no-prompt=true --preset=example ./templates/go-cli
       - scaffold --run-hooks=always new --output-dir=./tmp/go-cli-auth/base --no-prompt=true --preset=example ./templates/go-event-sourcing-cli
-      - for: [api-key, api-key-stored, oauth]
+      - for:
+          var: PRESETS
         task: test-go-cli-auth-preset
         vars:
           PRESET: '{{.ITEM}}'
