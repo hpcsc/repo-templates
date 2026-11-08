@@ -91,13 +91,13 @@ func workers(pool *pgxpool.Pool, cfg *Config, logger *slog.Logger) []worker {
 
 	return []worker{
 		projection.NewProjector(balance.NewProjection(), pool, checkpointStore, eventSubscription, logger),
-		reaction.NewReactor(welcomebonus.NewReaction(bus), checkpointStore, eventSubscription, logger),
+		reaction.NewReactor(reaction.NewConflictRetry(welcomebonus.NewReaction(bus), 3), checkpointStore, eventSubscription, logger),
 {{- if .Scaffold.ProcessManager }}
-		reaction.NewReactor(funding.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
-		reaction.NewReactor(holds.NewReaction(bus), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
-		reaction.NewReactor(checks.NewGateway(payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
-		reaction.NewReactor(submission.NewGateway(bus, payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
-		reaction.NewReactor(status.NewGateway(bus, payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(reaction.NewConflictRetry(funding.NewReaction(bus), 3), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(reaction.NewConflictRetry(holds.NewReaction(bus), 3), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(reaction.NewConflictRetry(checks.NewGateway(payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), 3), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(reaction.NewConflictRetry(submission.NewGateway(bus, payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), 3), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
+		reaction.NewReactor(reaction.NewConflictRetry(status.NewGateway(bus, payment.NewRepository(eventStream), outside.NewClient(), cfg.Outside, logger), 3), checkpointStore, eventSubscription, logger, reaction.StartAtBeginning()),
 		projection.NewProjector(summary.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		projection.NewProjector(deadlines.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		scheduler.New(deadlines.NewReporter(pool, bus), logger),
