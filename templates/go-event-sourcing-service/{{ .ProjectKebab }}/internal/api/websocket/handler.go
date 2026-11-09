@@ -5,7 +5,10 @@ import (
 	"net/http"
 
 	"github.com/coder/websocket"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/route"
 )
+
+var _ route.Routable = (*Handler)(nil)
 
 type Handler struct {
 	hub    *Hub
@@ -19,7 +22,13 @@ func NewHandler(hub *Hub, logger *slog.Logger) *Handler {
 	}
 }
 
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Routes() []*route.Route {
+	return []*route.Route{
+		route.Public("GET", "/ws", h.serve),
+	}
+}
+
+func (h *Handler) serve(w http.ResponseWriter, r *http.Request) {
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		InsecureSkipVerify: true,
 	})
