@@ -30,6 +30,6 @@ wait_for() {
 
 wait_for nc -z "${DB_HOST}" "${DB_PORT}"
 migrate \
-  -database "postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable" \
+  -database "postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE:-disable}" \
   -path /app/migrations \
   "${COMMAND}"
