@@ -86,6 +86,9 @@ func (s *postgres) SaveInTx(ctx context.Context, tx pgx.Tx, streamID string, eve
 	if _, err := tx.Exec(ctx, "SELECT pg_notify($1, '')", event.NotifyChannel); err != nil {
 		return fmt.Errorf("failed to notify about stream %s: %w", streamID, err)
 	}
+	if _, err := tx.Exec(ctx, "SELECT pg_notify($1, '')", event.PushChannel); err != nil {
+		return fmt.Errorf("failed to push-notify about stream %s: %w", streamID, err)
+	}
 	return nil
 }
 

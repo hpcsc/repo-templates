@@ -54,6 +54,12 @@ func WithPollInterval(interval time.Duration) PostgresOption {
 	}
 }
 
+func WithListenChannel(channel string) PostgresOption {
+	return func(p *postgres) {
+		p.listenChannel = channel
+	}
+}
+
 func NewPostgres(pool *pgxpool.Pool, reg *registry.OfEvents, logger *slog.Logger, opts ...PostgresOption) event.Subscription {
 	p := &postgres{
 		pool:         pool,
@@ -71,11 +77,12 @@ func NewPostgres(pool *pgxpool.Pool, reg *registry.OfEvents, logger *slog.Logger
 }
 
 type postgres struct {
-	pool         *pgxpool.Pool
-	registry     *registry.OfEvents
-	logger       *slog.Logger
-	batchSize    int
-	pollInterval time.Duration
+	pool          *pgxpool.Pool
+	registry      *registry.OfEvents
+	logger        *slog.Logger
+	batchSize     int
+	pollInterval  time.Duration
+	listenChannel string
 }
 
 func (p *postgres) SubscribeToAll(ctx context.Context, after *domain.Position, eventTypes []string) (<-chan domain.Event, error) {
@@ -190,7 +197,11 @@ func (p *postgres) listenOnce(ctx context.Context, signal chan<- struct{}) (bool
 	}
 	defer func() { _ = conn.Close(context.Background()) }()
 
-	if _, err := conn.Exec(ctx, "LISTEN "+pgx.Identifier{event.NotifyChannel}.Sanitize()); err != nil {
+	channel := p.listenChannel
+	if channel == "" {
+		channel = event.NotifyChannel
+	}
+	if _, err := conn.Exec(ctx, "LISTEN "+pgx.Identifier{channel}.Sanitize()); err != nil {
 		return false, err
 	}
 
