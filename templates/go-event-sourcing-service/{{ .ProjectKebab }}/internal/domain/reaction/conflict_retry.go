@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"{{ .ModulePath }}/internal/domain"
-	"{{ .ModulePath }}/internal/domain/event"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event"
 )
 
 type conflictRetry struct {

@@ -7,9 +7,9 @@ import (
 	"errors"
 	"testing"
 
-	"{{ .ModulePath }}/internal/domain"
-	"{{ .ModulePath }}/internal/domain/event"
-	"{{ .ModulePath }}/internal/domain/reaction"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event"
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/reaction"
 	"github.com/stretchr/testify/require"
 )
 
