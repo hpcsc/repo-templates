@@ -46,6 +46,9 @@ tasks:
       DB_USERNAME: local-user
       DB_PASSWORD: local-password
       DB_HOST_PORT: 45432
+[[- if .Scaffold.PushNATS ]]
+      NATS_URL: nats://127.0.0.1:4222
+[[- end ]]
 
   build:
     cmds:

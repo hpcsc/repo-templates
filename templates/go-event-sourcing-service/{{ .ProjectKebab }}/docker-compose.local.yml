@@ -10,6 +10,10 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+{{- if .Scaffold.PushNATS }}
+      nats:
+        condition: service_healthy
+{{- end }}
     build:
       dockerfile: Dockerfile.api
       args:
@@ -20,15 +24,25 @@ services:
       - "3333:3333"
     environment:
       <<: *x-db-config
+{{- if .Scaffold.PushNATS }}
+      NATS_URL: nats://nats:4222
+{{- end }}
 
   catchup:
     depends_on:
       migrate:
         condition: service_completed_successfully
+{{- if .Scaffold.PushNATS }}
+      nats:
+        condition: service_healthy
+{{- end }}
     build:
       dockerfile: Dockerfile.catchup
     environment:
       <<: *x-db-config
+{{- if .Scaffold.PushNATS }}
+      NATS_URL: nats://nats:4222
+{{- end }}
 {{- if .Scaffold.ProcessManager }}
       FRAUD_SERVICE_URL: http://fakeservices:4444/fraud
       SANCTIONS_SERVICE_URL: http://fakeservices:4444/sanctions

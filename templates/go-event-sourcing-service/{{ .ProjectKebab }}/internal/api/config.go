@@ -7,4 +7,7 @@ type Config struct {
 	TokenPath      string   `env:"TOKEN_PATH" envDefault:"/var/run/token"`
 	AllowedOrigins []string `env:"ALLOWED_ORIGINS" envSeparator:","`
 	DB             config.DB
+{{- if .Scaffold.PushNATS }}
+	NATS           config.NATS
+{{- end }}
 }

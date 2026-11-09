@@ -45,6 +45,9 @@ tasks:
   run-dependencies:
     cmds:
       - docker compose --env-file .env.local -f docker-compose.dependencies.yml -p [[ .ProjectKebab ]]-local up -d --wait db
+[[- if .Scaffold.PushNATS ]]
+      - docker compose --env-file .env.local -f docker-compose.dependencies.yml -p [[ .ProjectKebab ]]-local up -d --wait nats
+[[- end ]]
       - docker compose --env-file .env.local -f docker-compose.dependencies.yml -p [[ .ProjectKebab ]]-local up --exit-code-from migrate migrate
       - command -v tmuxp && echo "tmuxp exists" || pip install tmuxp
 

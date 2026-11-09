@@ -36,6 +36,10 @@ import (
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/submission"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/payment/summary"
 {{- end }}
+{{- if .Scaffold.PushNATS }}
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases/push_nats"
+	"github.com/nats-io/nats.go"
+{{- end }}
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -45,6 +49,9 @@ type Config struct {
 	Outside outside.Config
 {{- else }}
 	DB config.DB
+{{- end }}
+{{- if .Scaffold.PushNATS }}
+	NATS config.NATS
 {{- end }}
 }
 
@@ -64,7 +71,12 @@ func main() {
 	}
 
 	ctx := runShutdownSignalHandler(context.Background(), logger)
-	failed := run(ctx, workers(pool, cfg, logger), lock.NewPostgres(pool), logger)
+	ws, err := workers(pool, cfg, logger)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	failed := run(ctx, ws, lock.NewPostgres(pool), logger)
 
 	pool.Close()
 	if failed {
@@ -78,7 +90,7 @@ type worker interface {
 	Start(ctx context.Context) error
 }
 
-func workers(pool *pgxpool.Pool, cfg *Config, logger *slog.Logger) []worker {
+func workers(pool *pgxpool.Pool, cfg *Config, logger *slog.Logger) ([]worker, error) {
 	reg := registry.New()
 	use_cases.RegisterEvents(reg)
 
@@ -89,7 +101,7 @@ func workers(pool *pgxpool.Pool, cfg *Config, logger *slog.Logger) []worker {
 	checkpointStore := store.NewPostgres(pool)
 	eventSubscription := subscription.NewPostgres(pool, reg, logger)
 
-	return []worker{
+	workers := []worker{
 		projection.NewProjector(balance.NewProjection(), pool, checkpointStore, eventSubscription, logger),
 		reaction.NewReactor(reaction.NewConflictRetry(welcomebonus.NewReaction(bus), 3), checkpointStore, eventSubscription, logger),
 {{- if .Scaffold.ProcessManager }}
@@ -103,6 +115,20 @@ func workers(pool *pgxpool.Pool, cfg *Config, logger *slog.Logger) []worker {
 		scheduler.New(deadlines.NewReporter(pool, bus), logger),
 {{- end }}
 	}
+{{- if .Scaffold.PushNATS }}
+	natsConn, err := nats.Connect(cfg.NATS.URL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to NATS: %w", err)
+	}
+	pusher, err := push_nats.New(natsConn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start the NATS push reactor: %w", err)
+	}
+	workers = append(workers,
+		reaction.NewReactor(pusher, checkpointStore, eventSubscription, logger),
+	)
+{{- end }}
+	return workers, nil
 }
 
 func run(parentCtx context.Context, workers []worker, locks *lock.Postgres, logger *slog.Logger) bool {

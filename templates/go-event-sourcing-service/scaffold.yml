@@ -15,6 +15,9 @@ questions:
   - name: PushSubscriber
     prompt:
       confirm: "Include the push subscriber that broadcasts events to WebSocket clients?"
+  - name: PushNATS
+    prompt:
+      confirm: "Use NATS (instead of pg_notify) for push delivery? Enables at-least-once delivery and scales to many API instances."
 
 features:
   - value: "{{ .Scaffold.ProcessManager }}"
@@ -37,8 +40,17 @@ features:
       - "**/docs/event-model-payment.*"
   - value: "{{ .Scaffold.PushSubscriber }}"
     globs:
-      - "**/internal/api/websocket/**"
       - "**/internal/api/use_cases/push_subscriber.go"
+  - value: "{{ or .Scaffold.PushSubscriber .Scaffold.PushNATS }}"
+    globs:
+      - "**/internal/api/websocket/handler.go"
+      - "**/internal/api/websocket/hub.go"
+  - value: "{{ .Scaffold.PushNATS }}"
+    globs:
+      - "**/internal/api/websocket/nats_bridge.go"
+      - "**/internal/use_cases/push_nats/**"
+      - "**/internal/common/natspush/**"
+      - "**/internal/common/config/nats.go"
 
 delimiters:
   - glob: "**/Taskfile*.yml"
@@ -58,9 +70,13 @@ messages:
     The payment to another bank runs as a process manager, and task run also starts
     fake outside systems for it.
     {{- end }}
-    {{- if .Scaffold.PushSubscriber }}
+    {{- if and .Scaffold.PushSubscriber (not .Scaffold.PushNATS) }}
     A push subscriber broadcasts events to WebSocket clients on a dedicated NOTIFY channel
     (`push_events`), with checkpointing to avoid replay on restart.
+    {{- end }}
+    {{- if .Scaffold.PushNATS }}
+    A NATS push reactor in the catchup service and a NATS bridge in the API server deliver
+    events to WebSocket clients with at-least-once delivery via JetStream.
     {{- end }}
 
         cd {{ .ProjectKebab }}

@@ -1,7 +1,7 @@
 package use_cases
 
 import (
-{{- if .Scaffold.PushSubscriber }}
+{{- if or .Scaffold.PushSubscriber .Scaffold.PushNATS }}
 	"context"
 {{- end }}
 	"fmt"
@@ -15,15 +15,18 @@ import (
 {{- if .Scaffold.ProcessManager }}
 	apiPayment "github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/payment"
 {{- end }}
-{{- if .Scaffold.PushSubscriber }}
+{{- if or .Scaffold.PushSubscriber .Scaffold.PushNATS }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/websocket"
+{{- end }}
+{{- if .Scaffold.PushNATS }}
+	"github.com/nats-io/nats.go"
 {{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/root"
 {{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/webhook"
 {{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/command"
-{{- if .Scaffold.PushSubscriber }}
+{{- if and .Scaffold.PushSubscriber (not .Scaffold.PushNATS) }}
 	checkpointStore "github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/checkpoint/store"
 {{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/registry"
@@ -42,7 +45,19 @@ func Register(router chi.Router, cfg *api.Config, pool *pgxpool.Pool, logger *sl
 		return nil, err
 	}
 
-{{- if .Scaffold.PushSubscriber }}
+{{- if .Scaffold.PushNATS }}
+	wsHub := websocket.NewHub(logger)
+	natsConn, err := nats.Connect(cfg.NATS.URL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to NATS: %w", err)
+	}
+	bridgeCtx, stopBridge := context.WithCancel(context.Background())
+	go func() {
+		if err := websocket.BridgeNATS(bridgeCtx, natsConn, wsHub, logger); err != nil {
+			logger.Error("nats push bridge failed", "error", err)
+		}
+	}()
+{{- else if .Scaffold.PushSubscriber }}
 	reg := registry.New()
 	coreUseCases.RegisterEvents(reg)
 
@@ -52,7 +67,7 @@ func Register(router chi.Router, cfg *api.Config, pool *pgxpool.Pool, logger *sl
 {{- end }}
 
 	var publicRoutes, protectedRoutes []*route.Route
-	for _, r := range allRoutes(pool{{- if .Scaffold.PushSubscriber }}, wsHub{{- end }}) {
+	for _, r := range allRoutes(pool{{- if or .Scaffold.PushSubscriber .Scaffold.PushNATS }}, wsHub{{- end }}) {
 		if r.IsPublic() {
 			publicRoutes = append(publicRoutes, r)
 		} else if r.IsProtected() {
@@ -76,10 +91,15 @@ func Register(router chi.Router, cfg *api.Config, pool *pgxpool.Pool, logger *sl
 		})
 	})
 
-	return {{- if .Scaffold.PushSubscriber }} func() { wsHub.Shutdown(context.Background()) } {{- else }} nil {{- end }}, nil
+	return {{- if .Scaffold.PushNATS }} func() {
+		stopBridge()
+		wsHub.Shutdown(context.Background())
+		_ = natsConn.Drain()
+		natsConn.Close()
+	} {{- else if .Scaffold.PushSubscriber }} func() { wsHub.Shutdown(context.Background()) } {{- else }} nil {{- end }}, nil
 }
 
-func allRoutes(pool *pgxpool.Pool{{- if .Scaffold.PushSubscriber }}, wsHub *websocket.Hub{{- end }}) []*route.Route {
+func allRoutes(pool *pgxpool.Pool{{- if or .Scaffold.PushSubscriber .Scaffold.PushNATS }}, wsHub *websocket.Hub{{- end }}) []*route.Route {
 	reg := registry.New()
 	coreUseCases.RegisterEvents(reg)
 
@@ -94,7 +114,7 @@ func allRoutes(pool *pgxpool.Pool{{- if .Scaffold.PushSubscriber }}, wsHub *webs
 		apiPayment.NewHandler(bus, summary.NewQuery(pool)),
 		webhook.NewHandler(bus),
 {{- end }}
-{{- if .Scaffold.PushSubscriber }}
+{{- if or .Scaffold.PushSubscriber .Scaffold.PushNATS }}
 		websocket.NewHandler(wsHub, slog.Default()),
 {{- end }}
 	}

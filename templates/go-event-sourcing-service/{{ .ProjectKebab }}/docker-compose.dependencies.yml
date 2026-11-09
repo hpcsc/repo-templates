@@ -32,3 +32,17 @@ services:
     volumes:
       - ./scripts/local/migrate/entrypoint.sh:/app/entrypoint.sh
       - ./migrations:/app/migrations
+{{- if .Scaffold.PushNATS }}
+
+  nats:
+    image: nats:2-alpine
+    command: ["-js", "-m", "8222"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 1s
+    ports:
+      - "4222:4222"
+{{- end }}
