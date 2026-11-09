@@ -1,6 +1,9 @@
 package use_cases
 
 import (
+{{- if .Scaffold.PushSubscriber }}
+	"context"
+{{- end }}
 	"fmt"
 	"log/slog"
 
@@ -12,11 +15,17 @@ import (
 {{- if .Scaffold.ProcessManager }}
 	apiPayment "github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/payment"
 {{- end }}
+{{- if .Scaffold.PushSubscriber }}
+	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/websocket"
+{{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/root"
 {{- if .Scaffold.ProcessManager }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/api/use_cases/webhook"
 {{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/command"
+{{- if .Scaffold.PushSubscriber }}
+	checkpointStore "github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/checkpoint/store"
+{{- end }}
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/registry"
 	"github.com/hpcsc/{{ .ProjectKebab }}/internal/domain/event/stream"
 	coreUseCases "github.com/hpcsc/{{ .ProjectKebab }}/internal/use_cases"
@@ -33,8 +42,17 @@ func Register(router chi.Router, cfg *api.Config, pool *pgxpool.Pool, logger *sl
 		return err
 	}
 
+{{- if .Scaffold.PushSubscriber }}
+	reg := registry.New()
+	coreUseCases.RegisterEvents(reg)
+
+	wsHub := websocket.NewHub(logger)
+	checkpoints := checkpointStore.NewPostgres(pool)
+	go startPushSubscriber(context.Background(), pool, reg, wsHub, checkpoints, logger)
+{{- end }}
+
 	var publicRoutes, protectedRoutes []*route.Route
-	for _, r := range allRoutes(pool) {
+	for _, r := range allRoutes(pool{{- if .Scaffold.PushSubscriber }}, wsHub{{- end }}) {
 		if r.IsPublic() {
 			publicRoutes = append(publicRoutes, r)
 		} else if r.IsProtected() {
@@ -59,7 +77,7 @@ func Register(router chi.Router, cfg *api.Config, pool *pgxpool.Pool, logger *sl
 	return nil
 }
 
-func allRoutes(pool *pgxpool.Pool) []*route.Route {
+func allRoutes(pool *pgxpool.Pool{{- if .Scaffold.PushSubscriber }}, wsHub *websocket.Hub{{- end }}) []*route.Route {
 	reg := registry.New()
 	coreUseCases.RegisterEvents(reg)
 
@@ -73,6 +91,9 @@ func allRoutes(pool *pgxpool.Pool) []*route.Route {
 {{- if .Scaffold.ProcessManager }}
 		apiPayment.NewHandler(bus, summary.NewQuery(pool)),
 		webhook.NewHandler(bus),
+{{- end }}
+{{- if .Scaffold.PushSubscriber }}
+		websocket.NewHandler(wsHub, slog.Default()),
 {{- end }}
 	}
 

@@ -4,6 +4,9 @@ go {{ .Scaffold.GoVersion }}
 
 require (
 	github.com/caarlos0/env/v6 v6.10.1
+{{- if .Scaffold.PushSubscriber }}
+	github.com/coder/websocket v1.8.15
+{{- end }}
 	github.com/go-chi/chi/v5 v5.3.2
 	github.com/google/uuid v1.6.0
 	github.com/gookit/validate v1.6.0

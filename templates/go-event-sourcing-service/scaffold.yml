@@ -12,6 +12,9 @@ questions:
   - name: ProcessManager
     prompt:
       confirm: "Include the process manager example, a payment to another bank?"
+  - name: PushSubscriber
+    prompt:
+      confirm: "Include the push subscriber that broadcasts events to WebSocket clients?"
 
 features:
   - value: "{{ .Scaffold.ProcessManager }}"
@@ -32,6 +35,10 @@ features:
       - "**/migrations/*_create-payment-deadlines-table.*"
       - "**/docs/process-manager-example.md"
       - "**/docs/event-model-payment.*"
+  - value: "{{ .Scaffold.PushSubscriber }}"
+    globs:
+      - "**/internal/api/websocket/**"
+      - "**/internal/api/use_cases/push_subscriber.go"
 
 delimiters:
   - glob: "**/Taskfile*.yml"
@@ -50,6 +57,10 @@ messages:
     {{- if .Scaffold.ProcessManager }}
     The payment to another bank runs as a process manager, and task run also starts
     fake outside systems for it.
+    {{- end }}
+    {{- if .Scaffold.PushSubscriber }}
+    A push subscriber broadcasts events to WebSocket clients on a dedicated NOTIFY channel
+    (`push_events`), with checkpointing to avoid replay on restart.
     {{- end }}
 
         cd {{ .ProjectKebab }}
