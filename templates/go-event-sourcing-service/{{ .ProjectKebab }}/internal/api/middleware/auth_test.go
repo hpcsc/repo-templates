@@ -32,7 +32,7 @@ func TestAuthMiddleware(t *testing.T) {
 		require.ErrorContains(t, err, "failed to read token")
 	})
 
-	t.Run("return Forbidden when token from Authorization header not matches", func(t *testing.T) {
+	t.Run("return Unauthorized when token from Authorization header does not match", func(t *testing.T) {
 		router := newRouter(t)
 		w := httptest.NewRecorder()
 
@@ -41,7 +41,7 @@ func TestAuthMiddleware(t *testing.T) {
 		req.Header.Set("Authorization", "Bearer invalid-token")
 		router.ServeHTTP(w, req)
 
-		require.Equal(t, http.StatusForbidden, w.Code)
+		require.Equal(t, http.StatusUnauthorized, w.Code)
 	})
 
 	t.Run("return Ok when token from Authorization header matches", func(t *testing.T) {
