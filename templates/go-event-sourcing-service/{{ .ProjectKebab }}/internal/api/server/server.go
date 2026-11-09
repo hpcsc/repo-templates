@@ -18,13 +18,14 @@ import (
 )
 
 func New(name string, cfg *api.Config, pool *pgxpool.Pool, logger *slog.Logger) (*Server, error) {
-	handler, err := newHandler(name, cfg, pool, logger)
+	handler, cleanup, err := newHandler(name, cfg, pool, logger)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Server{
-		cfg: cfg,
+		cfg:     cfg,
+		cleanup: cleanup,
 		httpServer: &http.Server{
 			Addr:    fmt.Sprintf(":%s", cfg.Port),
 			Handler: handler,
@@ -33,7 +34,7 @@ func New(name string, cfg *api.Config, pool *pgxpool.Pool, logger *slog.Logger) 
 	}, nil
 }
 
-func newHandler(name string, cfg *api.Config, pool *pgxpool.Pool, logger *slog.Logger) (http.Handler, error) {
+func newHandler(name string, cfg *api.Config, pool *pgxpool.Pool, logger *slog.Logger) (http.Handler, func(), error) {
 	r := chi.NewRouter()
 
 	r.Use(apiMiddleware.RequestLogger(logger, request.NewRealClock(), nil))
@@ -42,11 +43,12 @@ func newHandler(name string, cfg *api.Config, pool *pgxpool.Pool, logger *slog.L
 
 	r.Use(apiMiddleware.NewCORSMiddleware(corsOrigins(cfg)))
 
-	if err := use_cases.Register(r, cfg, pool, logger); err != nil {
-		return nil, err
+	cleanup, err := use_cases.Register(r, cfg, pool, logger)
+	if err != nil {
+		return nil, nil, err
 	}
 
-	return r, nil
+	return r, cleanup, nil
 }
 
 func corsOrigins(cfg *api.Config) []string {
@@ -59,6 +61,7 @@ func corsOrigins(cfg *api.Config) []string {
 type Server struct {
 	cfg        *api.Config
 	httpServer *http.Server
+	cleanup    func()
 	logger     *slog.Logger
 }
 
@@ -86,5 +89,9 @@ func (s *Server) Shutdown() {
 		s.logger.Error(fmt.Sprintf("failed to gracefully shutdown server: %v", err))
 	} else {
 		s.logger.Info("server shutdown")
+	}
+
+	if s.cleanup != nil {
+		s.cleanup()
 	}
 }

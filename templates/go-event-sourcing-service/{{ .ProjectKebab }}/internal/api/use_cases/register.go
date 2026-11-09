@@ -36,10 +36,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func Register(router chi.Router, cfg *api.Config, pool *pgxpool.Pool, logger *slog.Logger) error {
+func Register(router chi.Router, cfg *api.Config, pool *pgxpool.Pool, logger *slog.Logger) (func(), error) {
 	authMiddleware, err := middleware.NewAuthMiddleware(cfg.TokenPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 {{- if .Scaffold.PushSubscriber }}
@@ -60,21 +60,23 @@ func Register(router chi.Router, cfg *api.Config, pool *pgxpool.Pool, logger *sl
 		}
 	}
 
-	for _, r := range publicRoutes {
-		router.MethodFunc(r.Method, r.Pattern, r.Handler)
-		logger.Info(fmt.Sprintf("registered public route %s %s", r.Method, r.Pattern))
-	}
-
-	router.Group(func(protectedRouter chi.Router) {
-		protectedRouter.Use(authMiddleware)
-
-		for _, r := range protectedRoutes {
-			protectedRouter.MethodFunc(r.Method, r.Pattern, r.Handler)
-			logger.Info(fmt.Sprintf("registered protected route %s %s", r.Method, r.Pattern))
+	router.Route("/api", func(apiRouter chi.Router) {
+		for _, r := range publicRoutes {
+			apiRouter.MethodFunc(r.Method, r.Pattern, r.Handler)
+			logger.Info(fmt.Sprintf("registered public route %s %s", r.Method, r.Pattern))
 		}
+
+		apiRouter.Group(func(protectedRouter chi.Router) {
+			protectedRouter.Use(authMiddleware)
+
+			for _, r := range protectedRoutes {
+				protectedRouter.MethodFunc(r.Method, r.Pattern, r.Handler)
+				logger.Info(fmt.Sprintf("registered protected route %s %s", r.Method, r.Pattern))
+			}
+		})
 	})
 
-	return nil
+	return {{- if .Scaffold.PushSubscriber }} func() { wsHub.Shutdown(context.Background()) } {{- else }} nil {{- end }}, nil
 }
 
 func allRoutes(pool *pgxpool.Pool{{- if .Scaffold.PushSubscriber }}, wsHub *websocket.Hub{{- end }}) []*route.Route {
