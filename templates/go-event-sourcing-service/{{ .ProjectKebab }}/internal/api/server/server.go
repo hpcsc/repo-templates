@@ -40,11 +40,20 @@ func newHandler(name string, cfg *api.Config, pool *pgxpool.Pool, logger *slog.L
 
 	r.Use(middleware.Recoverer)
 
+	r.Use(apiMiddleware.NewCORSMiddleware(corsOrigins(cfg)))
+
 	if err := use_cases.Register(r, cfg, pool, logger); err != nil {
 		return nil, err
 	}
 
 	return r, nil
+}
+
+func corsOrigins(cfg *api.Config) []string {
+	if len(cfg.AllowedOrigins) > 0 {
+		return cfg.AllowedOrigins
+	}
+	return []string{"http://localhost:8080", "http://127.0.0.1:8080"}
 }
 
 type Server struct {
