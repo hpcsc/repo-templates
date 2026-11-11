@@ -16,7 +16,7 @@ checks the payment, sends it to the payment network, and waits for the network t
 
 ```mermaid
 flowchart TD
-    request["POST /payments"] --> requested["PaymentRequested"]
+    request["POST /api/payments"] --> requested["PaymentRequested"]
     requested --> hold{"Can the account hold the amount?"}
     hold -->|"yes"| funded["PaymentFunded, then the fraud check and the sanctions screening"]
     hold -->|"no"| failed["PaymentFailed"]
@@ -94,8 +94,8 @@ is a business fact, so the payment keeps its state as events.
 | `payment-checks` | Gateway | `PaymentFunded` or `PaymentChecksRetried` → a request to the fraud service and to the sanctions service |
 | `payment-submission` | Gateway | `PaymentCleared` or `PaymentSubmissionRetried` → a request to the payment network, then `RecordSubmission` |
 | `payment-status` | Gateway | `PaymentStatusQueried` → a status request to the payment network, then `RecordSettlement` or `RecordReturn` |
-| Webhook routes | Translation | `POST /webhooks/fraud-checks` → `RecordFraudResult`. `POST /webhooks/sanctions-screenings` → `RecordScreeningResult`. `POST /webhooks/payment-network` → `RecordSettlement` or `RecordReturn`. |
-| `payments` | Projection | The read model of `GET /payments/{id}` |
+| Webhook routes | Translation | `POST /api/webhooks/fraud-checks` → `RecordFraudResult`. `POST /api/webhooks/sanctions-screenings` → `RecordScreeningResult`. `POST /api/webhooks/payment-network` → `RecordSettlement` or `RecordReturn`. |
+| `payments` | Projection | The read model of `GET /api/payments/{id}` |
 | `payment-deadlines` | Projection | The todo list: each open payment, its stage, its attempt and its deadline |
 | `payment-timeouts` | Scheduler | Each second, reads the todo list and sends a command for each passed deadline. Its name differs from the projection, because `catchup` holds a lock on the name of each worker. |
 
@@ -187,7 +187,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant API as POST /payments
+    participant API as POST /api/payments
     participant P as Payment aggregate
     participant R as Reactions and gateways
     participant A as Account aggregate
@@ -281,8 +281,8 @@ selects the path:
 | Pattern | Where |
 | --- | --- |
 | Process manager | The payment aggregate, with its reactions and gateways |
-| Command | `POST /payments` → `RequestPayment` |
-| View | `GET /payments/{id}`, and the todo list of the scheduler |
+| Command | `POST /api/payments` → `RequestPayment` |
+| View | `GET /api/payments/{id}`, and the todo list of the scheduler |
 | Automation | The reactions and the gateways |
 | Translation | The webhook routes |
 | Scheduler | `payment-timeouts`, with the todo list `payment-deadlines` |

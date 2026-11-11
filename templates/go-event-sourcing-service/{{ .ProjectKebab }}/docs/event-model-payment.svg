@@ -29,7 +29,7 @@
 <rect x="60" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
 <title>The client sends the owner, and gets the new account ID</title>
 </rect>
-<text x="180" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts (Client)</text>
+<text x="180" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/accounts (Client)</text>
 <rect x="50" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to open an account for an owner. The API makes the account ID</title>
 </rect>
@@ -70,7 +70,7 @@
 <rect x="700" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
 <title>The client sends the amount</title>
 </rect>
-<text x="820" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/deposits (Client)</text>
+<text x="820" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/accounts/{id}/deposits (Client)</text>
 <rect x="690" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to put money into an account</title>
 </rect>
@@ -95,7 +95,7 @@
 <rect x="1020" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
 <title>The client sends the amount</title>
 </rect>
-<text x="1140" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/withdrawals (Client)</text>
+<text x="1140" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/accounts/{id}/withdrawals (Client)</text>
 <rect x="1010" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to take money out of an account</title>
 </rect>
@@ -122,7 +122,7 @@
 <text x="1244" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">EnoughFunds</text>
 <rect x="1348" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
 <rect x="1340" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5"/>
-<text x="1460" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/close (Client)</text>
+<text x="1460" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/accounts/{id}/close (Client)</text>
 <rect x="1330" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to close an account</title>
 </rect>
@@ -241,7 +241,7 @@
 <rect x="3830" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
 <title>The client sends the account ID, the creditor IBAN and the amount, and gets the new payment ID</title>
 </rect>
-<text x="3950" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /payments (Client)</text>
+<text x="3950" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/payments (Client)</text>
 <rect x="3820" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to pay an amount from an account to an account at another bank. The API makes the payment ID</title>
 </rect>
@@ -325,11 +325,11 @@
 <rect x="4780" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
 <title>The fraud service sends a check that passed</title>
 </rect>
-<text x="4843" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/fraud-checks</text>
+<text x="4843" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /api/webhooks/fraud-checks</text>
 <rect x="4914" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
 <title>The fraud service sends a check that failed, with the reason</title>
 </rect>
-<text x="4977" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/fraud-checks</text>
+<text x="4977" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /api/webhooks/fraud-checks</text>
 <rect x="4860" y="816" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
 <title>The fraud service sends a check that passed</title>
 </rect>
@@ -357,11 +357,11 @@
 <rect x="5100" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
 <title>The sanctions service sends a screening that passed</title>
 </rect>
-<text x="5163" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/sanctions-screenings</text>
+<text x="5163" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /api/webhooks/sanctions-screenings</text>
 <rect x="5234" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
 <title>The sanctions service sends a screening that failed, with the reason</title>
 </rect>
-<text x="5297" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/sanctions-screenings</text>
+<text x="5297" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /api/webhooks/sanctions-screenings</text>
 <rect x="5180" y="816" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
 <title>The sanctions service sends a screening that passed</title>
 </rect>
@@ -470,7 +470,7 @@
 <rect x="6834" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
 <title>The payment network sends the status settled</title>
 </rect>
-<text x="6897" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/payment-network</text>
+<text x="6897" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /api/webhooks/payment-network</text>
 <rect x="6780" y="816" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
 <title>The payment network sends the status settled</title>
 </rect>
@@ -494,7 +494,7 @@
 <rect x="7154" y="435" width="126" height="41" fill="#f5f5f5" stroke="#666666" rx="3">
 <title>The payment network sends the status returned, with the reason of the other bank</title>
 </rect>
-<text x="7217" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /webhooks/payment-network</text>
+<text x="7217" y="455" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="10" fill="#666666">⚙ POST /api/webhooks/payment-network</text>
 <rect x="7100" y="816" width="100" height="45" fill="#f5f5f5" stroke="#666666" rx="5" stroke-dasharray="5,3">
 <title>The payment network sends the status returned, with the reason of the other bank</title>
 </rect>
@@ -503,7 +503,7 @@
 <rect x="8062" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
 <title>The client reads the status of a payment, and the reason when the payment did not settle</title>
 </rect>
-<text x="8182" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">GET /payments/{id} (Client)</text>
+<text x="8182" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">GET /api/payments/{id} (Client)</text>
 <rect x="7340" y="374" width="240" height="55" fill="#d5e8d4" stroke="#82b366" rx="5">
 <title>One payment with its account, creditor IBAN, amount, status, reason and network reference</title>
 </rect>

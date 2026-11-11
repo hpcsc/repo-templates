@@ -28,7 +28,7 @@ context "Accounts" {
     slice "Open Account" {
       description = "A client opens an account for an owner"
 
-      trigger "POST /accounts" {
+      trigger "POST /api/accounts" {
         description = "The client sends the owner, and gets the new account ID"
         actor       = Client
       }
@@ -145,7 +145,7 @@ context "Accounts" {
     slice "Deposit" {
       description = "A client puts money into an account"
 
-      trigger "POST /accounts/{id}/deposits" {
+      trigger "POST /api/accounts/{id}/deposits" {
         description = "The client sends the amount"
         actor       = Client
         reads       = AccountBalanceView
@@ -203,7 +203,7 @@ context "Accounts" {
     slice "Withdraw" {
       description = "A client takes money out of an account"
 
-      trigger "POST /accounts/{id}/withdrawals" {
+      trigger "POST /api/accounts/{id}/withdrawals" {
         description = "The client sends the amount"
         actor       = Client
         reads       = AccountBalanceView
@@ -274,7 +274,7 @@ context "Accounts" {
     slice "Close Account" {
       description = "A client closes an account"
 
-      trigger "POST /accounts/{id}/close" {
+      trigger "POST /api/accounts/{id}/close" {
         actor = Client
         reads = AccountBalanceView
       }
@@ -554,7 +554,7 @@ context "Accounts" {
     }
 
     slice "View Account Balance" {
-      description = "The account-balances projection keeps the account_balances table. GET /accounts/{id} reads it. A hold changes the balance only when the account captures it"
+      description = "The account-balances projection keeps the account_balances table. GET /api/accounts/{id} reads it. A hold changes the balance only when the account captures it"
 
       view "AccountBalanceView" {
         description = "One account with its owner, balance and status"
@@ -604,7 +604,7 @@ context "Payments" {
     slice "Request Payment" {
       description = "A client asks to pay an amount from an account to an account at another bank"
 
-      trigger "POST /payments" {
+      trigger "POST /api/payments" {
         description = "The client sends the account ID, the creditor IBAN and the amount, and gets the new payment ID"
         actor       = Client
       }
@@ -796,7 +796,7 @@ context "Payments" {
         }
       }
 
-      translation "POST /webhooks/fraud-checks" {
+      translation "POST /api/webhooks/fraud-checks" {
         description     = "The fraud service sends a check that passed"
         external_system = "Fraud service"
         command         = RecordFraudResult
@@ -810,7 +810,7 @@ context "Payments" {
         }
       }
 
-      translation "POST /webhooks/fraud-checks" {
+      translation "POST /api/webhooks/fraud-checks" {
         description     = "The fraud service sends a check that failed, with the reason"
         external_system = "Fraud service"
         command         = RecordFraudResult
@@ -886,7 +886,7 @@ context "Payments" {
         }
       }
 
-      translation "POST /webhooks/sanctions-screenings" {
+      translation "POST /api/webhooks/sanctions-screenings" {
         description     = "The sanctions service sends a screening that passed"
         external_system = "Sanctions service"
         command         = RecordScreeningResult
@@ -900,7 +900,7 @@ context "Payments" {
         }
       }
 
-      translation "POST /webhooks/sanctions-screenings" {
+      translation "POST /api/webhooks/sanctions-screenings" {
         description     = "The sanctions service sends a screening that failed, with the reason"
         external_system = "Sanctions service"
         command         = RecordScreeningResult
@@ -1257,7 +1257,7 @@ context "Payments" {
         command     = RecordSettlement
       }
 
-      translation "POST /webhooks/payment-network" {
+      translation "POST /api/webhooks/payment-network" {
         description     = "The payment network sends the status settled"
         external_system = "Payment network"
         command         = RecordSettlement
@@ -1337,7 +1337,7 @@ context "Payments" {
         command     = RecordReturn
       }
 
-      translation "POST /webhooks/payment-network" {
+      translation "POST /api/webhooks/payment-network" {
         description     = "The payment network sends the status returned, with the reason of the other bank"
         external_system = "Payment network"
         command         = RecordReturn
@@ -1378,9 +1378,9 @@ context "Payments" {
     }
 
     slice "View Payment Summary" {
-      description = "The payments projection keeps the payments table. GET /payments/{id} reads it"
+      description = "The payments projection keeps the payments table. GET /api/payments/{id} reads it"
 
-      trigger "GET /payments/{id}" {
+      trigger "GET /api/payments/{id}" {
         description = "The client reads the status of a payment, and the reason when the payment did not settle"
         actor       = Client
         reads       = PaymentSummaryView

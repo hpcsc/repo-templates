@@ -32,36 +32,36 @@ emod diagram docs/event-model-account.emod --format svg --specs -o docs/event-mo
 ## Storyboard
 
 The HTTP API is the only touchpoint. Each route that sends a command answers before the projection
-changes the balance, so `GET /accounts/{id}` can show the change a short time later.
+changes the balance, so `GET /api/accounts/{id}` can show the change a short time later.
 
 | Route | Inputs | Output |
 | --- | --- | --- |
-| `POST /accounts` | `owner` in the body | The new account ID |
-| `POST /accounts/{id}/deposits` | `amount` in the body | `200 OK` with no data |
-| `POST /accounts/{id}/withdrawals` | `amount` in the body | `200 OK` with no data |
-| `POST /accounts/{id}/close` | None | `200 OK` with no data |
-| `GET /accounts/{id}` | None | The owner, the balance, the status and the version |
+| `POST /api/accounts` | `owner` in the body | The new account ID |
+| `POST /api/accounts/{id}/deposits` | `amount` in the body | `200 OK` with no data |
+| `POST /api/accounts/{id}/withdrawals` | `amount` in the body | `200 OK` with no data |
+| `POST /api/accounts/{id}/close` | None | `200 OK` with no data |
+| `GET /api/accounts/{id}` | None | The owner, the balance, the status and the version |
 
-The client reads the account with `GET /accounts/{id}` before a deposit, a withdrawal or a close. The
+The client reads the account with `GET /api/accounts/{id}` before a deposit, a withdrawal or a close. The
 model shows this as a `reads` from each of the three triggers to `AccountBalanceView`.
 
 ## Business Processes
 
 | Capability | Process | Trigger | Steps | Outcome |
 | --- | --- | --- | --- | --- |
-| Account keeping | Open an account | `POST /accounts` | Open → bonus | An account with a balance of 1000 |
-| Account keeping | Move money | `POST /accounts/{id}/deposits` or `/withdrawals` | Deposit or withdraw | A new balance |
-| Account keeping | Close an account | `POST /accounts/{id}/close` | Close | An account that takes no more money |
+| Account keeping | Open an account | `POST /api/accounts` | Open → bonus | An account with a balance of 1000 |
+| Account keeping | Move money | `POST /api/accounts/{id}/deposits` or `/withdrawals` | Deposit or withdraw | A new balance |
+| Account keeping | Close an account | `POST /api/accounts/{id}/close` | Close | An account that takes no more money |
 
 ### Timeline
 
 ```
-POST /accounts          -> OpenAccount       -> AccountOpened
-AccountOpened           -> WelcomeBonusReaction -> GrantWelcomeBonus -> WelcomeBonusGranted
-POST .../deposits       -> Deposit           -> MoneyDeposited
-POST .../withdrawals    -> Withdraw          -> MoneyWithdrawn
-POST .../close          -> CloseAccount      -> AccountClosed
-all five events         -> AccountBalanceView (GET /accounts/{id})
+POST /api/accounts      -> OpenAccount           -> AccountOpened
+AccountOpened           -> WelcomeBonusReaction  -> GrantWelcomeBonus -> WelcomeBonusGranted
+POST .../deposits       -> Deposit               -> MoneyDeposited
+POST .../withdrawals    -> Withdraw              -> MoneyWithdrawn
+POST .../close          -> CloseAccount          -> AccountClosed
+all five events         -> AccountBalanceView    (GET /api/accounts/{id})
 ```
 
 ### Events
@@ -109,7 +109,7 @@ A rule refuses the command, and the API answers `400 Bad Request`.
 
 | View | Purpose | Backs | Data lineage |
 | --- | --- | --- | --- |
-| `AccountBalanceView` | One account with its owner, balance and status | `GET /accounts/{id}` | `id`, `owner` ← `AccountOpened`. `balance` ← `+ WelcomeBonusGranted.amount`, `+ MoneyDeposited.amount`, `- MoneyWithdrawn.amount`. `status` ← `closed` after `AccountClosed`. `version` ← the stream version of the last event |
+| `AccountBalanceView` | One account with its owner, balance and status | `GET /api/accounts/{id}` | `id`, `owner` ← `AccountOpened`. `balance` ← `+ WelcomeBonusGranted.amount`, `+ MoneyDeposited.amount`, `- MoneyWithdrawn.amount`. `status` ← `closed` after `AccountClosed`. `version` ← the stream version of the last event |
 
 ### Automations
 
@@ -121,7 +121,7 @@ A rule refuses the command, and the API answers `400 Bad Request`.
 
 | # | From | To | Pattern | Component |
 | --- | --- | --- | --- | --- |
-| 1 | `POST /accounts` | `OpenAccount` | UI trigger | `internal/api/use_cases/account` |
+| 1 | `POST /api/accounts` | `OpenAccount` | UI trigger | `internal/api/use_cases/account` |
 | 2 | `OpenAccount` | `AccountOpened` | Aggregate | `internal/use_cases/account/open` |
 | 3 | `AccountOpened` | `GrantWelcomeBonus` | Reactor | `welcomebonus.Reaction`, consumer `welcome-bonus` |
 | 4 | `GrantWelcomeBonus` | `WelcomeBonusGranted` | Aggregate | `internal/use_cases/account/welcomebonus` |

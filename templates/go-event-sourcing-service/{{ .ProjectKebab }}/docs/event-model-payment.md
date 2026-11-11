@@ -43,9 +43,9 @@ emod diagram docs/event-model-payment.emod --format svg --specs -o docs/event-mo
 | Actor | Type | Description |
 | --- | --- | --- |
 | Client | System or human | A program or a person that calls the HTTP API with a bearer token |
-| Fraud service | External system | Checks a payment for fraud, and sends the result to `POST /webhooks/fraud-checks` |
-| Sanctions service | External system | Checks the creditor against the sanctions lists, and sends the result to `POST /webhooks/sanctions-screenings` |
-| Payment network | External system | Takes the payment to the other bank. It sends the settlement or the return to `POST /webhooks/payment-network`, and it answers a status request |
+| Fraud service | External system | Checks a payment for fraud, and sends the result to `POST /api/webhooks/fraud-checks` |
+| Sanctions service | External system | Checks the creditor against the sanctions lists, and sends the result to `POST /api/webhooks/sanctions-screenings` |
+| Payment network | External system | Takes the payment to the other bank. It sends the settlement or the return to `POST /api/webhooks/payment-network`, and it answers a status request |
 | `PaymentFundingReaction` | Automation | Asks the account to hold the amount, and tells the payment the answer of the account |
 | `PaymentHoldsReaction` | Automation | Tells the account to capture or release the hold when the payment ends |
 | `PaymentChecksGateway` | Automation | Sends the payment to the fraud service and to the sanctions service |
@@ -63,24 +63,24 @@ The HTTP API is the touchpoint of the client and of the outside systems.
 
 | Route | Caller | Inputs | Output |
 | --- | --- | --- | --- |
-| `POST /payments` | Client | `accountId`, `creditorIban` and `amount` in the body | The new payment ID |
-| `GET /payments/{id}` | Client | None | The account ID, the creditor IBAN, the amount, the status, the reason, the network reference and the version |
-| `POST /webhooks/fraud-checks` | Fraud service | `paymentId`, `passed` and `reason` in the body | `200 OK` with no data |
-| `POST /webhooks/sanctions-screenings` | Sanctions service | `paymentId`, `passed` and `reason` in the body | `200 OK` with no data |
-| `POST /webhooks/payment-network` | Payment network | `paymentId`, `status` and `reason` in the body. The status is `settled` or `returned` | `200 OK` with no data |
+| `POST /api/payments` | Client | `accountId`, `creditorIban` and `amount` in the body | The new payment ID |
+| `GET /api/payments/{id}` | Client | None | The account ID, the creditor IBAN, the amount, the status, the reason, the network reference and the version |
+| `POST /api/webhooks/fraud-checks` | Fraud service | `paymentId`, `passed` and `reason` in the body | `200 OK` with no data |
+| `POST /api/webhooks/sanctions-screenings` | Sanctions service | `paymentId`, `passed` and `reason` in the body | `200 OK` with no data |
+| `POST /api/webhooks/payment-network` | Payment network | `paymentId`, `status` and `reason` in the body. The status is `settled` or `returned` | `200 OK` with no data |
 
 - All five routes are protected routes, so an outside system sends the bearer token of the API.
-- `POST /payments` answers before the payment ends. The client reads the progress of the payment with
-  `GET /payments/{id}`. The model shows this read as the trigger `GET /payments/{id}`, with no command.
+- `POST /api/payments` answers before the payment ends. The client reads the progress of the payment with
+  `GET /api/payments/{id}`. The model shows this read as the trigger `GET /api/payments/{id}`, with no command.
 - The status is `requested`, `funded`, `cleared`, `submitted`, `escalated`, `settled`, `returned`,
   `refused` or `failed`. The payment has a reason when its status is `failed`, `refused`, `escalated` or
   `returned`.
-- A refused `POST /payments` gets `400 Bad Request`. A webhook for a payment that does not exist gets
+- A refused `POST /api/payments` gets `400 Bad Request`. A webhook for a payment that does not exist gets
   `404 Not Found`.
 
 ## Business Process: Pay an Account at Another Bank
 
-Each path starts with `POST /payments`.
+Each path starts with `POST /api/payments`.
 
 | Path | Steps | Outcome |
 | --- | --- | --- |
@@ -94,19 +94,19 @@ Each path starts with `POST /payments`.
 ### Timeline
 
 ```
-POST /payments                                     -> RequestPayment        -> PaymentRequested
-PaymentRequested         -> PaymentFundingReaction -> PlaceHold             -> HoldPlaced or HoldRejected
-HoldPlaced               -> PaymentFundingReaction -> RecordFunding         -> PaymentFunded
-HoldRejected             -> PaymentFundingReaction -> RecordFunding         -> PaymentFailed
-PaymentFunded            -> PaymentChecksGateway   -> POST /checks of the fraud service, POST /screenings of the sanctions service
-POST /webhooks/fraud-checks                        -> RecordFraudResult     -> FraudCheckPassed or FraudCheckFailed, then PaymentCleared or PaymentRefused
-POST /webhooks/sanctions-screenings                -> RecordScreeningResult -> SanctionsScreeningPassed or SanctionsScreeningFailed, then PaymentCleared or PaymentRefused
-PaymentCleared           -> PaymentSubmissionGateway -> POST /payments of the payment network, then RecordSubmission -> PaymentSubmitted
-POST /webhooks/payment-network                     -> RecordSettlement      -> PaymentSettled
-POST /webhooks/payment-network                     -> RecordReturn          -> PaymentReturned
-PaymentSettled           -> PaymentHoldsReaction   -> CaptureHold           -> HoldCaptured
-PaymentRefused, PaymentFailed or PaymentReturned   -> PaymentHoldsReaction  -> ReleaseHold -> HoldReleased
-the payment events       -> PaymentSummaryView (GET /payments/{id})
+POST /api/payments                                 -> RequestPayment           -> PaymentRequested
+PaymentRequested                                   -> PaymentFundingReaction   -> PlaceHold             -> HoldPlaced or HoldRejected
+HoldPlaced                                         -> PaymentFundingReaction   -> RecordFunding         -> PaymentFunded
+HoldRejected                                       -> PaymentFundingReaction   -> RecordFunding         -> PaymentFailed
+PaymentFunded                                      -> PaymentChecksGateway     -> POST /checks of the fraud service, POST /screenings of the sanctions service
+POST /api/webhooks/fraud-checks                    -> RecordFraudResult        -> FraudCheckPassed or FraudCheckFailed, then PaymentCleared or PaymentRefused
+POST /api/webhooks/sanctions-screenings            -> RecordScreeningResult    -> SanctionsScreeningPassed or SanctionsScreeningFailed, then PaymentCleared or PaymentRefused
+PaymentCleared                                     -> PaymentSubmissionGateway -> POST /payments of the payment network, then RecordSubmission -> PaymentSubmitted
+POST /api/webhooks/payment-network                 -> RecordSettlement         -> PaymentSettled
+POST /api/webhooks/payment-network                 -> RecordReturn             -> PaymentReturned
+PaymentSettled                                     -> PaymentHoldsReaction     -> CaptureHold           -> HoldCaptured
+PaymentRefused, PaymentFailed or PaymentReturned   -> PaymentHoldsReaction     -> ReleaseHold           -> HoldReleased
+the payment events                                 -> PaymentSummaryView       (GET /api/payments/{id})
 ```
 
 The deadlines:
@@ -251,8 +251,8 @@ The account also records nothing in these cases:
 
 | View | Purpose | Backs | Data lineage |
 | --- | --- | --- | --- |
-| `AccountBalanceView` | One account with its owner, balance and status | `GET /accounts/{id}` | The lineage of [event-model-account.md](event-model-account.md), plus `balance` ← `- HoldCaptured.amount`. A placed or released hold does not change the balance |
-| `PaymentSummaryView` | One payment with its status | `GET /payments/{id}` | `id`, `accountId`, `creditorIban`, `amount` ← `PaymentRequested`. `status` ← `requested` after `PaymentRequested`, `funded` after `PaymentFunded`, and the same for `failed`, `cleared`, `refused`, `submitted`, `escalated`, `settled` and `returned`. `reason` ← the reason of `PaymentFailed`, `PaymentRefused`, `PaymentEscalated` or `PaymentReturned`, and empty after the other events. `networkReference` ← `PaymentSubmitted.networkReference`. `version` ← the stream version of the last event |
+| `AccountBalanceView` | One account with its owner, balance and status | `GET /api/accounts/{id}` | The lineage of [event-model-account.md](event-model-account.md), plus `balance` ← `- HoldCaptured.amount`. A placed or released hold does not change the balance |
+| `PaymentSummaryView` | One payment with its status | `GET /api/payments/{id}` | `id`, `accountId`, `creditorIban`, `amount` ← `PaymentRequested`. `status` ← `requested` after `PaymentRequested`, `funded` after `PaymentFunded`, and the same for `failed`, `cleared`, `refused`, `submitted`, `escalated`, `settled` and `returned`. `reason` ← the reason of `PaymentFailed`, `PaymentRefused`, `PaymentEscalated` or `PaymentReturned`, and empty after the other events. `networkReference` ← `PaymentSubmitted.networkReference`. `version` ← the stream version of the last event |
 | `PaymentDeadlinesView` | The todo list of `PaymentTimeoutsScheduler`: each open payment with the stage that waits, the attempt and the deadline | `PaymentTimeoutsScheduler` | The next table |
 
 The lineage of `PaymentDeadlinesView`:
@@ -300,19 +300,19 @@ The gateways:
 
 | # | From | To | Pattern | Component |
 | --- | --- | --- | --- | --- |
-| 1 | `POST /payments` | `RequestPayment` | UI trigger | `internal/api/use_cases/payment` |
+| 1 | `POST /api/payments` | `RequestPayment` | UI trigger | `internal/api/use_cases/payment` |
 | 2 | `RequestPayment` | `PaymentRequested` | Aggregate | `internal/use_cases/payment/request` |
 | 3 | `PaymentRequested` | `PlaceHold` | Reactor | `funding.Reaction`, consumer `payment-funding` |
 | 4 | `PlaceHold` | `HoldPlaced`, `HoldRejected` | Aggregate | `internal/use_cases/account/holds` |
 | 5 | `HoldPlaced`, `HoldRejected` | `RecordFunding` | Reactor | `funding.Reaction`, consumer `payment-funding` |
 | 6 | `RecordFunding` | `PaymentFunded`, `PaymentFailed` | Aggregate | `internal/use_cases/payment/record` |
 | 7 | `PaymentFunded`, `PaymentChecksRetried` | The fraud service and the sanctions service | Gateway | `checks.Gateway`, consumer `payment-checks` |
-| 8 | `POST /webhooks/fraud-checks` | `RecordFraudResult` | Translation | `internal/api/use_cases/webhook` |
-| 9 | `POST /webhooks/sanctions-screenings` | `RecordScreeningResult` | Translation | `internal/api/use_cases/webhook` |
+| 8 | `POST /api/webhooks/fraud-checks` | `RecordFraudResult` | Translation | `internal/api/use_cases/webhook` |
+| 9 | `POST /api/webhooks/sanctions-screenings` | `RecordScreeningResult` | Translation | `internal/api/use_cases/webhook` |
 | 10 | `RecordFraudResult`, `RecordScreeningResult` | The four check events, `PaymentCleared`, `PaymentRefused` | Aggregate | `internal/use_cases/payment/record` |
 | 11 | `PaymentCleared`, `PaymentSubmissionRetried` | The payment network, then `RecordSubmission` | Gateway | `submission.Gateway`, consumer `payment-submission` |
 | 12 | `RecordSubmission` | `PaymentSubmitted` | Aggregate | `internal/use_cases/payment/record` |
-| 13 | `POST /webhooks/payment-network` | `RecordSettlement`, `RecordReturn` | Translation | `internal/api/use_cases/webhook` |
+| 13 | `POST /api/webhooks/payment-network` | `RecordSettlement`, `RecordReturn` | Translation | `internal/api/use_cases/webhook` |
 | 14 | `PaymentStatusQueried` | The payment network, then `RecordSettlement` or `RecordReturn` | Gateway | `status.Gateway`, consumer `payment-status` |
 | 15 | `RecordSettlement`, `RecordReturn` | `PaymentSettled`, `PaymentReturned` | Aggregate | `internal/use_cases/payment/record` |
 | 16 | Eleven payment events | `PaymentDeadlinesView` | Projection | `deadlines.Projection`, consumer `payment-deadlines` |
@@ -338,7 +338,7 @@ with these differences:
 - **`PaymentChecksGateway` has no command.** In Event Modeling, a gateway sends a command that records no
   event. The code has no such command, because the gateway calls the fraud service and the sanctions
   service itself. The model does not add a command that the code does not have. The answers come back
-  through the translations of `POST /webhooks/fraud-checks` and `POST /webhooks/sanctions-screenings`.
+  through the translations of `POST /api/webhooks/fraud-checks` and `POST /api/webhooks/sanctions-screenings`.
 - **The slice "Ask for Checks" has no spec.** emod accepts a spec with `then = []` only in a slice with a
   command or a translation. The tests of `checks.Gateway` show the calls.
 - **The descriptions tell the calls of the other two gateways.** `PaymentSubmissionGateway` calls the
@@ -354,7 +354,7 @@ with these differences:
   `PaymentCleared` and `PaymentRefused`. `RecordScreeningResult` has the same form.
 - **The route of the payment network is two translations.** The route sends `RecordSettlement` or
   `RecordReturn` from the status in the body. An emod translation has one command.
-- **`GET /payments/{id}` is a trigger with no command.** emod needs a reader for each view. The client
+- **`GET /api/payments/{id}` is a trigger with no command.** emod needs a reader for each view. The client
   reads the payment and sends no command after the read.
 - **The commands that record nothing are not rules in the model.** In emod, an invariant refuses a
   command. `StageMatches`, `ResultOnce` and `EndsOnce` refuse nothing: the command succeeds and records

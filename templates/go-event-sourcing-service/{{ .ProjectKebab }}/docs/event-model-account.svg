@@ -25,7 +25,7 @@
 <rect x="60" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
 <title>The client sends the owner, and gets the new account ID</title>
 </rect>
-<text x="180" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts (Client)</text>
+<text x="180" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/accounts (Client)</text>
 <rect x="50" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to open an account for an owner. The API makes the account ID</title>
 </rect>
@@ -66,7 +66,7 @@
 <rect x="700" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
 <title>The client sends the amount</title>
 </rect>
-<text x="820" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/deposits (Client)</text>
+<text x="820" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/accounts/{id}/deposits (Client)</text>
 <rect x="690" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to put money into an account</title>
 </rect>
@@ -91,7 +91,7 @@
 <rect x="1020" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5">
 <title>The client sends the amount</title>
 </rect>
-<text x="1140" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/withdrawals (Client)</text>
+<text x="1140" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/accounts/{id}/withdrawals (Client)</text>
 <rect x="1010" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to take money out of an account</title>
 </rect>
@@ -118,7 +118,7 @@
 <text x="1244" y="633" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="11" fill="#b85450">EnoughFunds</text>
 <rect x="1348" y="148" width="224" height="6" fill="#333333" stroke="#333333" rx="0"/>
 <rect x="1340" y="142" width="240" height="55" fill="#ffffff" stroke="#333333" rx="5"/>
-<text x="1460" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /accounts/{id}/close (Client)</text>
+<text x="1460" y="169" text-anchor="middle" dominant-baseline="middle" font-family="sans-serif" font-size="12" fill="#333333">POST /api/accounts/{id}/close (Client)</text>
 <rect x="1330" y="374" width="240" height="55" fill="#dae8fc" stroke="#6c8ebf" rx="5">
 <title>Ask to close an account</title>
 </rect>

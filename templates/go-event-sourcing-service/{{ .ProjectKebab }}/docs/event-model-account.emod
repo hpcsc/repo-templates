@@ -27,7 +27,7 @@ context "Accounts" {
     slice "Open Account" {
       description = "A client opens an account for an owner"
 
-      trigger "POST /accounts" {
+      trigger "POST /api/accounts" {
         description = "The client sends the owner, and gets the new account ID"
         actor       = Client
       }
@@ -144,7 +144,7 @@ context "Accounts" {
     slice "Deposit" {
       description = "A client puts money into an account"
 
-      trigger "POST /accounts/{id}/deposits" {
+      trigger "POST /api/accounts/{id}/deposits" {
         description = "The client sends the amount"
         actor       = Client
         reads       = AccountBalanceView
@@ -202,7 +202,7 @@ context "Accounts" {
     slice "Withdraw" {
       description = "A client takes money out of an account"
 
-      trigger "POST /accounts/{id}/withdrawals" {
+      trigger "POST /api/accounts/{id}/withdrawals" {
         description = "The client sends the amount"
         actor       = Client
         reads       = AccountBalanceView
@@ -267,7 +267,7 @@ context "Accounts" {
     slice "Close Account" {
       description = "A client closes an account"
 
-      trigger "POST /accounts/{id}/close" {
+      trigger "POST /api/accounts/{id}/close" {
         actor = Client
         reads = AccountBalanceView
       }
@@ -313,7 +313,7 @@ context "Accounts" {
     }
 
     slice "View Account Balance" {
-      description = "The account-balances projection keeps the account_balances table. GET /accounts/{id} reads it"
+      description = "The account-balances projection keeps the account_balances table. GET /api/accounts/{id} reads it"
 
       view "AccountBalanceView" {
         description = "One account with its owner, balance and status"
