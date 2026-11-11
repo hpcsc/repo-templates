@@ -99,3 +99,15 @@ presets:
     Project: go-event-sourcing-service-project
     GoVersion: "1.27.1"
     ProcessManager: false
+  push:
+    Project: go-event-sourcing-service-project
+    GoVersion: "1.27.1"
+    ProcessManager: false
+    PushSubscriber: true
+    PushNATS: false
+  nats:
+    Project: go-event-sourcing-service-project
+    GoVersion: "1.27.1"
+    ProcessManager: false
+    PushSubscriber: false
+    PushNATS: true

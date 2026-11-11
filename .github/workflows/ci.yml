@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        preset: [example, minimal]
+        preset: [example, minimal, push, nats]
     steps:
     - uses: actions/checkout@v4
 
