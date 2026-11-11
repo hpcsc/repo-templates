@@ -148,10 +148,10 @@ func TestPaymentProcess(t *testing.T) {
 			sys := startSystem(t)
 			accountID := sys.openAccount(t, 500)
 
-			paymentID := sys.post(t, "/payments", fmt.Sprintf(`{"accountId": %q, "creditorIban": "DE89370400440532013000", "amount": 300}`, accountID))
+			paymentID := sys.post(t, "/api/payments", fmt.Sprintf(`{"accountId": %q, "creditorIban": "DE89370400440532013000", "amount": 300}`, accountID))
 
 			require.Eventually(t, func() bool {
-				return strings.Contains(sys.get(t, "/payments/"+paymentID), `"status":"settled"`)
+				return strings.Contains(sys.get(t, "/api/payments/"+paymentID), `"status":"settled"`)
 			}, 10*time.Second, 50*time.Millisecond, "the API does not show the payment settled")
 		})
 	})
@@ -185,7 +185,11 @@ func startSystem(t *testing.T) *system {
 	tokenPath := filepath.Join(t.TempDir(), "token")
 	require.NoError(t, os.WriteFile(tokenPath, []byte("valid-token"), 0o600))
 	router := chi.NewRouter()
-	require.NoError(t, apiUseCases.Register(router, &api.Config{TokenPath: tokenPath}, pool, test.DiscardLogger()))
+	cleanup, err := apiUseCases.Register(router, &api.Config{TokenPath: tokenPath}, pool, test.DiscardLogger())
+	require.NoError(t, err)
+	if cleanup != nil {
+		t.Cleanup(cleanup)
+	}
 	apiServer := httptest.NewServer(router)
 	t.Cleanup(apiServer.Close)
 	fakes := httptest.NewServer(fakeservices.NewHandler("valid-token", 10*time.Millisecond, test.DiscardLogger()))
@@ -194,7 +198,7 @@ func startSystem(t *testing.T) *system {
 		FraudServiceURL:     fakes.URL + "/fraud",
 		SanctionsServiceURL: fakes.URL + "/sanctions",
 		PaymentNetworkURL:   fakes.URL + "/network",
-		WebhookURL:          apiServer.URL + "/webhooks",
+		WebhookURL:          apiServer.URL + "/api/webhooks",
 	}
 
 	client := outside.NewClient(outside.WithRetries(3, 10*time.Millisecond))

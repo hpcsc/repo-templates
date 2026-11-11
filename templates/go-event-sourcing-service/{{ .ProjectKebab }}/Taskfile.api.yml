@@ -1,7 +1,7 @@
 version: '3'
 
 vars:
-  API: http://127.0.0.1:3333
+  API: http://127.0.0.1:3333/api
   AUTH: "Authorization: Bearer valid-token"
 
 tasks:
